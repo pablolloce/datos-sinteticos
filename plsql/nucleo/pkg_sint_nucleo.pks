@@ -2,15 +2,17 @@ CREATE OR REPLACE PACKAGE pkg_sint_nucleo
 AS
 /*******************************************************************************
  * Paquete : PKG_SINT_NUCLEO
- * Objetivo: Núcleo común del generador de datos sintéticos. Lo usan todos los
- *           paquetes de unidad funcional (PKG_SINT_<UNIDAD>).
+ * Objetivo: Núcleo común del generador de datos sintéticos.
  *
  * Contiene:
- *   - Constantes comunes (marca de registro sintético, formatos, valores técnicos).
+ *   - Constantes comunes (marca de registro sintético, formatos, errores).
  *   - Trazas por DBMS_OUTPUT.
  *   - Generación de claves internas (OIDs) con la función NEW_OID de GoldenSource.
- *   - Resolución/validación de datos de referencia (deben existir en BBDD).
- *   - Resumen y purga (reversión) de TODOS los datos sintéticos.
+ *   - Validación de datos de referencia (deben existir en BBDD).
+ *   - Resumen, conteo y purga genéricos sobre listas de tablas.
+ *
+ * Lo usan los paquetes GENERADOS (plsql/generado/): SINT_E_<ENTIDAD> y la
+ * fachada PKG_SINT. Este paquete se escribe a mano y debe cambiar poco.
  *
  * Esquema : KYTL_GC (derechos del propietario: se instala en el mismo esquema
  *           que las tablas FT_T_*).
@@ -19,6 +21,7 @@ AS
  *
  * Historial:
  *   2026-09-29  Versión inicial.
+ *   2026-09-29  Purga/resumen sobre listas recibidas; validación genérica de referencias (D-017).
  ******************************************************************************/
 
    ----------------------------------------------------------------------------
@@ -32,10 +35,6 @@ AS
    gc_formato_fecha_xml   CONSTANT VARCHAR2(30) := 'MM-DD-YYYY HH:MI:SS AM';
    gc_nls_fecha_xml       CONSTANT VARCHAR2(40) := 'NLS_DATE_LANGUAGE=ENGLISH';
 
-   -- Valores técnicos habituales en los mensajes del frontal.
-   gc_estado_activo       CONSTANT VARCHAR2(20) := 'ACTIVE';   -- DATA_STAT_TYP
-   gc_fuente_rdr          CONSTANT VARCHAR2(40) := 'RDR';      -- DATA_SRC_ID
-
    -- Límite de seguridad de entidades por llamada (evita ejecuciones accidentales).
    gc_max_entidades       CONSTANT PLS_INTEGER  := 100000;
 
@@ -43,6 +42,13 @@ AS
    ge_parametro_invalido  CONSTANT PLS_INTEGER  := -20001;
    ge_referencia_no_existe CONSTANT PLS_INTEGER := -20002;
    ge_purga_bloqueada     CONSTANT PLS_INTEGER  := -20003;
+   ge_verificacion_fallida CONSTANT PLS_INTEGER := -20004;
+
+   ----------------------------------------------------------------------------
+   -- Tipos comunes
+   ----------------------------------------------------------------------------
+   TYPE t_lista_tablas  IS TABLE OF VARCHAR2(128);
+   TYPE t_lista_numeros IS TABLE OF PLS_INTEGER;
 
    ----------------------------------------------------------------------------
    -- Utilidades
@@ -65,34 +71,28 @@ AS
    PROCEDURE validar_cantidad (p_cantidad IN PLS_INTEGER);
 
    ----------------------------------------------------------------------------
-   -- Datos de referencia (D-009): deben existir; si no, error ge_referencia_no_existe
+   -- Datos de referencia (D-019)
    ----------------------------------------------------------------------------
 
-   /* GUNT_OID de una unidad geográfica vigente (FT_T_GUNT). Ej.: ('AF','COUNTRY',1). */
-   FUNCTION oid_unidad_geografica (p_gu_id  IN VARCHAR2,
-                                   p_gu_typ IN VARCHAR2,
-                                   p_gu_cnt IN NUMBER) RETURN VARCHAR2;
-
-   /* CLSF_OID de una clasificación vigente (FT_T_INCL). Ej.: ('TPFINF','FINANCIAL'). */
-   FUNCTION oid_clasificacion (p_indus_cl_set_id IN VARCHAR2,
-                               p_cl_value        IN VARCHAR2) RETURN VARCHAR2;
-
-   /* Comprueba que existe la definición de estadístico (FT_T_STDF). */
-   PROCEDURE validar_estadistico (p_stat_def_id IN VARCHAR2);
-
-   /* Comprueba que existe la entidad organizativa (FT_T_ENTR). */
-   PROCEDURE validar_organizacion (p_org_id IN VARCHAR2);
+   /* Lanza ge_referencia_no_existe si p_encontradas = 0. Los paquetes de entidad
+      generados cuentan el dato maestro y llaman a este procedimiento. */
+   PROCEDURE exigir_referencia (p_encontradas IN PLS_INTEGER,
+                                p_descripcion IN VARCHAR2);
 
    ----------------------------------------------------------------------------
-   -- Resumen y purga (reversión)
+   -- Resumen y purga (las listas de tablas las genera PKG_SINT)
    ----------------------------------------------------------------------------
 
-   /* Muestra por DBMS_OUTPUT cuántas filas sintéticas hay en cada tabla gestionada. */
-   PROCEDURE resumen;
+   /* Nº de filas sintéticas de una tabla. */
+   FUNCTION contar (p_tabla IN VARCHAR2) RETURN PLS_INTEGER;
 
-   /* Borra TODAS las filas sintéticas (LAST_CHG_USR_ID = gc_usuario_sintetico) de
-      las tablas gestionadas, hijas antes que padres (D-006). */
-   PROCEDURE purgar (p_commit IN BOOLEAN DEFAULT FALSE);
+   /* Muestra por DBMS_OUTPUT las filas sintéticas de cada tabla de la lista. */
+   PROCEDURE resumen (p_tablas IN t_lista_tablas);
+
+   /* Borra TODAS las filas sintéticas de las tablas de la lista, en el orden dado
+      (hijas antes que padres). Atómica: si falla, no borra nada (D-006). */
+   PROCEDURE purgar (p_tablas IN t_lista_tablas,
+                     p_commit IN BOOLEAN DEFAULT FALSE);
 
 END pkg_sint_nucleo;
 /

@@ -59,11 +59,12 @@ Plantilla:
 ### D-006 — Purga (reversión) de datos sintéticos
 - Fecha: 2026-09-29 · Estado: VIGENTE
 - Decisión: `pkg_sint_nucleo.purgar` borra por `LAST_CHG_USR_ID = gc_usuario_sintetico` las
-  tablas de `g_tablas_gestionadas`, en **orden inverso de inserción** (hijas primero). Es
+  tablas gestionadas, **hijas antes que padres** (orden calculado por el generador a partir
+  de las FKs, D-021). Es
   atómica: si falla (p. ej. ORA-02292 porque las pruebas crearon registros hijos con FK
   activa) se deshace entera (`SAVEPOINT`) y lanza `ORA-20003` indicando la tabla.
-  Script de uso: `plsql/revertir_bbdd_sintetica.sql`.
-- Consecuencias: cada entidad nueva añade sus tablas a la lista. FKs activas que apuntan a
+  Uso: `EXEC pkg_sint.eliminar_bbdd;` o `plsql/eliminar_bbdd_sintetica.sql`.
+- Consecuencias: la lista de tablas la genera `generar_plsql.py`. FKs activas que apuntan a
   tablas gestionadas (a vigilar): hacia `FT_T_FINS` desde FIRR, ETPY, FINS_REGULATION_ATTR;
   hacia `FT_T_FINR` desde PFIN, RMPS, RGAT, FLMR, FIRR, ATRN, FPPR, FINS_REGULATION_ATTR.
 
@@ -84,7 +85,7 @@ Plantilla:
 - Consecuencias: `NEW_OID` es una función sin parámetros accesible desde `KYTL_GC` (confirmado, P-010).
 
 ### D-009 — Datos de referencia
-- Fecha: 2026-09-29 · Estado: VIGENTE (P-005)
+- Fecha: 2026-09-29 · Estado: SUSTITUIDA POR D-019 (P-005)
 - Decisión: los datos maestros deben existir en BBDD; el generador no los crea. Se resuelven
   o validan **una vez por llamada**, antes de insertar, con funciones del núcleo:
   `oid_unidad_geografica` (FT_T_GUNT por GU_ID/GU_TYP/GU_CNT), `oid_clasificacion`
@@ -108,13 +109,13 @@ Plantilla:
   3. Tag sin XELM → columna física con el mismo nombre sin guiones bajos.
 
 ### D-011 — Estructura: núcleo + paquetes por unidad funcional
-- Fecha: 2026-09-29 · Estado: VIGENTE (sustituye a D-004)
+- Fecha: 2026-09-29 · Estado: SUSTITUIDA POR D-017 (sustituía a D-004)
 - Contexto: el generador crecerá con muchas entidades; un único paquete sería difícil de
   mantener y cualquier cambio invalidaría todo.
 - Decisión: `PKG_SINT_NUCLEO` (constantes, trazas, OIDs, referencias, purga) + un paquete
   por unidad funcional `PKG_SINT_<UNIDAD>` (la unidad = `MAIN_ENTITY_TBL_TYP` del mensaje o
   agrupación acordada). Un procedimiento `generar_<entidad>` por mensaje. Orquestación en
-  `plsql/generar_bbdd_sintetica.sql`. Instalación en `KYTL_GC` con derechos del propietario.
+  un script de orquestación. Instalación en `KYTL_GC` con derechos del propietario.
 - Consecuencias: el rendimiento no depende del tamaño del paquete (se ejecuta SQL en bloque);
   la división es por mantenibilidad y para poder recompilar una unidad sin tocar las demás.
 
@@ -123,8 +124,10 @@ Plantilla:
 - Contexto: muchas claves GoldenSource son `CHAR(n)` (`INDUS_CL_SET_ID CHAR(10)`,
   `STAT_DEF_ID CHAR(8)`, `ORG_ID CHAR(4)`). Comparar una columna CHAR con un VARCHAR2 usa
   semántica sin relleno: `'TPFINF'` no encuentra `'TPFINF    '`.
-- Decisión: las variables usadas en `WHERE` sobre columnas CHAR se declaran con `%TYPE` de la
+- Decisión: las variables y parámetros usados sobre columnas CHAR se declaran con `%TYPE` de la
   columna (comparación con relleno de blancos y uso normal de índices). No usar `RTRIM(col)`.
+  Los literales `'...'` de Oracle ya son de tipo CHAR, así que las validaciones generadas
+  con literales también comparan correctamente.
 
 ### D-013 — Pruebas en Oracle local desechable
 - Fecha: 2026-09-29 · Estado: VIGENTE
@@ -137,13 +140,12 @@ Plantilla:
 ### D-014 — Fidelidad al mensaje; variaciones sólo bajo petición
 - Fecha: 2026-09-29 · Estado: VIGENTE (indicación del usuario)
 - Contexto: la BBDD sintética se construye principalmente a partir de mensajes XML.
-- Decisión: cada generador, llamado **sin parámetros**, crea **una** entidad con exactamente
-  los valores del mensaje; sólo las claves internas son nuevas (`NEW_OID`, D-008). No se
-  generan variaciones ni numeraciones automáticas. Los parámetros de `generar_<entidad>`
-  tienen como valor por defecto el del mensaje y sólo se usan para las variaciones que el
-  usuario pida expresamente por chat; cada variación se añade, documentada, a la sección 2
-  de `plsql/generar_bbdd_sintetica.sql` (y, si hace falta, un parámetro nuevo).
-- Consecuencias: `generar_bbdd_sintetica.sql` tiene una llamada sin parámetros por mensaje.
+- Decisión: cada paquete de entidad, llamado **sin parámetros**, crea **una** entidad con
+  exactamente los valores del mensaje; sólo las claves internas son nuevas (`NEW_OID`, D-018).
+  No se generan variaciones ni numeraciones automáticas. Las variaciones que el usuario pida
+  por chat se declaran en `mensajes_entrada/catalogo.json` (parámetros de la entidad, con el
+  valor del mensaje como defecto, y la lista `variaciones`) y el generador las añade a
+  `pkg_sint.crear_bbdd`.
 
 ### D-015 — Valores "raros" del frontal se respetan
 - Fecha: 2026-09-29 · Estado: VIGENTE (confirmado por el usuario)
@@ -160,6 +162,64 @@ Plantilla:
   `PROMPT`, `@@` (rutas relativas al script abierto), `SHOW ERRORS`, `WHENEVER SQLERROR`.
   La salida de `DBMS_OUTPUT` aparece en la pestaña "Salida de script".
 
+### D-017 — PL/SQL generado a partir de los mensajes (sustituye a D-011)
+- Fecha: 2026-09-29 · Estado: VIGENTE
+- Contexto: habrá muchos tipos de entidad, algunos con cientos de elementos y decenas de
+  INSERT por individuo. Escribir a mano cada INSERT no escala y es propenso a errores.
+- Decisión: `herramientas/generar_plsql.py` traduce cada mensaje (reglas de CLAUDE.md §4) a un
+  paquete `SINT_E_<ENTIDAD>` con SQL **estático** (un `FORALL` por segmento, un comentario por
+  valor indicando su origen), y genera la fachada `PKG_SINT`, `instalar.sql` y
+  `desinstalar.sql`. A mano sólo se mantiene `PKG_SINT_NUCLEO`. La configuración por entidad
+  (nombre, parámetros) y las variaciones viven en `mensajes_entrada/catalogo.json`.
+- Consecuencias: SQL estático ⇒ Oracle valida en la compilación que tablas y columnas existen.
+  Un paquete por entidad ⇒ tamaño acotado y recompilación independiente. Las correcciones de
+  traducción se hacen una vez en el generador. Lo generado se sube al repositorio.
+
+### D-018 — Claves internas del mensaje
+- Fecha: 2026-09-29 · Estado: VIGENTE
+- Decisión: la PK de un segmento, si es de una sola columna `CHAR/VARCHAR2(10)`, es un OID.
+  Si el mensaje trae su valor, **ese valor se sustituye por una clave nueva en todo el
+  mensaje** (propaga padre→hijo: p. ej. `INSTMNEM`, `FINROID`, `PRNTINSTMNEM`,
+  `FINRINSTMNEM`); si no lo trae, se genera una clave nueva para esa fila. PK de negocio (no
+  OID) → valor literal del mensaje, con aviso. PK compuesta → valores del mensaje (con
+  sustitución si coinciden con un OID nuevo); si falta alguna columna, error de generación.
+- Consecuencias: cada individuo creado tiene claves propias y las relaciones internas del
+  mensaje se mantienen.
+
+### D-019 — Datos de referencia: literal del mensaje + validación (sustituye a D-009)
+- Fecha: 2026-09-29 · Estado: VIGENTE
+- Decisión: los valores que apuntan a datos maestros (columnas con FK, activa o no, que no son
+  claves nuevas) se insertan **tal cual vienen en el mensaje** (p. ej. `GUNT_OID =
+  GUNT3B2===`, `CLSF_OID = =002DCDB88`, `STAT_DEF_ID`, `ORG_ID`). Antes de insertar, cada
+  paquete comprueba que existen (`SELECT COUNT(*)` por la PK/UK referenciada); si falta
+  alguno: ORA-20002 indicando tabla y valor, y `crear_bbdd` se deshace entera.
+- Consecuencias: el mensaje debe proceder de un entorno con los mismos datos maestros que
+  `KYTL_GC`. Si en una variación se cambia un campo con dato maestro asociado (p. ej. el país
+  y su `GUNT_OID`), hay que parametrizar ambos.
+
+### D-020 — Rutas de los scripts SQL
+- Fecha: 2026-09-29 · Estado: VIGENTE
+- Contexto: SQL*Plus resuelve `@@carpeta/fichero` de un script anidado respecto al directorio
+  actual, y SQL Developer respecto al script que lo llama.
+- Decisión: sólo los scripts de `plsql/` usan `@@` con subcarpetas (`instalar.sql` lista todos
+  los paquetes); los scripts anidados se llaman sin subcarpeta (`@@instalar.sql`). En SQL*Plus
+  hay que situarse en `plsql/`; en SQL Developer, abrir el script desde `plsql/`.
+
+### D-021 — Una sentencia para crear y otra para eliminar; verificación automática
+- Fecha: 2026-09-29 · Estado: VIGENTE
+- Decisión: `EXEC pkg_sint.crear_bbdd;` borra lo sintético previo, crea todas las entidades y
+  variaciones, **verifica** que cada tabla tiene exactamente las filas esperadas (calculadas
+  por el generador) y hace COMMIT; todo en una transacción (repetible sin duplicar).
+  `EXEC pkg_sint.eliminar_bbdd;` borra todo lo sintético. Scripts equivalentes para F5:
+  `plsql/crear_bbdd_sintetica.sql` (además instala/actualiza el código) y
+  `plsql/eliminar_bbdd_sintetica.sql`.
+
+### D-022 — Corrección: filas por Contrapartida Global
+- Fecha: 2026-09-29 · Estado: VIGENTE
+- Contexto: se documentó por error que la Contrapartida Global insertaba 11 filas.
+- Decisión: son **10** (FINS 1, FIST 2, FIGU 1, FINANCIAL_LEGAL_NAMES 1, FINR 1, FIRL 1,
+  ENFR 2, FRCL 1). Los conteos los calcula ahora el generador y se verifican al crear.
+
 ---
 
 ## Preguntas abiertas
@@ -174,6 +234,6 @@ Plantilla:
 | P-006 | Triggers / auditoría / historial. | RESUELTA: no hay |
 | P-007 | Esquema y despliegue. | RESUELTA: `KYTL_GC` (D-011), SQL Developer (D-016) |
 | P-008 | Registros sintéticos modificados por las pruebas (cambia `LAST_CHG_USR_ID`) o registros de las pruebas que cuelgan de ellos: la purga por usuario no los cubre. | ABIERTA — riesgo aceptado; propuesta: tabla de control con las claves generadas. **Pendiente de definir** |
-| P-009 | Volumen esperado. | RESUELTA: cientos de entidades (500 contrapartidas = 5.500 filas en ~0,05 s en local) |
+| P-009 | Volumen esperado. | RESUELTA: cientos de entidades (303 contrapartidas = 3.030 filas en ~0,05 s en local) |
 | P-010 | Firma exacta de `NEW_OID`. | RESUELTA: función sin parámetros que devuelve el OID de 10 caracteres, accesible desde `KYTL_GC` (D-008) |
 | P-011 | Variaciones y cantidades de la Contrapartida Global. | RESUELTA → D-014 (una entidad idéntica al mensaje; variaciones sólo por petición) |

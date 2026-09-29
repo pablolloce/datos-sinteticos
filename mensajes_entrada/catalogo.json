@@ -1,0 +1,11 @@
+{
+  "_ayuda": "Catálogo de la BBDD sintética. Ver mensajes_entrada/README.md. Tras cualquier cambio: python3 herramientas/generar_plsql.py",
+  "entidades": {
+    "Ejemplo_Alta_Contrapartida_Global.xml": {
+      "nombre": "CONTRAPARTIDA_GLOBAL",
+      "descripcion": "Alta de contrapartida global: institución financiera con estadísticos, país, nombre legal, rol, relación global, roles de entidad/sucursal y clasificación.",
+      "parametros": {}
+    }
+  },
+  "variaciones": []
+}

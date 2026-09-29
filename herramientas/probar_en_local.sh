@@ -4,14 +4,14 @@
 # Prueba de extremo a extremo del generador en un Oracle LOCAL y desechable
 # (contenedor gvenzl/oracle-free). NUNCA toca la BBDD real.
 #
-#   1. Arranca (o reutiliza) el contenedor "ora-sint" con el usuario KYTL_GC.
-#   2. Recrea las tablas implicadas a partir de esquema/modelo/modelo.json
-#      (herramientas/generar_ddl_pruebas.py) + stub de NEW_OID.
-#   3. Carga datos de referencia mínimos (plsql/pruebas/local/referencias_minimas.sql).
-#   4. Instala los paquetes, genera la BBDD sintética, verifica y revierte.
+#   1. Comprueba que plsql/generado está al día con los mensajes y el catálogo.
+#   2. Arranca (o reutiliza) el contenedor "ora-sint" con el usuario KYTL_GC.
+#   3. Recrea las tablas gestionadas y referenciadas (plsql/generado/manifiesto.json)
+#      a partir de esquema/modelo/modelo.json + stub de NEW_OID.
+#   4. Carga datos de referencia mínimos (plsql/pruebas/local/referencias_minimas.sql).
+#   5. crear_bbdd_sintetica.sql (dos veces: debe ser repetible), eliminar y desinstalar.
 #
 # Uso:   herramientas/probar_en_local.sh
-# Requisitos: docker. Al añadir una entidad, ampliar TABLAS y los scripts de prueba.
 # =============================================================================
 set -euo pipefail
 
@@ -20,12 +20,23 @@ CONTENEDOR="ora-sint"
 IMAGEN="gvenzl/oracle-free:23-slim-faststart"
 CONEXION="KYTL_GC/kytl@localhost/FREEPDB1"
 
-# Tablas a crear: primero las de referencia, después las gestionadas por el generador.
-TABLAS=(
-  FT_T_ENTR FT_T_GUNT FT_T_INCL FT_T_STDF
-  FT_T_FINS FT_T_FIST FT_T_FIGU FINANCIAL_LEGAL_NAMES FT_T_FINR FT_T_FIRL FT_T_ENFR FT_T_FRCL
+python3 "$RAIZ/herramientas/generar_plsql.py" --comprobar
+
+# Tablas: primero las referenciadas (datos maestros), después las gestionadas.
+mapfile -t TABLAS < <(python3 - "$RAIZ/plsql/generado/manifiesto.json" <<'EOF'
+import json, sys
+m = json.load(open(sys.argv[1]))
+vistas = []
+for t in m["tablas_referenciadas"] + m["tablas_gestionadas"]:
+    if t not in vistas:
+        vistas.append(t)
+print("\n".join(vistas))
+EOF
 )
 
+if ! docker info >/dev/null 2>&1; then
+  echo "Docker no está arrancado"; exit 1
+fi
 if ! docker ps --format '{{.Names}}' | grep -qx "$CONTENEDOR"; then
   docker rm -f "$CONTENEDOR" >/dev/null 2>&1 || true
   docker run -d --name "$CONTENEDOR" -e ORACLE_PASSWORD=oracle \
@@ -57,9 +68,22 @@ SET FEEDBACK OFF
 @pruebas/local/referencias_minimas.sql
 EOF
 
+echo "=============== crear_bbdd_sintetica.sql (1ª vez) ==============="
 sqlplus <<'EOF'
-@instalar.sql
-@generar_bbdd_sintetica.sql
-@pruebas/verificar_contrapartida_global.sql
-@revertir_bbdd_sintetica.sql
+@crear_bbdd_sintetica.sql
+EOF
+echo "=============== crear_bbdd_sintetica.sql (2ª vez: debe reemplazar, no duplicar) ==============="
+sqlplus <<'EOF'
+SET FEEDBACK OFF
+@crear_bbdd_sintetica.sql
+EOF
+echo "=============== eliminar_bbdd_sintetica.sql ==============="
+sqlplus <<'EOF'
+@eliminar_bbdd_sintetica.sql
+EOF
+echo "=============== desinstalar.sql ==============="
+sqlplus <<'EOF'
+@desinstalar.sql
+SELECT COUNT(*) AS objetos_restantes FROM user_objects
+ WHERE object_name LIKE 'PKG_SINT%' OR object_name LIKE 'SINT\_E\_%' ESCAPE '\';
 EOF

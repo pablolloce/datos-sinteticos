@@ -1,0 +1,48 @@
+{
+  "tablas_gestionadas": [
+    "FT_T_FINS",
+    "FT_T_FIST",
+    "FT_T_FIGU",
+    "FINANCIAL_LEGAL_NAMES",
+    "FT_T_FINR",
+    "FT_T_FIRL",
+    "FT_T_ENFR",
+    "FT_T_FRCL"
+  ],
+  "orden_purga": [
+    "FT_T_FRCL",
+    "FT_T_ENFR",
+    "FT_T_FIRL",
+    "FT_T_FINR",
+    "FINANCIAL_LEGAL_NAMES",
+    "FT_T_FIGU",
+    "FT_T_FIST",
+    "FT_T_FINS"
+  ],
+  "filas_esperadas": {
+    "FT_T_FINS": 1,
+    "FT_T_FIST": 2,
+    "FT_T_FIGU": 1,
+    "FINANCIAL_LEGAL_NAMES": 1,
+    "FT_T_FINR": 1,
+    "FT_T_FIRL": 1,
+    "FT_T_ENFR": 2,
+    "FT_T_FRCL": 1
+  },
+  "tablas_referenciadas": [
+    "FT_T_ENTR",
+    "FT_T_GUNT",
+    "FT_T_INCL",
+    "FT_T_STDF"
+  ],
+  "entidades": [
+    {
+      "nombre": "CONTRAPARTIDA_GLOBAL",
+      "paquete": "SINT_E_CONTRAPARTIDA_GLOBAL",
+      "unidad": "FINS",
+      "mensaje": "mensajes_entrada/Ejemplo_Alta_Contrapartida_Global.xml",
+      "filas_por_entidad": 10,
+      "avisos": []
+    }
+  ]
+}

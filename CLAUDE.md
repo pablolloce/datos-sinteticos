@@ -15,18 +15,19 @@ Oracle 19c** sobre la BBDD relacional de GoldenSource (esquema **`KYTL_GC`**, ta
 `FT_T_XXXX` y tablas custom).
 
 - Los datos sintéticos son la base de las **pruebas funcionales automáticas** de la aplicación.
-- Las entidades se definen a partir de **mensajes XML `STREET_REF`** que genera el frontal
-  (Workstation), que se dejan en [`mensajes_entrada/`](mensajes_entrada/).
-- Cada mensaje se **traduce a INSERTs** usando los metadatos del motor (XSEG: segmento → tabla;
-  XELM: elemento XML → columna) y la estructura física real de las tablas (columnas y
-  constraints), todo ello condensado en [`esquema/modelo/modelo.json`](esquema/modelo/).
+- Las entidades se definen con **mensajes XML `STREET_REF`** del frontal, que se dejan en
+  [`mensajes_entrada/`](mensajes_entrada/). Habrá muchos tipos de entidad: unos con decenas
+  y otros con cientos de elementos, y algunos con decenas de INSERT por individuo.
+- El PL/SQL de cada entidad **se genera automáticamente** a partir de su mensaje
+  (`herramientas/generar_plsql.py`, D-017) usando XSEG/XELM y la estructura física real de
+  las tablas, condensados en [`esquema/modelo/modelo.json`](esquema/modelo/).
 - Cada mensaje genera **una entidad idéntica al mensaje** (sólo cambian las claves internas).
-  Las entidades adicionales con variaciones **sólo** se crean cuando se piden expresamente
-  por chat, y se añaden al PL/SQL (D-014).
-- **Todo registro sintético lleva `LAST_CHG_USR_ID = 'TESTING:RDR'`** para identificarlo
-  y poder **borrarlo todo de golpe** (script de reversión).
-- Entregable final: scripts PL/SQL que se instalan en `KYTL_GC` y se ejecutan a voluntad
-  (`plsql/instalar.sql`, `plsql/generar_bbdd_sintetica.sql`, `plsql/revertir_bbdd_sintetica.sql`).
+  Las variaciones **sólo** se crean cuando se piden por chat (D-014) y se declaran en
+  [`mensajes_entrada/catalogo.json`](mensajes_entrada/catalogo.json).
+- **Todo registro sintético lleva `LAST_CHG_USR_ID = 'TESTING:RDR'`** (D-001).
+- **Una sentencia crea toda la BBDD sintética y otra la elimina** (D-021):
+  `EXEC pkg_sint.crear_bbdd;` / `EXEC pkg_sint.eliminar_bbdd;` (o los scripts
+  `plsql/crear_bbdd_sintetica.sql` / `plsql/eliminar_bbdd_sintetica.sql`, F5 en SQL Developer).
 
 ## 2. Reglas de trabajo
 
@@ -37,67 +38,63 @@ Oracle 19c** sobre la BBDD relacional de GoldenSource (esquema **`KYTL_GC`**, ta
 3. **Nunca inventar** estructura de BBDD (columnas, tipos, claves, valores de referencia):
    consultar `modelo.json` con las herramientas. Si falta información, preguntar al usuario
    y registrarlo como pregunta abierta (`P-xxx`).
-4. **Registrar decisiones**: todo comportamiento que se corrija o se acuerde durante una
+4. **Nunca editar a mano** `plsql/generado/`, `plsql/instalar.sql` ni `plsql/desinstalar.sql`:
+   se cambia el generador, el mensaje o el catálogo y se regenera.
+5. **Registrar decisiones**: todo comportamiento que se corrija o se acuerde durante una
    iteración se añade a `docs/DECISIONES.md` (nueva `D-xxx`) y, si es una regla general,
-   se refleja también en este documento.
-5. **Documentación**: el PL/SQL debe ser legible por personas: cabecera por objeto,
-   comentario por bloque lógico, nombres explícitos en español, sin "números mágicos"
-   (usar constantes). Cada INSERT indica el segmento del mensaje del que procede.
-6. **Idioma**: documentación, comentarios y nombres propios del generador en español.
+   se refleja también en este documento. Si la corrección es de traducción, se implementa
+   **en el generador** (así se aplica a todas las entidades).
+6. **Documentación**: el PL/SQL (escrito o generado) debe ser legible por personas: cabecera
+   por objeto, comentario por bloque, y en el generado cada valor indica de qué elemento del
+   mensaje procede.
+7. **Idioma**: documentación, comentarios y nombres propios del generador en español.
    Los nombres de tablas/columnas de GoldenSource se mantienen tal cual.
-7. **Probar antes de subir**: todo cambio de PL/SQL se compila y ejecuta con
-   `herramientas/probar_en_local.sh` (Oracle local desechable, D-013).
-8. **Commits** pequeños y descriptivos, uno por tarea lógica (p. ej. "Añade entidad
-   Contrapartida Global").
+8. **Probar antes de subir**: `herramientas/probar_en_local.sh` (Oracle local desechable, D-013).
+9. **Commits** pequeños y descriptivos, uno por tarea lógica. Los ficheros generados se suben
+   al repositorio (el usuario instala desde SQL Developer sin Python).
 
-## 3. Flujo de trabajo por iteración (nueva entidad)
+## 3. Flujo de trabajo
 
-1. El usuario añade un XML en `mensajes_entrada/` (convenciones en
-   [`mensajes_entrada/README.md`](mensajes_entrada/README.md)) y, opcionalmente, pide
-   generar N entidades variando ciertos campos.
-2. Generar el informe de mapeo:
+### Nueva entidad (el usuario deja un XML en `mensajes_entrada/`)
+1. Informe de mapeo y revisión de avisos:
    ```bash
    python3 herramientas/analizar_mensaje.py mensajes_entrada/<Mensaje>.xml -o docs/mapeos/<Mensaje>.md
    ```
-3. Revisar el informe: **Avisos** (segmentos sin tabla, tablas inferidas, elementos sin
-   columna, acciones desconocidas), **NOT NULL no informadas** (OIDs a generar) y
-   **FKs** (referencias a validar). Cada aviso no resuelto → pregunta al usuario.
-4. Clasificar cada campo del mensaje:
-   - **Fijo**: se copia del mensaje como constante del paquete (catálogos, tipos, `DATA_SRC_ID`...).
-   - **Parametrizable**: datos de negocio que previsiblemente se querrán variar (nombres,
-     país, organizaciones...) → parámetro cuyo **valor por defecto es el del mensaje** (D-014).
-     Nunca se generan variaciones que no se hayan pedido.
-   - **Clave**: OID / mnemónico interno → `pkg_sint_nucleo.nuevo_oid` (D-008).
-   - **Técnico**: lo fija el generador (`LAST_CHG_USR_ID`, `LAST_CHG_TMS`, `START_TMS`).
-   - **Referencia**: dato maestro existente (`GUNT_OID`, `CLSF_OID`, `STAT_DEF_ID`, `ORG_ID`...)
-     → se resuelve/valida una vez por llamada con las funciones del núcleo (D-009).
-5. Implementar `generar_<entidad>` en el paquete de su **unidad funcional**
-   (`plsql/unidades/pkg_sint_<unidad>`; si la unidad no existe, crearla — D-011).
-   Seguir la plantilla de `pkg_sint_fins.generar_contrapartida_global`.
-6. Añadir las tablas nuevas a `g_tablas_gestionadas` en `pkg_sint_nucleo.pkb`
-   **en orden de inserción** (la purga las recorre al revés).
-7. Añadir la llamada **sin parámetros** en la sección 1 de `plsql/generar_bbdd_sintetica.sql`
-   (las variaciones pedidas por chat van a la sección 2, documentadas), el script de verificación en
-   `plsql/pruebas/`, las tablas en `herramientas/probar_en_local.sh` y, si hacen falta,
-   datos de referencia en `plsql/pruebas/local/referencias_minimas.sql`.
-8. Ejecutar `herramientas/probar_en_local.sh`. Actualizar el catálogo (sección 6) y
-   `docs/DECISIONES.md`. Commit + push a `main`.
+   Avisos (segmentos sin tabla, tablas inferidas, elementos sin columna, acciones
+   desconocidas) → preguntar al usuario.
+2. Añadir la entrada en `mensajes_entrada/catalogo.json` (nombre corto de la entidad,
+   ≤ 23 caracteres, y descripción). Sin parámetros salvo petición expresa.
+3. Generar: `python3 herramientas/generar_plsql.py`. Si falla, el mensaje de error indica la
+   información que falta (columna NOT NULL sin valor, PK no OID, fecha no reconocida...) →
+   preguntar al usuario; no inventar valores.
+4. Revisar el paquete generado (`plsql/generado/entidades/<unidad>/sint_e_<entidad>.pkb`) y
+   añadir a `plsql/pruebas/local/referencias_minimas.sql` los datos maestros que valida.
+5. `herramientas/probar_en_local.sh`, actualizar el catálogo de la sección 6, decisiones,
+   commit + push a `main`.
 
-## 4. Traducción mensaje XML → INSERT
+### Variación pedida por chat ("genera N como X cambiando Y")
+1. Declarar el parámetro en la entidad del catálogo (`parametros`: nombre `P_...` y campos
+   `Segmento/TAG` a los que se aplica).
+2. Añadir la variación en `variaciones` (fecha, petición literal, entidad, cantidad, valores).
+3. Regenerar, probar en local, actualizar la sección 6 y commit.
 
-- `SEGMENT/@TYPE` = `XSEG.SEGMENT_NME`. Tabla física: `FT_T_` || `XSEG.SEGMENT_DESC`, salvo
-  tablas custom declaradas en `esquema/modelo/tablas_manual.csv` (D-010).
-- Elemento `<TAG VALUE="..."/>` → columna vía XELM. Si el segmento no tiene filas XELM se
-  hereda el XELM de otro segmento con el mismo `SEGMENT_DESC`; si el tag no está en XELM se
-  empareja con la columna física de igual nombre sin guiones bajos (`FINROID` → `FINR_OID`) (D-010).
-- Elementos XELM sin columna física (p. ej. `INSTNME`, `FINSID` en tablas hijas) son
-  lógicos del motor: **no se insertan**.
-- `SEGMENT/@ACTION` (D-005): `INSERT`, `OPTIMISTICUPDATE`, `OPTIMISTICINSERT`, `UNKNOWN`
-  → INSERT (la entidad siempre es nueva); `REFERENCE` → no inserta (sólo resuelve claves);
-  `IGNORE` → se ignora; `UPDATE`/`DELETE`/`INSERTIFUPDATE` → consultar al usuario.
-- Fechas del mensaje: formato `MM-DD-YYYY HH:MI:SS AM` (D-007).
-- `LASTCHGUSRID` del mensaje **se ignora** y se sustituye por `'TESTING:RDR'` (D-001).
-- Se respeta lo que envía el frontal aunque parezca incoherente (D-015); ante la duda, preguntar.
+## 4. Traducción mensaje XML → INSERT (implementada en el generador)
+
+- `SEGMENT/@TYPE` = `XSEG.SEGMENT_NME`. Tabla: `FT_T_` || `XSEG.SEGMENT_DESC`, salvo tablas
+  custom declaradas en `esquema/modelo/tablas_manual.csv` (D-010).
+- Elemento `<TAG VALUE="..."/>` → columna vía XELM (heredado del segmento con el mismo
+  `SEGMENT_DESC` si no tiene); si el tag no está en XELM, columna física de igual nombre sin
+  guiones bajos (D-010). Elementos sin columna física: no se insertan (quedan comentados).
+- `SEGMENT/@ACTION` (D-005): `INSERT`, `OPTIMISTICUPDATE`, `OPTIMISTICINSERT`, `UNKNOWN` →
+  INSERT; `REFERENCE`, `IGNORE` → nada; `UPDATE`/`DELETE`/`INSERTIFUPDATE` → consultar.
+- **Claves internas (D-018)**: PK de una columna `CHAR/VARCHAR2(10)` = OID. Si el mensaje la
+  trae, ese valor se sustituye por una clave nueva (`NEW_OID`) en **todo** el mensaje (así
+  se propagan las relaciones padre-hijo); si no la trae, se genera una clave nueva.
+- **Referencias (D-019)**: valores literales en columnas con FK (datos maestros) se copian del
+  mensaje y se **validan** antes de insertar; si falta alguno, ORA-20002 y no se crea nada.
+- Técnicos: `LAST_CHG_USR_ID` = `'TESTING:RDR'`; `START_TMS`, `LAST_CHG_TMS` = `SYSDATE` de la
+  llamada (D-007). Fechas de negocio del mensaje (`MM-DD-YYYY HH:MI:SS AM`) → `TO_DATE` literal.
+- Se respeta lo que envía el frontal aunque parezca incoherente (D-015).
 
 ## 5. Estructura del repositorio
 
@@ -105,52 +102,52 @@ Oracle 19c** sobre la BBDD relacional de GoldenSource (esquema **`KYTL_GC`**, ta
 CLAUDE.md                          <- este documento (objetivo + instrucciones)
 docs/DECISIONES.md                 <- decisiones (D-xxx) y preguntas abiertas (P-xxx)
 docs/OPTIMIZACION_ORACLE.md        <- técnicas de optimización aplicadas y su justificación
-docs/mapeos/                       <- informes de mapeo generados por mensaje
+docs/mapeos/                       <- informes de mapeo por mensaje (analizar_mensaje.py)
 esquema/old/                       <- extracciones originales (XSEG, XELM, ALL_TAB_COLUMNS, ALL_CONSTRAINTS, ALL_CONS_COLUMNS)
 esquema/modelo/modelo.json         <- modelo compacto generado (segmentos + tablas); NO editar
 esquema/modelo/tablas_manual.csv   <- TBL_ID -> tabla física confirmada a mano
-mensajes_entrada/                  <- mensajes XML de entrada (uno por entidad)
-herramientas/construir_modelo.py   <- old/*.csv -> modelo.json (re-ejecutar si cambian las extracciones)
+mensajes_entrada/*.xml             <- mensajes (admite subcarpetas, p. ej. por unidad)
+mensajes_entrada/catalogo.json     <- nombre de cada entidad, parámetros y variaciones
+herramientas/construir_modelo.py   <- esquema/old/*.csv -> modelo.json
 herramientas/analizar_mensaje.py   <- informe de mapeo de un mensaje / segmento / tabla
+herramientas/generar_plsql.py      <- mensajes + catálogo -> plsql/generado + instalar/desinstalar
 herramientas/generar_ddl_pruebas.py<- DDL de tablas para el Oracle local de pruebas
 herramientas/probar_en_local.sh    <- prueba de extremo a extremo en Oracle local (docker)
-plsql/instalar.sql                 <- instala núcleo + unidades en KYTL_GC
-plsql/generar_bbdd_sintetica.sql   <- construye la BBDD sintética completa
-plsql/revertir_bbdd_sintetica.sql  <- borra todos los registros sintéticos
-plsql/nucleo/                      <- PKG_SINT_NUCLEO: constantes, OIDs, referencias, purga
-plsql/unidades/                    <- PKG_SINT_<UNIDAD>: generadores por unidad funcional
-plsql/pruebas/                     <- verificaciones; pruebas/local/ sólo para Oracle local
-```
-
-Consultas rápidas:
-```bash
-python3 herramientas/analizar_mensaje.py --segmento FinancialInstitution   # XELM + tabla
-python3 herramientas/analizar_mensaje.py --tabla FT_T_FINS                 # columnas, PK, FKs
+plsql/crear_bbdd_sintetica.sql     <- F5: instala el código + crea toda la BBDD sintética
+plsql/eliminar_bbdd_sintetica.sql  <- F5: borra toda la BBDD sintética
+plsql/instalar.sql                 <- (generado) compila núcleo + entidades + fachada
+plsql/desinstalar.sql              <- (generado) borra datos y paquetes
+plsql/nucleo/                      <- PKG_SINT_NUCLEO (a mano): OIDs, trazas, purga, referencias
+plsql/generado/pkg_sint.*          <- (generado) fachada: crear_bbdd, eliminar_bbdd, resumen, verificar
+plsql/generado/entidades/<unidad>/ <- (generado) SINT_E_<ENTIDAD>: un paquete por mensaje
+plsql/generado/manifiesto.json     <- (generado) tablas, orden de purga, conteos esperados
+plsql/pruebas/local/               <- datos maestros mínimos para el Oracle local
 ```
 
 ## 6. Catálogo de entidades implementadas
 
-| Entidad | Mensaje | Procedimiento | Tablas (orden de inserción) | Filas/entidad | Estado |
-|---|---|---|---|---|---|
-| Contrapartida Global | `Ejemplo_Alta_Contrapartida_Global.xml` | `pkg_sint_fins.generar_contrapartida_global` | FT_T_FINS, FT_T_FIST (x2), FT_T_FIGU, FINANCIAL_LEGAL_NAMES, FT_T_FINR, FT_T_FIRL, FT_T_ENFR (x2), FT_T_FRCL | 11 | Implementada y probada en local; pendiente de ejecutar en KYTL_GC |
+| Entidad | Mensaje | Paquete | Unidad | Filas/entidad | Tablas | Estado |
+|---|---|---|---|---|---|---|
+| CONTRAPARTIDA_GLOBAL | `Ejemplo_Alta_Contrapartida_Global.xml` | `SINT_E_CONTRAPARTIDA_GLOBAL` | FINS | 10 | FT_T_FINS, FT_T_FIST (x2), FT_T_FIGU, FINANCIAL_LEGAL_NAMES, FT_T_FINR, FT_T_FIRL, FT_T_ENFR (x2), FT_T_FRCL | Probada en local; pendiente de ejecutar en KYTL_GC |
 
 Variaciones solicitadas por chat: ninguna.
 
-## 7. Convenciones PL/SQL
+## 7. Arquitectura y convenciones PL/SQL
 
-- **Núcleo + unidades funcionales** (D-011): `PKG_SINT_NUCLEO` (común) y un paquete
-  `PKG_SINT_<UNIDAD>` por unidad funcional (`FINS`, ...). Las unidades sólo dependen del núcleo.
-- Se instalan en `KYTL_GC` con derechos del propietario (sin `AUTHID CURRENT_USER`).
-- Scripts compatibles con **SQL Developer** (ejecución como script, F5) y SQL*Plus (D-016).
-- Prefijos: `gc_` constantes de paquete, `g_` variables de paquete, `ge_` códigos de error,
-  `p_` parámetros, `l_` variables locales, `c_` constantes locales, `t_` tipos.
-- `pkg_sint_nucleo.gc_usuario_sintetico` es el **único** sitio con `'TESTING:RDR'` en los
-  paquetes (los scripts SQL de verificación pueden usar el literal).
-- Patrón de generador: validar parámetros → resolver referencias (una vez) → generar claves
-  en una colección → `SAVEPOINT` → un `FORALL` por tabla/segmento → `COMMIT` sólo si `p_commit`.
-  Ante error: `ROLLBACK TO SAVEPOINT` y relanzar.
-- Variables para comparar con columnas `CHAR` declaradas con `%TYPE` (D-012).
-- SQL dinámico sólo en la purga/resumen genéricos, con `DBMS_ASSERT` y variables de enlace.
-- Trazas con `pkg_sint_nucleo.traza` (activable con `set_trazas`).
-- Código compatible con Oracle 19c (no usar sintaxis 21c+/23ai aunque el Oracle local la acepte:
-  p. ej. `BOOLEAN` en SQL, `IF EXISTS`, `SQL_MACRO` escalar, `FROM` opcional sin `DUAL`).
+- **Tres capas** (D-017):
+  1. `PKG_SINT_NUCLEO` (a mano, estable): constantes, `nuevo_oid`, trazas, `exigir_referencia`,
+     `contar`, `resumen`, `purgar`.
+  2. `SINT_E_<ENTIDAD>` (generado, uno por mensaje): `generar(p_cantidad [, parámetros])`.
+  3. `PKG_SINT` (generado): `crear_bbdd`, `eliminar_bbdd`, `resumen`, `verificar`; contiene la
+     lista de llamadas, las tablas gestionadas, el orden de purga (calculado por FKs) y los
+     conteos esperados.
+- Instalación en `KYTL_GC` con derechos del propietario. Scripts compatibles con SQL Developer
+  (F5) y SQL*Plus (D-016); los `@@` con subcarpetas sólo en scripts de `plsql/` (D-020).
+- Patrón de `generar`: validar cantidad → validar referencias → claves nuevas en colección →
+  `SAVEPOINT` → un `FORALL` por segmento → sin COMMIT. Ante error: `ROLLBACK TO SAVEPOINT`.
+- `crear_bbdd`: una transacción; borra lo sintético previo, crea, **verifica conteos** y COMMIT.
+- Prefijos: `gc_` constantes, `g_` variables de paquete, `ge_` códigos de error, `p_` parámetros,
+  `l_` variables locales, `c_` constantes locales, `t_` tipos, `k_` claves generadas.
+- `'TESTING:RDR'` sólo en `pkg_sint_nucleo.gc_usuario_sintetico`.
+- Código compatible con Oracle 19c (el Oracle local es 23ai: no usar `BOOLEAN` en SQL,
+  `IF EXISTS`, `SQL_MACRO` escalar, `SELECT` sin `FROM`, etc.).
