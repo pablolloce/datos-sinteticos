@@ -46,7 +46,7 @@ CREATE USER kytl_gc IDENTIFIED BY kytl QUOTA UNLIMITED ON users;
 GRANT CREATE SESSION, CREATE TABLE, CREATE PROCEDURE, CREATE SEQUENCE TO kytl_gc;
 EOF
 
-docker exec "$CONTENEDOR" rm -rf /tmp/plsql
+docker exec -u root "$CONTENEDOR" rm -rf /tmp/plsql
 docker cp "$RAIZ/plsql" "$CONTENEDOR:/tmp/plsql"
 python3 "$RAIZ/herramientas/generar_ddl_pruebas.py" "${TABLAS[@]}" > /tmp/entorno_local.sql
 docker cp /tmp/entorno_local.sql "$CONTENEDOR:/tmp/plsql/entorno_local.sql"

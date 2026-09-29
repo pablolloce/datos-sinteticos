@@ -20,7 +20,9 @@ Oracle 19c** sobre la BBDD relacional de GoldenSource (esquema **`KYTL_GC`**, ta
 - Cada mensaje se **traduce a INSERTs** usando los metadatos del motor (XSEG: segmento → tabla;
   XELM: elemento XML → columna) y la estructura física real de las tablas (columnas y
   constraints), todo ello condensado en [`esquema/modelo/modelo.json`](esquema/modelo/).
-- A partir de un mensaje se generan **N entidades** variando campos concretos (parámetros).
+- Cada mensaje genera **una entidad idéntica al mensaje** (sólo cambian las claves internas).
+  Las entidades adicionales con variaciones **sólo** se crean cuando se piden expresamente
+  por chat, y se añaden al PL/SQL (D-014).
 - **Todo registro sintético lleva `LAST_CHG_USR_ID = 'TESTING:RDR'`** para identificarlo
   y poder **borrarlo todo de golpe** (script de reversión).
 - Entregable final: scripts PL/SQL que se instalan en `KYTL_GC` y se ejecutan a voluntad
@@ -62,7 +64,9 @@ Oracle 19c** sobre la BBDD relacional de GoldenSource (esquema **`KYTL_GC`**, ta
    **FKs** (referencias a validar). Cada aviso no resuelto → pregunta al usuario.
 4. Clasificar cada campo del mensaje:
    - **Fijo**: se copia del mensaje como constante del paquete (catálogos, tipos, `DATA_SRC_ID`...).
-   - **Variable**: cambia por entidad o por llamada → parámetro del procedimiento (nombres, país...).
+   - **Parametrizable**: datos de negocio que previsiblemente se querrán variar (nombres,
+     país, organizaciones...) → parámetro cuyo **valor por defecto es el del mensaje** (D-014).
+     Nunca se generan variaciones que no se hayan pedido.
    - **Clave**: OID / mnemónico interno → `pkg_sint_nucleo.nuevo_oid` (D-008).
    - **Técnico**: lo fija el generador (`LAST_CHG_USR_ID`, `LAST_CHG_TMS`, `START_TMS`).
    - **Referencia**: dato maestro existente (`GUNT_OID`, `CLSF_OID`, `STAT_DEF_ID`, `ORG_ID`...)
@@ -72,7 +76,8 @@ Oracle 19c** sobre la BBDD relacional de GoldenSource (esquema **`KYTL_GC`**, ta
    Seguir la plantilla de `pkg_sint_fins.generar_contrapartida_global`.
 6. Añadir las tablas nuevas a `g_tablas_gestionadas` en `pkg_sint_nucleo.pkb`
    **en orden de inserción** (la purga las recorre al revés).
-7. Añadir la llamada en `plsql/generar_bbdd_sintetica.sql`, el script de verificación en
+7. Añadir la llamada **sin parámetros** en la sección 1 de `plsql/generar_bbdd_sintetica.sql`
+   (las variaciones pedidas por chat van a la sección 2, documentadas), el script de verificación en
    `plsql/pruebas/`, las tablas en `herramientas/probar_en_local.sh` y, si hacen falta,
    datos de referencia en `plsql/pruebas/local/referencias_minimas.sql`.
 8. Ejecutar `herramientas/probar_en_local.sh`. Actualizar el catálogo (sección 6) y
@@ -92,6 +97,7 @@ Oracle 19c** sobre la BBDD relacional de GoldenSource (esquema **`KYTL_GC`**, ta
   `IGNORE` → se ignora; `UPDATE`/`DELETE`/`INSERTIFUPDATE` → consultar al usuario.
 - Fechas del mensaje: formato `MM-DD-YYYY HH:MI:SS AM` (D-007).
 - `LASTCHGUSRID` del mensaje **se ignora** y se sustituye por `'TESTING:RDR'` (D-001).
+- Se respeta lo que envía el frontal aunque parezca incoherente (D-015); ante la duda, preguntar.
 
 ## 5. Estructura del repositorio
 
@@ -128,11 +134,14 @@ python3 herramientas/analizar_mensaje.py --tabla FT_T_FINS                 # col
 |---|---|---|---|---|---|
 | Contrapartida Global | `Ejemplo_Alta_Contrapartida_Global.xml` | `pkg_sint_fins.generar_contrapartida_global` | FT_T_FINS, FT_T_FIST (x2), FT_T_FIGU, FINANCIAL_LEGAL_NAMES, FT_T_FINR, FT_T_FIRL, FT_T_ENFR (x2), FT_T_FRCL | 11 | Implementada y probada en local; pendiente de ejecutar en KYTL_GC |
 
+Variaciones solicitadas por chat: ninguna.
+
 ## 7. Convenciones PL/SQL
 
 - **Núcleo + unidades funcionales** (D-011): `PKG_SINT_NUCLEO` (común) y un paquete
   `PKG_SINT_<UNIDAD>` por unidad funcional (`FINS`, ...). Las unidades sólo dependen del núcleo.
 - Se instalan en `KYTL_GC` con derechos del propietario (sin `AUTHID CURRENT_USER`).
+- Scripts compatibles con **SQL Developer** (ejecución como script, F5) y SQL*Plus (D-016).
 - Prefijos: `gc_` constantes de paquete, `g_` variables de paquete, `ge_` códigos de error,
   `p_` parámetros, `l_` variables locales, `c_` constantes locales, `t_` tipos.
 - `pkg_sint_nucleo.gc_usuario_sintetico` es el **único** sitio con `'TESTING:RDR'` en los

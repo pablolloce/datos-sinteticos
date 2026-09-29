@@ -10,15 +10,17 @@ Mensajes XML `STREET_REF` generados por el frontal, uno por entidad a construir.
   previa a `<?xml ...?>`; la herramienta de análisis la ignora.
 - No editar el mensaje a mano salvo para anonimizar datos; si se hace, indicarlo en el chat.
 
-## Peticiones de variación ("genera N entidades cambiando X")
+## Qué se genera a partir de cada mensaje (D-014)
 
-Se piden por el chat indicando, para cada campo que debe variar:
+Cada mensaje produce **una entidad idéntica al mensaje**: mismos valores en todos los
+campos; sólo las claves internas (OIDs) son nuevas, generadas con `NEW_OID`.
 
-| Campo (elemento XML) | Regla | Ejemplo |
-|---|---|---|
-| `INSTNME` | prefijo + secuencial | `CPTY_SINT_0001`, `CPTY_SINT_0002`... |
-| `GUID` | lista de valores en ciclo | `ES`, `FR`, `DE` |
-| `STATCHARVALTXT` | valor fijo distinto al del mensaje | `N` |
+## Variaciones (sólo bajo petición)
 
-El procedimiento `generar_<entidad>` expondrá esos campos como parámetros, de modo que
-las variaciones se hacen llamando al procedimiento con otros valores, sin tocar código.
+Si se necesitan entidades adicionales con cambios, se piden por el chat indicando el
+mensaje de partida, la cantidad y, para cada campo, el valor o la regla. Ejemplo:
+
+> A partir de `Ejemplo_Alta_Contrapartida_Global.xml`, genera 3 contrapartidas con país
+> `ES` y nombres `CPTY ES 1`, `CPTY ES 2`, `CPTY ES 3`.
+
+La variación se añade, documentada, a la sección 2 de `plsql/generar_bbdd_sintetica.sql`.

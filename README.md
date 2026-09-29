@@ -9,7 +9,7 @@ y se pueden borrar de golpe.
 - Decisiones y preguntas abiertas: [`docs/DECISIONES.md`](docs/DECISIONES.md)
 - Técnicas de optimización: [`docs/OPTIMIZACION_ORACLE.md`](docs/OPTIMIZACION_ORACLE.md)
 
-## Uso en la BBDD (SQL*Plus / SQLcl, conectado como KYTL_GC, desde `plsql/`)
+## Uso en la BBDD (SQL Developer, conectado como KYTL_GC: abrir el script de `plsql/` y ejecutar con F5)
 
 ```sql
 @instalar.sql                  -- compila PKG_SINT_NUCLEO y los paquetes de unidad
@@ -19,7 +19,7 @@ y se pueden borrar de golpe.
 
 Llamadas sueltas:
 ```sql
-EXEC pkg_sint_fins.generar_contrapartida_global(p_cantidad => 50, p_pais => 'ES', p_commit => TRUE);
+EXEC pkg_sint_fins.generar_contrapartida_global(p_commit => TRUE);   -- 1 entidad igual al mensaje
 EXEC pkg_sint_nucleo.resumen;
 ```
 

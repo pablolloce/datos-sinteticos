@@ -81,7 +81,7 @@ Plantilla:
   `NEW_OID` de GoldenSource a través de `pkg_sint_nucleo.nuevo_oid` (único punto de llamada).
   Los OIDs que aparecen en el mensaje de ejemplo **no se reutilizan**: sólo indican qué
   segmentos comparten clave.
-- Consecuencias: se asume `NEW_OID` sin parámetros y accesible desde `KYTL_GC` (ver P-010).
+- Consecuencias: `NEW_OID` es una función sin parámetros accesible desde `KYTL_GC` (confirmado, P-010).
 
 ### D-009 — Datos de referencia
 - Fecha: 2026-09-29 · Estado: VIGENTE (P-005)
@@ -134,6 +134,32 @@ Plantilla:
 - Consecuencias: el Oracle local es 23ai; hay que evitar sintaxis posterior a 19c (CLAUDE.md §7).
   La prueba local no sustituye una primera ejecución controlada en `KYTL_GC`.
 
+### D-014 — Fidelidad al mensaje; variaciones sólo bajo petición
+- Fecha: 2026-09-29 · Estado: VIGENTE (indicación del usuario)
+- Contexto: la BBDD sintética se construye principalmente a partir de mensajes XML.
+- Decisión: cada generador, llamado **sin parámetros**, crea **una** entidad con exactamente
+  los valores del mensaje; sólo las claves internas son nuevas (`NEW_OID`, D-008). No se
+  generan variaciones ni numeraciones automáticas. Los parámetros de `generar_<entidad>`
+  tienen como valor por defecto el del mensaje y sólo se usan para las variaciones que el
+  usuario pida expresamente por chat; cada variación se añade, documentada, a la sección 2
+  de `plsql/generar_bbdd_sintetica.sql` (y, si hace falta, un parámetro nuevo).
+- Consecuencias: `generar_bbdd_sintetica.sql` tiene una llamada sin parámetros por mensaje.
+
+### D-015 — Valores "raros" del frontal se respetan
+- Fecha: 2026-09-29 · Estado: VIGENTE (confirmado por el usuario)
+- Decisión: se inserta lo que envía el frontal aunque parezca incoherente. Casos confirmados:
+  `FT_T_FINR.PREF_ID_CTXT_TYP = 'Y'` es normal; en `FT_T_ENFR` el frontal no informa
+  `INST_MNEM` (sólo `FINR_INST_MNEM`) y se deja nulo (otros procesos lo rellenan con
+  `FINR_INST_MNEM`, pero no se imita si el mensaje no lo trae).
+
+### D-016 — Herramienta de ejecución: SQL Developer
+- Fecha: 2026-09-29 · Estado: VIGENTE (P-007)
+- Decisión: los scripts de `plsql/` se ejecutan en SQL Developer, conectado como `KYTL_GC`,
+  abriendo el fichero y ejecutándolo como script (**F5**, no "Ejecutar sentencia"). Sólo se
+  usan comandos de script compatibles con SQL Developer y SQL*Plus/SQLcl: `SET SERVEROUTPUT`,
+  `PROMPT`, `@@` (rutas relativas al script abierto), `SHOW ERRORS`, `WHENEVER SQLERROR`.
+  La salida de `DBMS_OUTPUT` aparece en la pestaña "Salida de script".
+
 ---
 
 ## Preguntas abiertas
@@ -141,13 +167,13 @@ Plantilla:
 | Id | Pregunta | Estado |
 |---|---|---|
 | P-001 | Generación de OIDs. | RESUELTA → D-008 (función `NEW_OID`) |
-| P-002 | Segmento `FINSFinancialLegalNames` sin XELM. | RESUELTA → D-010 (tabla `FINANCIAL_LEGAL_NAMES`, XELM heredado) — **confirmar tabla** |
+| P-002 | Segmento `FINSFinancialLegalNames` sin XELM. | RESUELTA → D-010 (tabla `FINANCIAL_LEGAL_NAMES` confirmada por el usuario, XELM heredado) |
 | P-003 | Estructura física y constraints. | RESUELTA → extracciones en `esquema/old/`, `modelo.json` |
 | P-004 | Semántica de `OPTIMISTICUPDATE`. | RESUELTA → D-005 |
 | P-005 | Datos de referencia. | RESUELTA → D-009 (deben existir en BBDD) |
 | P-006 | Triggers / auditoría / historial. | RESUELTA: no hay |
-| P-007 | Esquema y despliegue. | RESUELTA: `KYTL_GC` (D-011). Pendiente: herramienta de ejecución (SQL*Plus, SQL Developer...) |
+| P-007 | Esquema y despliegue. | RESUELTA: `KYTL_GC` (D-011), SQL Developer (D-016) |
 | P-008 | Registros sintéticos modificados por las pruebas (cambia `LAST_CHG_USR_ID`) o registros de las pruebas que cuelgan de ellos: la purga por usuario no los cubre. | ABIERTA — riesgo aceptado; propuesta: tabla de control con las claves generadas. **Pendiente de definir** |
 | P-009 | Volumen esperado. | RESUELTA: cientos de entidades (500 contrapartidas = 5.500 filas en ~0,05 s en local) |
-| P-010 | Firma exacta de `NEW_OID`: ¿función sin parámetros que devuelve el OID (CHAR/VARCHAR2(10))? ¿propietario `KYTL_GC` o sinónimo? | ABIERTA |
-| P-011 | Contrapartida Global: ¿qué campos deben variar entre entidades además del nombre y el país? ¿Cuántas contrapartidas se quieren en la BBDD sintética (ahora 10)? | ABIERTA |
+| P-010 | Firma exacta de `NEW_OID`. | RESUELTA: función sin parámetros que devuelve el OID de 10 caracteres, accesible desde `KYTL_GC` (D-008) |
+| P-011 | Variaciones y cantidades de la Contrapartida Global. | RESUELTA → D-014 (una entidad idéntica al mensaje; variaciones sólo por petición) |

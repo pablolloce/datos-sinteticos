@@ -14,6 +14,7 @@ AS
  *
  * Historial:
  *   2026-09-29  generar_contrapartida_global (Ejemplo_Alta_Contrapartida_Global.xml).
+ *   2026-09-29  Valores por defecto = valores del mensaje; sin numeración automática (D-014).
  ******************************************************************************/
 
    /* ---------------------------------------------------------------------------
@@ -31,11 +32,15 @@ AS
     *   FT_T_ENFR (2)  rol ENT_OWN (entidad) y BRANCH_OWN (sucursal)
     *   FT_T_FRCL (1)  clasificación del rol (TPFINF / FINANCIAL)
     *
-    * Parámetros (campos variables):
-    *   p_cantidad            nº de contrapartidas a crear.
-    *   p_prefijo_nombre      nombre = prefijo || ' ' || nº secuencial (5 dígitos).
-    *                         Se usa en INST_NME, INST_DESC, INST_LEGAL_NME y FLG_LEGAL_NME.
-    *   p_numero_inicial      primer nº secuencial (para no repetir nombres entre llamadas).
+    * Fidelidad al mensaje (D-014): llamado sin parámetros crea UNA entidad con
+    * exactamente los valores del mensaje (sólo las claves internas son nuevas, NEW_OID).
+    * Los parámetros existen para las variaciones que se pidan expresamente por chat;
+    * sus valores por defecto son los del mensaje.
+    *
+    * Parámetros:
+    *   p_cantidad            nº de contrapartidas a crear (todas con los mismos valores).
+    *   p_nombre              INST_NME, INST_DESC, INST_LEGAL_NME y FLG_LEGAL_NME
+    *                         (en el mensaje los cuatro valen lo mismo).
     *   p_pais                GU_ID del país de la participación geográfica (FT_T_FIGU).
     *   p_org_id_entidad      ORG_ID del rol ENT_OWN.
     *   p_org_id_sucursal     ORG_ID del rol BRANCH_OWN.
@@ -44,8 +49,7 @@ AS
     * ------------------------------------------------------------------------- */
    PROCEDURE generar_contrapartida_global (
       p_cantidad            IN PLS_INTEGER DEFAULT 1,
-      p_prefijo_nombre      IN VARCHAR2    DEFAULT 'SINT CPTY GLOBAL',
-      p_numero_inicial      IN PLS_INTEGER DEFAULT 1,
+      p_nombre              IN VARCHAR2    DEFAULT 'PROBANDO',
       p_pais                IN VARCHAR2    DEFAULT 'AF',
       p_org_id_entidad      IN VARCHAR2    DEFAULT '0182',
       p_org_id_sucursal     IN VARCHAR2    DEFAULT 'A18',

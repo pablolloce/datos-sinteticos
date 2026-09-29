@@ -23,8 +23,7 @@ AS
    gc_clsf_conjunto       CONSTANT VARCHAR2(10) := 'TPFINF';     -- FT_T_FRCL.INDUS_CL_SET_ID
    gc_clsf_valor          CONSTANT VARCHAR2(40) := 'FINANCIAL';  -- FT_T_FRCL.CL_VALUE
 
-   gc_digitos_secuencia   CONSTANT PLS_INTEGER  := 5;            -- 'SINT CPTY GLOBAL 00001'
-   gc_max_long_prefijo    CONSTANT PLS_INTEGER  := 200;          -- FLG_LEGAL_NME es VARCHAR2(256)
+   gc_max_long_nombre     CONSTANT PLS_INTEGER  := 256;          -- FLG_LEGAL_NME es VARCHAR2(256)
 
    ----------------------------------------------------------------------------
    -- Tipos: claves generadas por entidad
@@ -51,8 +50,7 @@ AS
    ----------------------------------------------------------------------------
    PROCEDURE generar_contrapartida_global (
       p_cantidad            IN PLS_INTEGER DEFAULT 1,
-      p_prefijo_nombre      IN VARCHAR2    DEFAULT 'SINT CPTY GLOBAL',
-      p_numero_inicial      IN PLS_INTEGER DEFAULT 1,
+      p_nombre              IN VARCHAR2    DEFAULT 'PROBANDO',
       p_pais                IN VARCHAR2    DEFAULT 'AF',
       p_org_id_entidad      IN VARCHAR2    DEFAULT '0182',
       p_org_id_sucursal     IN VARCHAR2    DEFAULT 'A18',
@@ -75,9 +73,9 @@ AS
       -- 1. Validación de parámetros
       -------------------------------------------------------------------------
       pkg_sint_nucleo.validar_cantidad(p_cantidad);
-      IF p_prefijo_nombre IS NULL OR LENGTH(p_prefijo_nombre) > gc_max_long_prefijo THEN
+      IF p_nombre IS NULL OR LENGTH(p_nombre) > gc_max_long_nombre THEN
          RAISE_APPLICATION_ERROR(pkg_sint_nucleo.ge_parametro_invalido,
-            'p_prefijo_nombre obligatorio y de como máximo ' || gc_max_long_prefijo || ' caracteres');
+            'p_nombre obligatorio y de como máximo ' || gc_max_long_nombre || ' caracteres');
       END IF;
 
       -------------------------------------------------------------------------
@@ -92,11 +90,10 @@ AS
       pkg_sint_nucleo.validar_organizacion(p_org_id_sucursal);
 
       -------------------------------------------------------------------------
-      -- 3. Generación de nombres y claves (OIDs) en memoria
+      -- 3. Generación de claves (OIDs) en memoria
       -------------------------------------------------------------------------
       FOR i IN 1 .. p_cantidad LOOP
-         l_cptys(i).nombre            := p_prefijo_nombre || ' ' ||
-                                         LPAD(p_numero_inicial + i - 1, gc_digitos_secuencia, '0');
+         l_cptys(i).nombre            := p_nombre;
          l_cptys(i).inst_mnem         := pkg_sint_nucleo.nuevo_oid;
          l_cptys(i).stat_id_uk        := pkg_sint_nucleo.nuevo_oid;
          l_cptys(i).stat_id_mifid     := pkg_sint_nucleo.nuevo_oid;
@@ -179,7 +176,8 @@ AS
              gc_rol_tipo, gc_relacion_global, c_fuente, c_activo, l_ahora, l_ahora, c_usuario);
 
       -- 4.7 FT_T_ENFR: roles frente a entidad y sucursal
-      --     (segmento FINREnterpriseFinancialInstitutionRole x2; el mensaje no informa INST_MNEM)
+      --     (segmento FINREnterpriseFinancialInstitutionRole x2). El frontal no informa
+      --     INST_MNEM (sólo FINR_INST_MNEM) y se deja nulo, igual que el mensaje (D-015).
       FORALL i IN 1 .. l_cptys.COUNT
          INSERT INTO ft_t_enfr
             (enfr_oid, org_id, finr_oid, finr_inst_mnem, finsrl_typ, enfr_rl_typ,
@@ -212,7 +210,7 @@ AS
          COMMIT;
       END IF;
       pkg_sint_nucleo.traza('Contrapartida Global: ' || l_cptys.COUNT || ' entidad(es) creada(s) ('
-                            || l_cptys(1).nombre || ' .. ' || l_cptys(l_cptys.COUNT).nombre || ')'
+                            || p_nombre || ', primer INST_MNEM ' || l_cptys(1).inst_mnem || ')'
                             || CASE WHEN p_commit THEN ' (COMMIT)' ELSE ' (pendiente de COMMIT)' END);
    EXCEPTION
       WHEN OTHERS THEN
