@@ -1,0 +1,2 @@
+TBL_ID,TABLA,COMENTARIO
+FLG1,FINANCIAL_LEGAL_NAMES,Tabla custom sin prefijo FT_T_; columnas coinciden con XELM del segmento FinancialLegalNames (ver D-010)

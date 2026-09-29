@@ -1,7 +1,7 @@
 # Mapeo del mensaje `Ejemplo_Alta_Contrapartida_Global.xml`
 
 > Generado con `herramientas/analizar_mensaje.py`. No editar a mano:
-> regenerar si cambia el mensaje o los esquemas.
+> regenerar si cambia el mensaje o el modelo.
 
 ## Cabecera
 
@@ -20,186 +20,216 @@
 | 2 | FinancialInstitutionStatistic | INSERT | FT_T_FIST | INSERT |
 | 3 | FinancialInstitutionGeoUnitPrt | INSERT | FT_T_FIGU | INSERT |
 | 4 | FinancialInstitutionStatistic | INSERT | FT_T_FIST | INSERT |
-| 5 | FinancialInstitution | REFERENCE | FT_T_FINS | Sin insert (referencia a entidad ya creada en el mismo mensaje) |
-| 6 | FINSFinancialLegalNames | OPTIMISTICUPDATE | FT_T_FLG1 | INSERT si no existe (pendiente de confirmar, ver DECISIONES.md) |
-| 7 | FinancialInstitution | REFERENCE | FT_T_FINS | Sin insert (referencia a entidad ya creada en el mismo mensaje) |
+| 5 | FinancialInstitution | REFERENCE | FT_T_FINS | Sin insert (referencia a entidad existente) |
+| 6 | FINSFinancialLegalNames | OPTIMISTICUPDATE | FINANCIAL_LEGAL_NAMES | INSERT (entidad nueva) |
+| 7 | FinancialInstitution | REFERENCE | FT_T_FINS | Sin insert (referencia a entidad existente) |
 | 8 | FINSFinancialInstitutionRole | INSERT | FT_T_FINR | INSERT |
 | 9 | FINRFinsFinsRoleRelationship | INSERT | FT_T_FIRL | INSERT |
 | 10 | FINREnterpriseFinancialInstitutionRole | INSERT | FT_T_ENFR | INSERT |
 | 11 | FINREnterpriseFinancialInstitutionRole | INSERT | FT_T_ENFR | INSERT |
 | 12 | FinsRoleClassification | INSERT | FT_T_FRCL | INSERT |
-| 13 | FinancialInstitution | REFERENCE | FT_T_FINS | Sin insert (referencia a entidad ya creada en el mismo mensaje) |
+| 13 | FinancialInstitution | REFERENCE | FT_T_FINS | Sin insert (referencia a entidad existente) |
+
+## Tablas a insertar (orden de aparición)
+
+FT_T_FINS, FT_T_FIST, FT_T_FIGU, FINANCIAL_LEGAL_NAMES, FT_T_FINR, FT_T_FIRL, FT_T_ENFR, FT_T_FRCL
 
 ## Avisos
 
-- Segmento #3 `FinancialInstitutionGeoUnitPrt`: elemento `GUNTOID` sin columna en XELM.
-- Segmento #6 `FINSFinancialLegalNames` (FT_T_FLG1, SEGMENT_ID 99991901): sin elementos en XELM; no se pueden mapear columnas.
-- Segmento #8 `FINSFinancialInstitutionRole`: elemento `FINROID` sin columna en XELM.
-- Segmento #9 `FINRFinsFinsRoleRelationship`: elemento `FINROID` sin columna en XELM.
-- Segmento #10 `FINREnterpriseFinancialInstitutionRole`: elemento `FINROID` sin columna en XELM.
-- Segmento #11 `FINREnterpriseFinancialInstitutionRole`: elemento `FINROID` sin columna en XELM.
-- Segmento #12 `FinsRoleClassification`: elemento `FINROID` sin columna en XELM.
+- Ninguno.
 
 ## Detalle por segmento
 
 ### #1 FinancialInstitution -> FT_T_FINS (INSERT)
 
-| Elemento XML | Valor | Columna |
-|---|---|---|
-| DATASRCID | `RDR` | DATA_SRC_ID |
-| DATASTATTYP | `ACTIVE` | DATA_STAT_TYP |
-| INSTDESC | `PROBANDO` | INST_DESC |
-| INSTFOUNDINGDTE | `09-29-2026 12:00:00 AM` | INST_FOUNDING_DTE |
-| INSTLEGALNME | `PROBANDO` | INST_LEGAL_NME |
-| INSTMNEM | `f-uBI7(qW1` | INST_MNEM |
-| INSTNME | `PROBANDO` | INST_NME |
-| LASTCHGTMS | `09-29-2026 05:49:55 PM` | LAST_CHG_TMS |
-| LASTCHGUSRID | `T045519` | LAST_CHG_USR_ID |
-| STARTTMS | `09-29-2026 05:49:20 PM` | START_TMS |
+PK: `INST_MNEM`
 
-Columnas OID de XELM no presentes en el mensaje (posible clave generada por el motor): OBLIGOR_SUBGRP_CLSF_OID, FILF_OID
+| Elemento XML | Valor | Columna | Tipo | Nulo | Mapeo |
+|---|---|---|---|---|---|
+| DATASRCID | `RDR` | DATA_SRC_ID | VARCHAR2(40) | Y | XELM |
+| DATASTATTYP | `ACTIVE` | DATA_STAT_TYP | VARCHAR2(20) | Y | XELM |
+| INSTDESC | `PROBANDO` | INST_DESC | VARCHAR2(4000) | Y | XELM |
+| INSTFOUNDINGDTE | `09-29-2026 12:00:00 AM` | INST_FOUNDING_DTE | DATE | Y | XELM |
+| INSTLEGALNME | `PROBANDO` | INST_LEGAL_NME | VARCHAR2(500) | Y | XELM |
+| INSTMNEM | `f-uBI7(qW1` | INST_MNEM | CHAR(10) | N | XELM |
+| INSTNME | `PROBANDO` | INST_NME | VARCHAR2(500) | N | XELM |
+| LASTCHGTMS | `09-29-2026 05:49:55 PM` | LAST_CHG_TMS | DATE | N | XELM |
+| LASTCHGUSRID | `T045519` | LAST_CHG_USR_ID | VARCHAR2(256) | N | XELM |
+| STARTTMS | `09-29-2026 05:49:20 PM` | START_TMS | DATE | N | XELM |
 
 ### #2 FinancialInstitutionStatistic -> FT_T_FIST (INSERT)
 
-| Elemento XML | Valor | Columna |
-|---|---|---|
-| DATASRCID | `RDR` | DATA_SRC_ID |
-| DATASTATTYP | `ACTIVE` | DATA_STAT_TYP |
-| INSTMNEM | `f-uBI7(qW1` | INST_MNEM |
-| LASTCHGTMS | `09-29-2026 05:49:23 PM` | LAST_CHG_TMS |
-| LASTCHGUSRID | `T045519` | LAST_CHG_USR_ID |
-| STARTTMS | `09-29-2026 05:49:23 PM` | START_TMS |
-| STATCHARVALTXT | `Y` | STAT_CHAR_VAL_TXT |
-| STATDEFID | `UKFIRM` | STAT_DEF_ID |
+PK: `STAT_ID`
+
+| Elemento XML | Valor | Columna | Tipo | Nulo | Mapeo |
+|---|---|---|---|---|---|
+| DATASRCID | `RDR` | DATA_SRC_ID | VARCHAR2(40) | Y | XELM |
+| DATASTATTYP | `ACTIVE` | DATA_STAT_TYP | VARCHAR2(20) | Y | XELM |
+| INSTMNEM | `f-uBI7(qW1` | INST_MNEM | CHAR(10) | N | XELM |
+| LASTCHGTMS | `09-29-2026 05:49:23 PM` | LAST_CHG_TMS | DATE | N | XELM |
+| LASTCHGUSRID | `T045519` | LAST_CHG_USR_ID | VARCHAR2(256) | N | XELM |
+| STARTTMS | `09-29-2026 05:49:23 PM` | START_TMS | DATE | N | XELM |
+| STATCHARVALTXT | `Y` | STAT_CHAR_VAL_TXT | VARCHAR2(1024) | Y | XELM |
+| STATDEFID | `UKFIRM` | STAT_DEF_ID | CHAR(8) | N | XELM |
+
+**NOT NULL no informadas en el mensaje** (generar/resolver en PL/SQL): STAT_ID
+
+FKs sobre columnas informadas: STAT_DEF_ID → FT_T_STDF (ENABLED)
 
 ### #3 FinancialInstitutionGeoUnitPrt -> FT_T_FIGU (INSERT)
 
-| Elemento XML | Valor | Columna |
-|---|---|---|
-| DATASRCID | `RDR` | DATA_SRC_ID |
-| DATASTATTYP | `ACTIVE` | DATA_STAT_TYP |
-| FINSGUPURPTYP | `STSMNTCT` | FINS_GU_PURP_TYP |
-| GUCNT | `1` | GU_CNT |
-| GUID | `AF` | GU_ID |
-| GUNTOID | `GUNT3B2===` | **¿?** |
-| GUTYP | `COUNTRY` | GU_TYP |
-| INSTMNEM | `f-uBI7(qW1` | INST_MNEM |
-| LASTCHGTMS | `09-29-2026 05:49:52 PM` | LAST_CHG_TMS |
-| LASTCHGUSRID | `T045519` | LAST_CHG_USR_ID |
-| STARTTMS | `09-29-2026 05:49:52 PM` | START_TMS |
+PK: `FIGU_OID`
 
-Columnas OID de XELM no presentes en el mensaje (posible clave generada por el motor): FIGU_OID
+| Elemento XML | Valor | Columna | Tipo | Nulo | Mapeo |
+|---|---|---|---|---|---|
+| DATASRCID | `RDR` | DATA_SRC_ID | VARCHAR2(40) | Y | XELM |
+| DATASTATTYP | `ACTIVE` | DATA_STAT_TYP | VARCHAR2(20) | Y | XELM |
+| FINSGUPURPTYP | `STSMNTCT` | FINS_GU_PURP_TYP | CHAR(8) | N | XELM |
+| GUCNT | `1` | GU_CNT | NUMBER(10) | Y | XELM |
+| GUID | `AF` | GU_ID | VARCHAR2(10) | Y | XELM |
+| GUNTOID | `GUNT3B2===` | GUNT_OID | CHAR(10) | N | nombre |
+| GUTYP | `COUNTRY` | GU_TYP | VARCHAR2(8) | Y | XELM |
+| INSTMNEM | `f-uBI7(qW1` | INST_MNEM | CHAR(10) | N | XELM |
+| LASTCHGTMS | `09-29-2026 05:49:52 PM` | LAST_CHG_TMS | DATE | N | XELM |
+| LASTCHGUSRID | `T045519` | LAST_CHG_USR_ID | VARCHAR2(256) | N | XELM |
+| STARTTMS | `09-29-2026 05:49:52 PM` | START_TMS | DATE | N | XELM |
+
+**NOT NULL no informadas en el mensaje** (generar/resolver en PL/SQL): FIGU_OID
+
+FKs sobre columnas informadas: GUNT_OID → FT_T_GUNT (DISABLED)
 
 ### #4 FinancialInstitutionStatistic -> FT_T_FIST (INSERT)
 
-| Elemento XML | Valor | Columna |
-|---|---|---|
-| DATASRCID | `RDR` | DATA_SRC_ID |
-| DATASTATTYP | `ACTIVE` | DATA_STAT_TYP |
-| INSTMNEM | `f-uBI7(qW1` | INST_MNEM |
-| LASTCHGTMS | `09-29-2026 05:49:23 PM` | LAST_CHG_TMS |
-| LASTCHGUSRID | `T045519` | LAST_CHG_USR_ID |
-| STARTTMS | `09-29-2026 05:49:23 PM` | START_TMS |
-| STATCHARVALTXT | `Y` | STAT_CHAR_VAL_TXT |
-| STATDEFID | `MIFIFIRM` | STAT_DEF_ID |
+PK: `STAT_ID`
 
-### #6 FINSFinancialLegalNames -> FT_T_FLG1 (OPTIMISTICUPDATE)
+| Elemento XML | Valor | Columna | Tipo | Nulo | Mapeo |
+|---|---|---|---|---|---|
+| DATASRCID | `RDR` | DATA_SRC_ID | VARCHAR2(40) | Y | XELM |
+| DATASTATTYP | `ACTIVE` | DATA_STAT_TYP | VARCHAR2(20) | Y | XELM |
+| INSTMNEM | `f-uBI7(qW1` | INST_MNEM | CHAR(10) | N | XELM |
+| LASTCHGTMS | `09-29-2026 05:49:23 PM` | LAST_CHG_TMS | DATE | N | XELM |
+| LASTCHGUSRID | `T045519` | LAST_CHG_USR_ID | VARCHAR2(256) | N | XELM |
+| STARTTMS | `09-29-2026 05:49:23 PM` | START_TMS | DATE | N | XELM |
+| STATCHARVALTXT | `Y` | STAT_CHAR_VAL_TXT | VARCHAR2(1024) | Y | XELM |
+| STATDEFID | `MIFIFIRM` | STAT_DEF_ID | CHAR(8) | N | XELM |
 
-| Elemento XML | Valor | Columna |
-|---|---|---|
-| DATASRCID | `ABACO` | **¿?** |
-| DATASTATTYP | `ACTIVE` | **¿?** |
-| FLGLEGALNME | `PROBANDO` | **¿?** |
-| FLGOID | `f-uFI7(qW1` | **¿?** |
-| INSTMNEM | `f-uBI7(qW1` | **¿?** |
-| LASTCHGTMS | `09-29-2026 05:49:52 PM` | **¿?** |
-| LASTCHGUSRID | `T045519` | **¿?** |
-| STARTTMS | `09-29-2026 05:49:52 PM` | **¿?** |
+**NOT NULL no informadas en el mensaje** (generar/resolver en PL/SQL): STAT_ID
+
+FKs sobre columnas informadas: STAT_DEF_ID → FT_T_STDF (ENABLED)
+
+### #6 FINSFinancialLegalNames -> FINANCIAL_LEGAL_NAMES (OPTIMISTICUPDATE)
+
+PK: `FLG_OID` · XELM heredado del segmento 3001690
+
+| Elemento XML | Valor | Columna | Tipo | Nulo | Mapeo |
+|---|---|---|---|---|---|
+| DATASRCID | `ABACO` | DATA_SRC_ID | VARCHAR2(40) | Y | XELM |
+| DATASTATTYP | `ACTIVE` | DATA_STAT_TYP | VARCHAR2(20) | Y | XELM |
+| FLGLEGALNME | `PROBANDO` | FLG_LEGAL_NME | VARCHAR2(256) | N | XELM |
+| FLGOID | `f-uFI7(qW1` | FLG_OID | CHAR(10) | N | XELM |
+| INSTMNEM | `f-uBI7(qW1` | INST_MNEM | CHAR(10) | Y | XELM |
+| LASTCHGTMS | `09-29-2026 05:49:52 PM` | LAST_CHG_TMS | DATE | N | XELM |
+| LASTCHGUSRID | `T045519` | LAST_CHG_USR_ID | VARCHAR2(40) | N | XELM |
+| STARTTMS | `09-29-2026 05:49:52 PM` | START_TMS | DATE | N | XELM |
 
 ### #8 FINSFinancialInstitutionRole -> FT_T_FINR (INSERT)
 
-| Elemento XML | Valor | Columna |
-|---|---|---|
-| DATASRCID | `RDR` | DATA_SRC_ID |
-| DATASTATTYP | `ACTIVE` | DATA_STAT_TYP |
-| FINROID | `f-uCI7(qW1` | **¿?** |
-| FINSRLSUBTYP | `BUSINESS` | FINSRL_SUB_TYP |
-| FINSRLTYP | `INDVDUAL` | FINSRL_TYP |
-| INSTMNEM | `f-uBI7(qW1` | INST_MNEM |
-| LASTCHGTMS | `09-29-2026 05:49:55 PM` | LAST_CHG_TMS |
-| LASTCHGUSRID | `T045519` | LAST_CHG_USR_ID |
-| PREFIDCTXTTYP | `Y` | PREF_ID_CTXT_TYP |
-| STARTTMS | `09-29-2026 05:49:23 PM` | START_TMS |
+PK: `FINR_OID`
 
-Columnas OID de XELM no presentes en el mensaje (posible clave generada por el motor): CONTCT_OID
+| Elemento XML | Valor | Columna | Tipo | Nulo | Mapeo |
+|---|---|---|---|---|---|
+| DATASRCID | `RDR` | DATA_SRC_ID | VARCHAR2(40) | Y | XELM |
+| DATASTATTYP | `ACTIVE` | DATA_STAT_TYP | VARCHAR2(20) | Y | XELM |
+| FINROID | `f-uCI7(qW1` | FINR_OID | CHAR(10) | N | nombre |
+| FINSRLSUBTYP | `BUSINESS` | FINSRL_SUB_TYP | VARCHAR2(20) | Y | XELM |
+| FINSRLTYP | `INDVDUAL` | FINSRL_TYP | CHAR(8) | N | XELM |
+| INSTMNEM | `f-uBI7(qW1` | INST_MNEM | CHAR(10) | N | XELM |
+| LASTCHGTMS | `09-29-2026 05:49:55 PM` | LAST_CHG_TMS | DATE | N | XELM |
+| LASTCHGUSRID | `T045519` | LAST_CHG_USR_ID | VARCHAR2(256) | N | XELM |
+| PREFIDCTXTTYP | `Y` | PREF_ID_CTXT_TYP | VARCHAR2(20) | Y | XELM |
+| STARTTMS | `09-29-2026 05:49:23 PM` | START_TMS | DATE | N | XELM |
+
+FKs sobre columnas informadas: INST_MNEM → FT_T_FINS (DISABLED)
 
 ### #9 FINRFinsFinsRoleRelationship -> FT_T_FIRL (INSERT)
 
-| Elemento XML | Valor | Columna |
-|---|---|---|
-| DATASRCID | `RDR` | DATA_SRC_ID |
-| DATASTATTYP | `ACTIVE` | DATA_STAT_TYP |
-| FINROID | `f-uCI7(qW1` | **¿?** |
-| FINSRLTYP | `INDVDUAL` | FINSRL_TYP |
-| INSTMNEM | `f-uBI7(qW1` | INST_MNEM |
-| LASTCHGTMS | `09-29-2026 05:49:55 PM` | LAST_CHG_TMS |
-| LASTCHGUSRID | `T045519` | LAST_CHG_USR_ID |
-| PRNTINSTMNEM | `f-uBI7(qW1` | PRNT_INST_MNEM |
-| RELTYP | `GLOBAL` | REL_TYP |
-| STARTTMS | `09-29-2026 05:49:23 PM` | START_TMS |
+PK: `FIRL_OID`
 
-Columnas OID de XELM no presentes en el mensaje (posible clave generada por el motor): FIRL_OID
+| Elemento XML | Valor | Columna | Tipo | Nulo | Mapeo |
+|---|---|---|---|---|---|
+| DATASRCID | `RDR` | DATA_SRC_ID | VARCHAR2(40) | Y | XELM |
+| DATASTATTYP | `ACTIVE` | DATA_STAT_TYP | VARCHAR2(20) | Y | XELM |
+| FINROID | `f-uCI7(qW1` | FINR_OID | CHAR(10) | N | nombre |
+| FINSRLTYP | `INDVDUAL` | FINSRL_TYP | CHAR(8) | Y | XELM |
+| INSTMNEM | `f-uBI7(qW1` | INST_MNEM | CHAR(10) | Y | XELM |
+| LASTCHGTMS | `09-29-2026 05:49:55 PM` | LAST_CHG_TMS | DATE | N | XELM |
+| LASTCHGUSRID | `T045519` | LAST_CHG_USR_ID | VARCHAR2(256) | N | XELM |
+| PRNTINSTMNEM | `f-uBI7(qW1` | PRNT_INST_MNEM | CHAR(10) | N | XELM |
+| RELTYP | `GLOBAL` | REL_TYP | VARCHAR2(20) | N | XELM |
+| STARTTMS | `09-29-2026 05:49:23 PM` | START_TMS | DATE | N | XELM |
+
+**NOT NULL no informadas en el mensaje** (generar/resolver en PL/SQL): FIRL_OID
+
+FKs sobre columnas informadas: FINR_OID → FT_T_FINR (DISABLED); PRNT_INST_MNEM → FT_T_FINS (DISABLED)
 
 ### #10 FINREnterpriseFinancialInstitutionRole -> FT_T_ENFR (INSERT)
 
-| Elemento XML | Valor | Columna |
-|---|---|---|
-| DATASRCID | `RDR` | DATA_SRC_ID |
-| DATASTATTYP | `ACTIVE` | DATA_STAT_TYP |
-| ENFROID | `f-uDI7(qW1` | ENFR_OID |
-| ENFRRLTYP | `ENT_OWN` | ENFR_RL_TYP |
-| FINRINSTMNEM | `f-uBI7(qW1` | FINR_INST_MNEM |
-| FINROID | `f-uCI7(qW1` | **¿?** |
-| FINSRLTYP | `INDVDUAL` | FINSRL_TYP |
-| LASTCHGTMS | `09-29-2026 05:49:55 PM` | LAST_CHG_TMS |
-| LASTCHGUSRID | `T045519` | LAST_CHG_USR_ID |
-| ORGID | `0182` | ORG_ID |
-| STARTTMS | `09-29-2026 05:49:27 PM` | START_TMS |
+PK: `ENFR_OID`
 
-Columnas OID de XELM no presentes en el mensaje (posible clave generada por el motor): MKT_OID
+| Elemento XML | Valor | Columna | Tipo | Nulo | Mapeo |
+|---|---|---|---|---|---|
+| DATASRCID | `RDR` | DATA_SRC_ID | VARCHAR2(40) | Y | XELM |
+| DATASTATTYP | `ACTIVE` | DATA_STAT_TYP | VARCHAR2(20) | Y | XELM |
+| ENFROID | `f-uDI7(qW1` | ENFR_OID | CHAR(10) | N | XELM |
+| ENFRRLTYP | `ENT_OWN` | ENFR_RL_TYP | VARCHAR2(20) | Y | XELM |
+| FINRINSTMNEM | `f-uBI7(qW1` | FINR_INST_MNEM | CHAR(10) | Y | XELM |
+| FINROID | `f-uCI7(qW1` | FINR_OID | CHAR(10) | Y | nombre |
+| FINSRLTYP | `INDVDUAL` | FINSRL_TYP | CHAR(8) | Y | XELM |
+| LASTCHGTMS | `09-29-2026 05:49:55 PM` | LAST_CHG_TMS | DATE | N | XELM |
+| LASTCHGUSRID | `T045519` | LAST_CHG_USR_ID | VARCHAR2(256) | N | XELM |
+| ORGID | `0182` | ORG_ID | CHAR(4) | N | XELM |
+| STARTTMS | `09-29-2026 05:49:27 PM` | START_TMS | DATE | N | XELM |
+
+FKs sobre columnas informadas: FINR_OID → FT_T_FINR (DISABLED); ORG_ID → FT_T_ENTR (DISABLED)
 
 ### #11 FINREnterpriseFinancialInstitutionRole -> FT_T_ENFR (INSERT)
 
-| Elemento XML | Valor | Columna |
-|---|---|---|
-| DATASRCID | `RDR` | DATA_SRC_ID |
-| DATASTATTYP | `ACTIVE` | DATA_STAT_TYP |
-| ENFROID | `f-uEI7(qW1` | ENFR_OID |
-| ENFRRLTYP | `BRANCH_OWN` | ENFR_RL_TYP |
-| FINRINSTMNEM | `f-uBI7(qW1` | FINR_INST_MNEM |
-| FINROID | `f-uCI7(qW1` | **¿?** |
-| FINSRLTYP | `INDVDUAL` | FINSRL_TYP |
-| LASTCHGTMS | `09-29-2026 05:49:55 PM` | LAST_CHG_TMS |
-| LASTCHGUSRID | `T045519` | LAST_CHG_USR_ID |
-| ORGID | `A18` | ORG_ID |
-| STARTTMS | `09-29-2026 05:49:37 PM` | START_TMS |
+PK: `ENFR_OID`
 
-Columnas OID de XELM no presentes en el mensaje (posible clave generada por el motor): MKT_OID
+| Elemento XML | Valor | Columna | Tipo | Nulo | Mapeo |
+|---|---|---|---|---|---|
+| DATASRCID | `RDR` | DATA_SRC_ID | VARCHAR2(40) | Y | XELM |
+| DATASTATTYP | `ACTIVE` | DATA_STAT_TYP | VARCHAR2(20) | Y | XELM |
+| ENFROID | `f-uEI7(qW1` | ENFR_OID | CHAR(10) | N | XELM |
+| ENFRRLTYP | `BRANCH_OWN` | ENFR_RL_TYP | VARCHAR2(20) | Y | XELM |
+| FINRINSTMNEM | `f-uBI7(qW1` | FINR_INST_MNEM | CHAR(10) | Y | XELM |
+| FINROID | `f-uCI7(qW1` | FINR_OID | CHAR(10) | Y | nombre |
+| FINSRLTYP | `INDVDUAL` | FINSRL_TYP | CHAR(8) | Y | XELM |
+| LASTCHGTMS | `09-29-2026 05:49:55 PM` | LAST_CHG_TMS | DATE | N | XELM |
+| LASTCHGUSRID | `T045519` | LAST_CHG_USR_ID | VARCHAR2(256) | N | XELM |
+| ORGID | `A18` | ORG_ID | CHAR(4) | N | XELM |
+| STARTTMS | `09-29-2026 05:49:37 PM` | START_TMS | DATE | N | XELM |
+
+FKs sobre columnas informadas: FINR_OID → FT_T_FINR (DISABLED); ORG_ID → FT_T_ENTR (DISABLED)
 
 ### #12 FinsRoleClassification -> FT_T_FRCL (INSERT)
 
-| Elemento XML | Valor | Columna |
-|---|---|---|
-| CLSFOID | `=002DCDB88` | CLSF_OID |
-| CLVALUE | `FINANCIAL` | CL_VALUE |
-| DATASRCID | `RDR` | DATA_SRC_ID |
-| DATASTATTYP | `ACTIVE` | DATA_STAT_TYP |
-| FINROID | `f-uCI7(qW1` | **¿?** |
-| FINSRLTYP | `INDVDUAL` | FINSRL_TYP |
-| INDUSCLSETID | `TPFINF` | INDUS_CL_SET_ID |
-| INSTMNEM | `f-uBI7(qW1` | INST_MNEM |
-| LASTCHGTMS | `09-29-2026 05:49:37 PM` | LAST_CHG_TMS |
-| LASTCHGUSRID | `T045519` | LAST_CHG_USR_ID |
-| STARTTMS | `09-29-2026 05:49:37 PM` | START_TMS |
+PK: `FINR_CLSF_OID`
 
-Columnas OID de XELM no presentes en el mensaje (posible clave generada por el motor): EINC_OID, FINR_CLSF_OID
+| Elemento XML | Valor | Columna | Tipo | Nulo | Mapeo |
+|---|---|---|---|---|---|
+| CLSFOID | `=002DCDB88` | CLSF_OID | CHAR(10) | N | XELM |
+| CLVALUE | `FINANCIAL` | CL_VALUE | VARCHAR2(40) | Y | XELM |
+| DATASRCID | `RDR` | DATA_SRC_ID | VARCHAR2(40) | Y | XELM |
+| DATASTATTYP | `ACTIVE` | DATA_STAT_TYP | VARCHAR2(20) | Y | XELM |
+| FINROID | `f-uCI7(qW1` | FINR_OID | CHAR(10) | N | nombre |
+| FINSRLTYP | `INDVDUAL` | FINSRL_TYP | CHAR(8) | Y | XELM |
+| INDUSCLSETID | `TPFINF` | INDUS_CL_SET_ID | CHAR(10) | N | XELM |
+| INSTMNEM | `f-uBI7(qW1` | INST_MNEM | CHAR(10) | Y | XELM |
+| LASTCHGTMS | `09-29-2026 05:49:37 PM` | LAST_CHG_TMS | DATE | N | XELM |
+| LASTCHGUSRID | `T045519` | LAST_CHG_USR_ID | VARCHAR2(256) | N | XELM |
+| STARTTMS | `09-29-2026 05:49:37 PM` | START_TMS | DATE | N | XELM |
+
+**NOT NULL no informadas en el mensaje** (generar/resolver en PL/SQL): FINR_CLSF_OID
+
+FKs sobre columnas informadas: FINR_OID → FT_T_FINR (DISABLED); CLSF_OID → FT_T_INCL (DISABLED)
