@@ -163,7 +163,7 @@ Plantilla:
   La salida de `DBMS_OUTPUT` aparece en la pestaña "Salida de script".
 
 ### D-017 — PL/SQL generado a partir de los mensajes (sustituye a D-011)
-- Fecha: 2026-09-29 · Estado: VIGENTE
+- Fecha: 2026-09-29 · Estado: VIGENTE (la parte "un paquete por entidad" la sustituye D-023)
 - Contexto: habrá muchos tipos de entidad, algunos con cientos de elementos y decenas de
   INSERT por individuo. Escribir a mano cada INSERT no escala y es propenso a errores.
 - Decisión: `herramientas/generar_plsql.py` traduce cada mensaje (reglas de CLAUDE.md §4) a un
@@ -198,7 +198,7 @@ Plantilla:
   y su `GUNT_OID`), hay que parametrizar ambos.
 
 ### D-020 — Rutas de los scripts SQL
-- Fecha: 2026-09-29 · Estado: VIGENTE
+- Fecha: 2026-09-29 · Estado: VIGENTE (con un único paquete, instalar.sql ya no se genera)
 - Contexto: SQL*Plus resuelve `@@carpeta/fichero` de un script anidado respecto al directorio
   actual, y SQL Developer respecto al script que lo llama.
 - Decisión: sólo los scripts de `plsql/` usan `@@` con subcarpetas (`instalar.sql` lista todos
@@ -219,6 +219,23 @@ Plantilla:
 - Contexto: se documentó por error que la Contrapartida Global insertaba 11 filas.
 - Decisión: son **10** (FINS 1, FIST 2, FIGU 1, FINANCIAL_LEGAL_NAMES 1, FINR 1, FIRL 1,
   ENFR 2, FRCL 1). Los conteos los calcula ahora el generador y se verifican al crear.
+
+### D-023 — Un único paquete PKG_SINT
+- Fecha: 2026-09-29 · Estado: VIGENTE (indicación del usuario; sustituye "un paquete por
+  entidad" de D-017)
+- Contexto: un paquete por entidad llenaría el esquema de objetos. PL/SQL no admite
+  paquetes anidados.
+- Decisión: todo en `PKG_SINT` (generado): sección NÚCLEO (fragmentos escritos a mano en
+  `plsql/fuente/`), sección ENTIDADES (un procedimiento `crear_<entidad>` por mensaje,
+  agrupados por unidad) y sección API. `instalar.sql` borra automáticamente los paquetes de
+  versiones anteriores (`PKG_SINT_NUCLEO`, `PKG_SINT_FINS`, `PKG_SINT_ENTIDADES`,
+  `PKG_DATOS_SINTETICOS`, `SINT_E_*`).
+- Límite medido (Oracle local, contenedor con poca memoria): 600 entidades del tamaño de la
+  Contrapartida Global (6.000 FORALL, 219.000 líneas, 12 MB) compilan en 36 s; 1.200 fallan
+  por memoria de compilación (ORA-04036, depende del servidor). El generador avisa a partir
+  de 150.000 líneas; si se alcanzara, opciones: separar el núcleo en un 2º paquete o compactar
+  el código generado.
+- Consecuencias: un cambio en cualquier entidad recompila el paquete entero (segundos hoy).
 
 ---
 

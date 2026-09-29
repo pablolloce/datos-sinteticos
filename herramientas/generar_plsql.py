@@ -8,11 +8,11 @@ Genera TODO el PL/SQL de las entidades sintéticas a partir de los mensajes XML 
 
 Salida (``plsql/generado/``, NO editar a mano):
 
-    entidades/<unidad>/sint_e_<entidad>.pks/.pkb   un paquete por mensaje
-    pkg_sint.pks/.pkb                              fachada: crear_bbdd / eliminar_bbdd / resumen / verificar
-    manifiesto.json                                tablas gestionadas, referencias y conteos (para pruebas)
-
-    y además plsql/instalar.sql y plsql/desinstalar.sql (listan todos los paquetes).
+    pkg_sint.pks/.pkb   ÚNICO paquete (D-023):
+                          1. núcleo (fragmentos escritos a mano en plsql/fuente/)
+                          2. un procedimiento crear_<entidad> por mensaje, agrupados por unidad
+                          3. API: crear_bbdd / eliminar_bbdd / resumen / verificar
+    manifiesto.json     tablas gestionadas, referencias y conteos (para pruebas)
 
 Reglas de traducción (ver CLAUDE.md §4 y docs/DECISIONES.md):
   - Segmentos INSERT/OPTIMISTIC*/UNKNOWN -> un INSERT (FORALL) por segmento; REFERENCE/IGNORE -> nada.
@@ -53,8 +53,11 @@ ACCIONES_INSERT = {"INSERT", "OPTIMISTICUPDATE", "OPTIMISTICINSERT", "UNKNOWN"}
 ACCIONES_SIN_EFECTO = {"REFERENCE", "IGNORE"}
 FORMATO_FECHA_XML = "%m-%d-%Y %I:%M:%S %p"
 LONGITUD_OID = 10
-MAX_IDENTIFICADOR = 30          # nombres de paquete prudentes (compatibles con cualquier COMPATIBLE)
-PREFIJO_PAQUETE = "SINT_E_"
+MAX_IDENTIFICADOR = 30          # identificadores prudentes (compatibles con cualquier COMPATIBLE)
+PAQUETE = "PKG_SINT"            # ÚNICO paquete del generador (D-023)
+PREFIJO_PROCEDIMIENTO = "crear_"
+FUENTE = RAIZ / "plsql" / "fuente"   # fragmentos escritos a mano (núcleo)
+MAX_LINEAS_AVISO = 150000        # aviso de tamaño del cuerpo (medido: 219.000 líneas compilan, D-023)
 
 CABECERA_GENERADO = """ * GENERADO AUTOMÁTICAMENTE por herramientas/generar_plsql.py — NO EDITAR A MANO.
  * Para cambiarlo: modificar el mensaje XML o mensajes_entrada/catalogo.json y regenerar."""
@@ -104,7 +107,7 @@ class Parametro:
 @dataclass
 class Entidad:
     nombre: str
-    paquete: str
+    procedimiento: str
     unidad: str
     mensaje: str
     descripcion: str
@@ -113,6 +116,7 @@ class Entidad:
     parametros: list
     referencias: list       # (tabla_ref, [(col_ref, expresion)], usado_por)
     avisos: list
+    paquete: str = ""       # se asigna al agrupar por unidad
 
 
 # ----------------------------------------------------------------------------------------------
@@ -162,12 +166,14 @@ def construir_entidad(ruta: Path, config: dict, modelo: dict) -> Entidad:
     raiz = leer_xml(ruta)
     cabecera = raiz.find("HEADER")
     nodo_unidad = cabecera.find("MAIN_ENTITY_TBL_TYP") if cabecera is not None else None
-    unidad = (nodo_unidad.get("VALUE") if nodo_unidad is not None else "GENERAL").upper()
+    unidad = identificador(config.get("unidad")
+                           or (nodo_unidad.get("VALUE") if nodo_unidad is not None else "GENERAL"))
     nombre = identificador(config.get("nombre") or ruta.stem)
-    paquete = PREFIJO_PAQUETE + nombre
-    if len(paquete) > MAX_IDENTIFICADOR:
-        raise ErrorGeneracion(f"{ruta.name}: el paquete {paquete} supera {MAX_IDENTIFICADOR} caracteres; "
-                              "define un 'nombre' más corto en catalogo.json")
+    procedimiento = PREFIJO_PROCEDIMIENTO + nombre.lower()
+    if len(procedimiento) > MAX_IDENTIFICADOR:
+        raise ErrorGeneracion(f"{ruta.name}: el procedimiento {procedimiento} supera {MAX_IDENTIFICADOR} "
+                              f"caracteres; define un 'nombre' de máx. {MAX_IDENTIFICADOR - len(PREFIJO_PROCEDIMIENTO)} "
+                              "caracteres en catalogo.json")
 
     # Parámetros declarados en el catálogo: {P_X: {campos: ["Segmento/TAG", ...], descripcion}}
     campo_a_param: dict = {}
@@ -305,7 +311,7 @@ def construir_entidad(ruta: Path, config: dict, modelo: dict) -> Entidad:
             clave_ref = (fk["tabla_ref"], tuple(zip(fk["columnas_ref"], valores_fk)))
             referencias.setdefault(clave_ref, []).append(f"{tabla}.{'/'.join(fk['columnas'])}")
 
-    return Entidad(nombre, paquete, unidad, str(ruta.relative_to(RAIZ)), config.get("descripcion", ""),
+    return Entidad(nombre, procedimiento, unidad, str(ruta.relative_to(RAIZ)), config.get("descripcion", ""),
                    filas, claves, list(parametros.values()),
                    [(t, list(cols), usado) for (t, cols), usado in referencias.items()], avisos)
 
@@ -327,48 +333,40 @@ def firma_parametros(e: Entidad, con_defecto: bool = True) -> str:
     return ",\n".join(lineas)
 
 
-def emitir_spec(e: Entidad) -> str:
+def firma(e: Entidad, con_defecto: bool) -> str:
+    return f"""   PROCEDURE {e.procedimiento} (
+{firma_parametros(e, con_defecto)})"""
+
+
+def emitir_declaracion(e: Entidad) -> str:
+    """Declaración de la entidad en la especificación del paquete de su unidad."""
     conteo = conteo_por_tabla(e)
-    filas_txt = "\n".join(f" *   {t:<28} {n}" for t, n in conteo.items())
-    params_txt = "\n".join(f" *   {p.nombre.lower():<20} {p.descripcion} [{', '.join(p.campos)}]"
-                           for p in e.parametros) or " *   (ninguno: la entidad es idéntica al mensaje)"
-    return f"""CREATE OR REPLACE PACKAGE {e.paquete.lower()}
-AS
-/*******************************************************************************
-{CABECERA_GENERADO}
- *
- * Entidad : {e.nombre}
- * {e.descripcion}
- * Mensaje : {e.mensaje}
- * Unidad  : {e.unidad}
- *
- * Filas insertadas por entidad ({len(e.filas)}):
+    filas_txt = "\n".join(f"      *   {t:<28} {n}" for t, n in conteo.items())
+    params_txt = "\n".join(f"      *   {p.nombre.lower():<20} {p.descripcion} [{', '.join(p.campos)}]"
+                           for p in e.parametros) or "      *   (ninguno: la entidad es idéntica al mensaje)"
+    return f"""   /* ------------------------------------------------------------------------
+      * {e.nombre}
+      * {e.descripcion}
+      * Mensaje: {e.mensaje}
+      * Filas por entidad ({len(e.filas)}):
 {filas_txt}
- *
- * Parámetros de variación (valor por defecto = valor del mensaje, D-014):
+      * Parámetros de variación (defecto = valor del mensaje, D-014):
 {params_txt}
- ******************************************************************************/
-
-   gc_filas_por_entidad CONSTANT PLS_INTEGER := {len(e.filas)};
-
-   /* Crea p_cantidad entidades con los valores del mensaje; sólo las claves
-      internas son nuevas (NEW_OID). No hace COMMIT. Ante error deshace lo
-      insertado por esta llamada y relanza la excepción. */
-   PROCEDURE generar (
-{firma_parametros(e)});
-
-END {e.paquete.lower()};
-/
+      * Crea p_cantidad entidades con los valores del mensaje; sólo las claves
+      * internas son nuevas (NEW_OID). No hace COMMIT.
+      * ---------------------------------------------------------------------- */
+{firma(e, con_defecto=True)};
 """
 
 
-def emitir_body(e: Entidad) -> str:
+def emitir_procedimiento(e: Entidad) -> str:
+    """Implementación de la entidad en el cuerpo del paquete de su unidad."""
     ancho = max([len(c.nombre) for f in e.filas for c in f.columnas] + [10])
     campos = "\n".join(
-        f"      {k.variable:<{ancho + 2}} {(k.tabla.lower() + '.' + k.columna.lower() + '%TYPE' + (',' if j < len(e.claves) - 1 else '')):<48}"
+        f"         {k.variable:<{ancho + 2}} {(k.tabla.lower() + '.' + k.columna.lower() + '%TYPE' + (',' if j < len(e.claves) - 1 else '')):<48}"
         f" -- {k.tabla}.{k.columna}" + (f" (mensaje: {k.valor_mensaje})" if k.valor_mensaje else " (no viene en el mensaje)")
         for j, k in enumerate(e.claves))
-    genera = "\n".join(f"         l_k(i).{k.variable:<{ancho + 2}} := pkg_sint_nucleo.nuevo_oid;" for k in e.claves)
+    genera = "\n".join(f"         l_k(i).{k.variable:<{ancho + 2}} := nuevo_oid;" for k in e.claves)
 
     refs = []
     for tabla_ref, cols, usado in e.referencias:
@@ -385,7 +383,7 @@ def emitir_body(e: Entidad) -> str:
         refs.append(f"""      -- {tabla_ref} ({desc}) <- {', '.join(sorted(set(usado)))}
       SELECT COUNT(*) INTO l_existe FROM {tabla_ref.lower()}
        WHERE {where};
-      pkg_sint_nucleo.exigir_referencia(l_existe, {desc_expr});""")
+      exigir_referencia(l_existe, {desc_expr});""")
     refs_txt = "\n\n".join(refs) or "      NULL;  -- el mensaje no referencia datos maestros"
 
     inserts = []
@@ -405,29 +403,27 @@ def emitir_body(e: Entidad) -> str:
 {chr(10).join(vals)}
          );""")
 
-    return f"""CREATE OR REPLACE PACKAGE BODY {e.paquete.lower()}
-AS
-/*******************************************************************************
-{CABECERA_GENERADO}
- * Entidad {e.nombre} — mensaje {e.mensaje}
- ******************************************************************************/
-
-   -- Claves internas de UNA entidad: una por cada OID del mensaje que se inserta
-   -- y por cada PK que el mensaje no informa. Se generan todas antes de insertar.
-   TYPE t_claves IS RECORD (
-{campos}
-   );
-   TYPE t_lista_claves IS TABLE OF t_claves INDEX BY PLS_INTEGER;
-
-   PROCEDURE generar (
-{firma_parametros(e, con_defecto=False)})
+    sp = f"sp_{e.nombre.lower()[:25]}"
+    return f"""   -- ==========================================================================
+   -- {e.nombre} — mensaje {e.mensaje}
+   -- ==========================================================================
+{firma(e, con_defecto=False)}
    IS
-      c_usuario CONSTANT VARCHAR2(30) := pkg_sint_nucleo.gc_usuario_sintetico;
-      l_ahora   CONSTANT DATE         := SYSDATE;   -- START_TMS y LAST_CHG_TMS (D-007)
+      c_usuario           CONSTANT VARCHAR2(30) := gc_usuario_sintetico;
+      c_filas_por_entidad CONSTANT PLS_INTEGER  := {len(e.filas)};
+      l_ahora             CONSTANT DATE         := SYSDATE;   -- START_TMS y LAST_CHG_TMS (D-007)
+
+      -- Claves internas de UNA entidad: una por cada OID del mensaje que se inserta
+      -- y por cada PK que el mensaje no informa. Se generan todas antes de insertar.
+      TYPE t_claves IS RECORD (
+{campos}
+      );
+      TYPE t_lista_claves IS TABLE OF t_claves INDEX BY PLS_INTEGER;
+
       l_existe  PLS_INTEGER;
       l_k       t_lista_claves;
    BEGIN
-      pkg_sint_nucleo.validar_cantidad(p_cantidad);
+      validar_cantidad(p_cantidad);
 
       -------------------------------------------------------------------------
       -- 1. Datos maestros referenciados: deben existir (D-019)
@@ -441,28 +437,25 @@ AS
 {genera}
       END LOOP;
 
-      SAVEPOINT sp_{e.nombre.lower()[:25]};
+      SAVEPOINT {sp};
 
       -------------------------------------------------------------------------
       -- 3. Inserciones: un FORALL por segmento del mensaje, en su orden
       -------------------------------------------------------------------------
-{chr(10).join(chr(10) + s if i else s for i, s in enumerate(inserts))}
+{chr(10).join(chr(10) + x if i else x for i, x in enumerate(inserts))}
 
-      pkg_sint_nucleo.traza('{e.nombre}: ' || p_cantidad || ' entidad(es), '
-                            || p_cantidad * gc_filas_por_entidad || ' filas');
+      traza('{e.nombre}: ' || p_cantidad || ' entidad(es), '
+                            || p_cantidad * c_filas_por_entidad || ' filas');
    EXCEPTION
       WHEN OTHERS THEN
-         pkg_sint_nucleo.traza('{e.nombre}: ERROR ' || SQLERRM);
+         traza('{e.nombre}: ERROR ' || SQLERRM);
          BEGIN
-            ROLLBACK TO SAVEPOINT sp_{e.nombre.lower()[:25]};
+            ROLLBACK TO SAVEPOINT {sp};
          EXCEPTION
             WHEN OTHERS THEN NULL;  -- error anterior al SAVEPOINT: no hay nada que deshacer
          END;
          RAISE;
-   END generar;
-
-END {e.paquete.lower()};
-/
+   END {e.procedimiento};
 """
 
 
@@ -493,9 +486,20 @@ def orden_purga(tablas: list, modelo: dict) -> list:
     return orden
 
 
-def emitir_fachada(entidades: list, variaciones: list, modelo: dict) -> tuple[str, str, dict]:
-    tablas = []
+def seccion(titulo: str) -> str:
+    return ("   -- #########################################################################\n"
+            f"   -- {titulo}\n"
+            "   -- #########################################################################\n")
+
+
+def emitir_paquete(entidades: list, variaciones: list, modelo: dict) -> tuple[str, str, dict]:
+    """PKG_SINT completo: núcleo (fragmentos a mano) + entidades por unidad + API."""
     for e in entidades:
+        e.paquete = PAQUETE
+    orden = sorted(entidades, key=lambda x: (x.unidad, x.nombre))
+
+    tablas = []
+    for e in orden:
         for t in conteo_por_tabla(e):
             if t not in tablas:
                 tablas.append(t)
@@ -504,8 +508,8 @@ def emitir_fachada(entidades: list, variaciones: list, modelo: dict) -> tuple[st
     esperadas: OrderedDict = OrderedDict((t, 0) for t in tablas)
     llamadas = []
     por_nombre = {e.nombre: e for e in entidades}
-    for e in entidades:
-        llamadas.append(f"      {e.paquete.lower()}.generar;   -- {e.mensaje}")
+    for e in orden:
+        llamadas.append(f"      {e.procedimiento};   -- {e.unidad}: {e.mensaje}")
         for t, n in conteo_por_tabla(e).items():
             esperadas[t] += n
     llamadas_var = []
@@ -522,27 +526,72 @@ def emitir_fachada(entidades: list, variaciones: list, modelo: dict) -> tuple[st
                 raise ErrorGeneracion(f"Variación de {e.nombre}: parámetro {nombre} no declarado en catalogo.json")
             args.append(f"{p.nombre.lower()} => {valor_variacion(p, valor)}")
         llamadas_var.append(f"      -- [{v.get('fecha', '')}] {v.get('peticion', '')}\n"
-                            f"      {e.paquete.lower()}.generar({', '.join(args)});")
+                            f"      {e.procedimiento}({', '.join(args)});")
         for t, n in conteo_por_tabla(e).items():
             esperadas[t] += n * cantidad
 
+    def por_unidad(emitir) -> str:
+        bloques, unidad = [], None
+        for e in orden:
+            if e.unidad != unidad:
+                unidad = e.unidad
+                bloques.append(seccion(f"ENTIDADES — UNIDAD {unidad}"))
+            bloques.append(emitir(e))
+        return "\n".join(bloques)
+
+    indice = "\n".join(f" *   {e.unidad:<6} {e.procedimiento:<30} {len(e.filas):>4} filas  {e.mensaje}" for e in orden)
     lista = lambda ts: ",\n".join(f"      '{t}'" for t in ts)  # noqa: E731
     cuentas = ",\n".join(f"      {n}" for n in esperadas.values())
+    nucleo_spec = (FUENTE / "nucleo_especificacion.sql").read_text(encoding="utf-8").rstrip()
+    nucleo_body = (FUENTE / "nucleo_cuerpo.sql").read_text(encoding="utf-8").rstrip()
+    marca = "   -- <<DATOS_GENERADOS>>"
+    if marca not in nucleo_body:
+        raise ErrorGeneracion(f"Falta la marca {marca.strip()} en plsql/fuente/nucleo_cuerpo.sql")
+    datos = f"""   -- ---- Datos generados (API) -------------------------------------------------
+   -- Tablas gestionadas en orden de primera inserción (resumen y verificación).
+   g_tablas CONSTANT t_lista_tablas := t_lista_tablas(
+{lista(tablas)});
 
-    spec = f"""CREATE OR REPLACE PACKAGE pkg_sint
-AS
-/*******************************************************************************
+   -- Filas sintéticas esperadas tras crear_bbdd, en el mismo orden que g_tablas.
+   g_filas_esperadas CONSTANT t_lista_numeros := t_lista_numeros(
+{cuentas});
+
+   -- Orden de borrado: hijas antes que padres (calculado a partir de las FKs).
+   g_tablas_purga CONSTANT t_lista_tablas := t_lista_tablas(
+{lista(purga)});
+   -- ---------------------------------------------------------------------------"""
+    nucleo_body = nucleo_body.replace(marca, datos)
+
+    cabecera = f"""/*******************************************************************************
 {CABECERA_GENERADO}
+ * El núcleo se escribe a mano en plsql/fuente/ y se inserta aquí al generar.
  *
- * FACHADA DE LA BBDD SINTÉTICA. Una sentencia para crear todo y otra para borrarlo:
+ * PKG_SINT — GENERADOR DE LA BBDD SINTÉTICA (único paquete, D-023)
  *
  *    EXEC pkg_sint.crear_bbdd;      -- borra lo sintético previo, crea todo, verifica y COMMIT
  *    EXEC pkg_sint.eliminar_bbdd;   -- borra todos los registros 'TESTING:RDR' y COMMIT
  *    EXEC pkg_sint.resumen;         -- filas sintéticas por tabla
  *
+ * Organización:
+ *    1. NÚCLEO      utilidades comunes (plsql/fuente/)
+ *    2. ENTIDADES   un procedimiento crear_<entidad> por mensaje, agrupados por unidad
+ *    3. API         crear_bbdd, eliminar_bbdd, resumen, verificar
+ *
  * Entidades: {len(entidades)} · Variaciones: {len(variaciones)} · Tablas gestionadas: {len(tablas)}
- ******************************************************************************/
+ *   Unidad Procedimiento                  Filas  Mensaje
+{indice}
+ ******************************************************************************/"""
 
+    spec = f"""CREATE OR REPLACE PACKAGE pkg_sint
+AS
+{cabecera}
+
+{seccion("1. NÚCLEO")}
+{nucleo_spec}
+
+{seccion("2. ENTIDADES")}
+{por_unidad(emitir_declaracion)}
+{seccion("3. API")}
    /* Crea la BBDD sintética completa en UNA transacción.
       p_limpiar_antes: borra antes los registros sintéticos existentes (recomendado).
       p_commit       : confirma al terminar. */
@@ -563,26 +612,17 @@ END pkg_sint;
 """
     body = f"""CREATE OR REPLACE PACKAGE BODY pkg_sint
 AS
-/*******************************************************************************
-{CABECERA_GENERADO}
- ******************************************************************************/
+{cabecera}
 
-   -- Tablas gestionadas en orden de primera inserción (resumen y verificación).
-   g_tablas CONSTANT pkg_sint_nucleo.t_lista_tablas := pkg_sint_nucleo.t_lista_tablas(
-{lista(tablas)});
+{seccion("1. NÚCLEO")}
+{nucleo_body}
 
-   -- Filas sintéticas esperadas tras crear_bbdd, en el mismo orden que g_tablas.
-   g_filas_esperadas CONSTANT pkg_sint_nucleo.t_lista_numeros := pkg_sint_nucleo.t_lista_numeros(
-{cuentas});
-
-   -- Orden de borrado: hijas antes que padres (calculado a partir de las FKs).
-   g_tablas_purga CONSTANT pkg_sint_nucleo.t_lista_tablas := pkg_sint_nucleo.t_lista_tablas(
-{lista(purga)});
-
+{por_unidad(emitir_procedimiento)}
+{seccion("3. API")}
    PROCEDURE resumen
    IS
    BEGIN
-      pkg_sint_nucleo.resumen(g_tablas);
+      resumen_tablas(g_tablas);
    END resumen;
 
    PROCEDURE verificar
@@ -591,34 +631,33 @@ AS
       l_filas   PLS_INTEGER;
    BEGIN
       FOR i IN 1 .. g_tablas.COUNT LOOP
-         l_filas := pkg_sint_nucleo.contar(g_tablas(i));
+         l_filas := contar(g_tablas(i));
          IF l_filas <> g_filas_esperadas(i) THEN
             l_errores := SUBSTR(l_errores || ' ' || g_tablas(i) || '=' || l_filas
                                 || ' (esperadas ' || g_filas_esperadas(i) || ')', 1, 4000);
          END IF;
       END LOOP;
       IF l_errores IS NOT NULL THEN
-         RAISE_APPLICATION_ERROR(pkg_sint_nucleo.ge_verificacion_fallida,
-                                 'Filas sintéticas inesperadas:' || l_errores);
+         RAISE_APPLICATION_ERROR(ge_verificacion_fallida, 'Filas sintéticas inesperadas:' || l_errores);
       END IF;
-      pkg_sint_nucleo.traza('Verificación correcta: todas las tablas tienen las filas esperadas');
+      traza('Verificación correcta: todas las tablas tienen las filas esperadas');
    END verificar;
 
    PROCEDURE eliminar_bbdd (p_commit IN BOOLEAN DEFAULT TRUE)
    IS
    BEGIN
-      pkg_sint_nucleo.purgar(g_tablas_purga, p_commit);
+      purgar_tablas(g_tablas_purga, p_commit);
    END eliminar_bbdd;
 
    PROCEDURE crear_bbdd (p_limpiar_antes IN BOOLEAN DEFAULT TRUE,
                          p_commit        IN BOOLEAN DEFAULT TRUE)
    IS
    BEGIN
-      pkg_sint_nucleo.traza('=== Creación de la BBDD sintética ===');
+      traza('=== Creación de la BBDD sintética ===');
       SAVEPOINT sp_crear_bbdd;
 
       IF p_limpiar_antes THEN
-         pkg_sint_nucleo.purgar(g_tablas_purga, p_commit => FALSE);
+         purgar_tablas(g_tablas_purga, p_commit => FALSE);
       END IF;
 
       -------------------------------------------------------------------------
@@ -638,110 +677,30 @@ AS
          COMMIT;
       END IF;
       resumen;
-      pkg_sint_nucleo.traza('=== BBDD sintética creada' ||
-                            CASE WHEN p_commit THEN ' (COMMIT)' ELSE ' (pendiente de COMMIT)' END || ' ===');
+      traza('=== BBDD sintética creada' ||
+            CASE WHEN p_commit THEN ' (COMMIT)' ELSE ' (pendiente de COMMIT)' END || ' ===');
    EXCEPTION
       WHEN OTHERS THEN
          ROLLBACK TO SAVEPOINT sp_crear_bbdd;
-         pkg_sint_nucleo.traza('ERROR: creación deshecha. ' || SQLERRM);
+         traza('ERROR: creación deshecha. ' || SQLERRM);
          RAISE;
    END crear_bbdd;
 
 END pkg_sint;
 /
 """
-    manifiesto = {"tablas_gestionadas": tablas, "orden_purga": purga,
+    manifiesto = {"paquete": PAQUETE, "lineas_cuerpo": body.count("\n"),
+                  "tablas_gestionadas": tablas, "orden_purga": purga,
                   "filas_esperadas": dict(esperadas),
                   "tablas_referenciadas": sorted({r[0] for e in entidades for r in e.referencias}),
-                  "entidades": [{"nombre": e.nombre, "paquete": e.paquete, "unidad": e.unidad,
+                  "entidades": [{"nombre": e.nombre, "procedimiento": e.procedimiento, "unidad": e.unidad,
                                  "mensaje": e.mensaje, "filas_por_entidad": len(e.filas),
-                                 "avisos": e.avisos} for e in entidades]}
+                                 "avisos": e.avisos} for e in orden]}
     return spec, body, manifiesto
 
 
-CABECERA_SCRIPT = ("-- GENERADO AUTOMÁTICAMENTE por herramientas/generar_plsql.py — NO EDITAR A MANO.\n"
-                   "-- Todas las rutas cuelgan de plsql/: SQL*Plus y SQL Developer las resuelven igual\n"
-                   "-- (un @@ con subcarpetas dentro de un script anidado NO es portable, D-020).\n")
-
-COMPROBACION_INSTALACION = """PROMPT == Comprobación de objetos inválidos
-BEGIN
-   FOR r IN (SELECT name, type, line, position, text
-               FROM user_errors
-              WHERE name LIKE 'PKG_SINT%' OR name LIKE 'SINT\\_E\\_%' ESCAPE '\\'
-              ORDER BY name, type, sequence)
-   LOOP
-      DBMS_OUTPUT.put_line(r.type || ' ' || r.name || ' (' || r.line || ',' || r.position || '): ' || r.text);
-      RAISE_APPLICATION_ERROR(-20000, 'Instalación con errores de compilación (ver arriba)');
-   END LOOP;
-   FOR r IN (SELECT object_type, object_name
-               FROM user_objects
-              WHERE (object_name LIKE 'PKG_SINT%' OR object_name LIKE 'SINT\\_E\\_%' ESCAPE '\\')
-                AND status <> 'VALID')
-   LOOP
-      RAISE_APPLICATION_ERROR(-20000, 'Objeto inválido: ' || r.object_type || ' ' || r.object_name);
-   END LOOP;
-   DBMS_OUTPUT.put_line('Instalación correcta: todos los objetos son válidos.');
-END;
-/
-"""
-
-
-def emitir_scripts(entidades: list) -> tuple[str, str]:
-    """plsql/instalar.sql y plsql/desinstalar.sql (rutas relativas a plsql/)."""
-    lineas_inst, lineas_des = [], []
-    for e in sorted(entidades, key=lambda x: (x.unidad, x.nombre)):
-        base = f"generado/entidades/{e.unidad.lower()}/{e.paquete.lower()}"
-        lineas_inst += [f"PROMPT == {e.paquete} ({e.mensaje})", f"@@{base}.pks", f"@@{base}.pkb"]
-        lineas_des.append(f"DROP PACKAGE {e.paquete.lower()};")
-    instalar = f"""--------------------------------------------------------------------------------
--- instalar.sql
-{CABECERA_SCRIPT}--
--- Instala (o reinstala) el código del generador en el esquema KYTL_GC:
---   1. Núcleo PKG_SINT_NUCLEO (escrito a mano, plsql/nucleo/).
---   2. Un paquete por entidad (SINT_E_*) y la fachada PKG_SINT (plsql/generado/).
--- No crea datos. Se detiene con error si algún objeto queda inválido.
---
--- SQL Developer: abrir este fichero desde plsql/ y ejecutarlo con F5.
--- SQL*Plus/SQLcl: situarse en plsql/ y ejecutar @instalar.sql
---------------------------------------------------------------------------------
-SET DEFINE OFF
-SET SERVEROUTPUT ON SIZE UNLIMITED
-WHENEVER SQLERROR EXIT SQL.SQLCODE
-
-PROMPT == Núcleo: PKG_SINT_NUCLEO
-@@nucleo/pkg_sint_nucleo.pks
-@@nucleo/pkg_sint_nucleo.pkb
-
-PROMPT == Entidades ({len(entidades)})
-{chr(10).join(lineas_inst)}
-
-PROMPT == Fachada PKG_SINT
-@@generado/pkg_sint.pks
-@@generado/pkg_sint.pkb
-
-{COMPROBACION_INSTALACION}"""
-    desinstalar = f"""--------------------------------------------------------------------------------
--- desinstalar.sql
-{CABECERA_SCRIPT}--
--- Borra los datos sintéticos y después todos los paquetes del generador.
--- SQL Developer (conectado como KYTL_GC): abrir desde plsql/ y pulsar F5.
---------------------------------------------------------------------------------
-SET SERVEROUTPUT ON SIZE UNLIMITED
-WHENEVER SQLERROR EXIT SQL.SQLCODE ROLLBACK
-
-PROMPT == Borrando datos sintéticos
-EXEC pkg_sint.eliminar_bbdd;
-
-PROMPT == Borrando paquetes
-DROP PACKAGE pkg_sint;
-{chr(10).join(lineas_des)}
-DROP PACKAGE pkg_sint_nucleo;
-"""
-    return instalar, desinstalar
-
-
 # ----------------------------------------------------------------------------------------------
-def generar(destino: Path) -> list:
+def generar(destino: Path) -> tuple[list, dict]:
     modelo = cargar_modelo()
     catalogo = json.loads(CATALOGO.read_text(encoding="utf-8"))
     config_entidades = catalogo.get("entidades", {})
@@ -756,29 +715,21 @@ def generar(destino: Path) -> list:
             entidades.append(construir_entidad(ruta, config_entidades.get(clave, {}), modelo))
         except ErrorGeneracion as ex:
             errores.append(str(ex))
-    nombres = [e.paquete for e in entidades]
+    nombres = [e.procedimiento for e in entidades]
     for n in {n for n in nombres if nombres.count(n) > 1}:
-        errores.append(f"Paquete duplicado {n}: definir 'nombre' distinto en catalogo.json")
+        errores.append(f"Procedimiento duplicado {n}: definir 'nombre' distinto en catalogo.json")
     if errores:
         raise ErrorGeneracion("\n".join(errores))
 
-    spec, body, manifiesto = emitir_fachada(entidades, catalogo.get("variaciones", []), modelo)
-    instalar, desinstalar = emitir_scripts(entidades)
-
+    spec, body, manifiesto = emitir_paquete(entidades, catalogo.get("variaciones", []), modelo)
     if destino.exists():
         shutil.rmtree(destino)
-    for e in entidades:
-        carpeta = destino / "entidades" / e.unidad.lower()
-        carpeta.mkdir(parents=True, exist_ok=True)
-        (carpeta / f"{e.paquete.lower()}.pks").write_text(emitir_spec(e), encoding="utf-8")
-        (carpeta / f"{e.paquete.lower()}.pkb").write_text(emitir_body(e), encoding="utf-8")
+    destino.mkdir(parents=True)
     (destino / "pkg_sint.pks").write_text(spec, encoding="utf-8")
     (destino / "pkg_sint.pkb").write_text(body, encoding="utf-8")
-    (destino.parent / "instalar.sql").write_text(instalar, encoding="utf-8")
-    (destino.parent / "desinstalar.sql").write_text(desinstalar, encoding="utf-8")
     (destino / "manifiesto.json").write_text(json.dumps(manifiesto, ensure_ascii=False, indent=2) + "\n",
                                              encoding="utf-8")
-    return entidades
+    return entidades, manifiesto
 
 
 def main() -> int:
@@ -790,31 +741,27 @@ def main() -> int:
             import filecmp
             import tempfile
             with tempfile.TemporaryDirectory() as tmp:
-                nuevo = Path(tmp) / "plsql" / "generado"
-                nuevo.parent.mkdir()
+                nuevo = Path(tmp) / "generado"
                 generar(nuevo)
-
-                def difiere(c) -> bool:
-                    return bool(c.left_only or c.right_only or c.diff_files
-                                or any(difiere(s) for s in c.subdirs.values()))
-                scripts = ["instalar.sql", "desinstalar.sql"]
-                if (not SALIDA.exists() or difiere(filecmp.dircmp(nuevo, SALIDA))
-                        or any(not filecmp.cmp(nuevo.parent / f, SALIDA.parent / f, shallow=False)
-                               for f in scripts if (SALIDA.parent / f).exists())
-                        or any(not (SALIDA.parent / f).exists() for f in scripts)):
+                c = filecmp.dircmp(nuevo, SALIDA) if SALIDA.exists() else None
+                if c is None or c.left_only or c.right_only or any(
+                        not filecmp.cmp(nuevo / f, SALIDA / f, shallow=False) for f in c.common_files):
                     print("plsql/generado NO está al día: ejecuta python3 herramientas/generar_plsql.py")
                     return 1
             print("plsql/generado está al día.")
             return 0
-        entidades = generar(SALIDA)
+        entidades, manifiesto = generar(SALIDA)
     except ErrorGeneracion as ex:
         print(f"ERROR: no se puede generar (falta información):\n{ex}", file=sys.stderr)
         return 1
-    for e in entidades:
-        print(f"{e.paquete:<32} {e.unidad:<6} {len(e.filas):>4} filas/entidad  {e.mensaje}")
+    for e in sorted(entidades, key=lambda x: (x.unidad, x.nombre)):
+        print(f"{e.unidad:<6} {e.procedimiento:<32} {len(e.filas):>4} filas/entidad  {e.mensaje}")
         for a in e.avisos:
             print(f"   aviso: {a}")
-    print(f"Generado en {SALIDA.relative_to(RAIZ)}: {len(entidades)} entidad(es).")
+    lineas = manifiesto["lineas_cuerpo"]
+    print(f"Generado plsql/generado/pkg_sint.pks/.pkb: {len(entidades)} entidad(es), {lineas} líneas de cuerpo.")
+    if lineas > MAX_LINEAS_AVISO:
+        print(f"AVISO: el cuerpo supera {MAX_LINEAS_AVISO} líneas; valorar separar el núcleo o compactar (D-023).")
     return 0
 
 

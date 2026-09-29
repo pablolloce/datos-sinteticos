@@ -66,11 +66,22 @@ sqlplus <<'EOF' | grep -E "ORA-|SP2-|Warning" && { echo "ERROR creando el entorn
 SET FEEDBACK OFF
 @entorno_local.sql
 @pruebas/local/referencias_minimas.sql
+-- Paquetes de versiones anteriores (instalar.sql debe borrarlos)
+CREATE PACKAGE pkg_sint_nucleo AS x NUMBER; END;
+/
+CREATE PACKAGE pkg_sint_fins AS x NUMBER; END;
+/
+CREATE PACKAGE sint_e_contrapartida_global AS x NUMBER; END;
+/
 EOF
 
 echo "=============== crear_bbdd_sintetica.sql (1ª vez) ==============="
 sqlplus <<'EOF'
 @crear_bbdd_sintetica.sql
+EOF
+echo "=============== Paquetes tras instalar (sólo debe quedar PKG_SINT) ==============="
+sqlplus <<'EOF'
+SELECT object_name, object_type, status FROM user_objects WHERE object_name LIKE '%SINT%' ORDER BY 1, 2;
 EOF
 echo "=============== crear_bbdd_sintetica.sql (2ª vez: debe reemplazar, no duplicar) ==============="
 sqlplus <<'EOF'
@@ -84,6 +95,5 @@ EOF
 echo "=============== desinstalar.sql ==============="
 sqlplus <<'EOF'
 @desinstalar.sql
-SELECT COUNT(*) AS objetos_restantes FROM user_objects
- WHERE object_name LIKE 'PKG_SINT%' OR object_name LIKE 'SINT\_E\_%' ESCAPE '\';
+SELECT COUNT(*) AS objetos_restantes FROM user_objects WHERE object_name LIKE '%SINT%';
 EOF

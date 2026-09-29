@@ -5,15 +5,15 @@ Cada técnica que se incorpore al código se marca como **APLICADA** e indica d�
 
 | Técnica | Estado | Dónde |
 |---|---|---|
-| SQL estático generado (no SQL dinámico por fila) | APLICADA | paquetes `SINT_E_*` (D-017) |
-| `FORALL` por segmento sobre colección de claves | APLICADA | `SINT_E_*.generar` |
-| Claves generadas en memoria antes de insertar | APLICADA | `SINT_E_*.generar` (colección `t_lista_claves`) |
-| Referencias validadas una vez por llamada | APLICADA | `SINT_E_*.generar`, paso 1 |
-| Un paquete por entidad | APLICADA (mantenibilidad) | D-017 |
-| Variables de enlace (bind) | APLICADA | `pkg_sint_nucleo.contar` / `purgar`; SQL estático en el resto |
+| SQL estático generado (no SQL dinámico por fila) | APLICADA | `PKG_SINT.crear_<entidad>` (D-017) |
+| `FORALL` por segmento sobre colección de claves | APLICADA | `crear_<entidad>` |
+| Claves generadas en memoria antes de insertar | APLICADA | `crear_<entidad>` (colección `t_lista_claves`) |
+| Referencias validadas una vez por llamada | APLICADA | `crear_<entidad>`, paso 1 |
+| Un único paquete, tamaño vigilado | APLICADA | D-023 |
+| Variables de enlace (bind) | APLICADA | `contar` / `purgar_tablas`; SQL estático en el resto |
 | `%TYPE` en parámetros y comparaciones con CHAR | APLICADA | parámetros de variación, D-012 |
-| Transacción única + `SAVEPOINT` | APLICADA | `pkg_sint.crear_bbdd`, `SINT_E_*.generar`, `purgar` |
-| `DBMS_ASSERT` en SQL dinámico | APLICADA (seguridad) | `pkg_sint_nucleo.tabla_segura` |
+| Transacción única + `SAVEPOINT` | APLICADA | `crear_bbdd`, `crear_<entidad>`, `purgar_tablas` |
+| `DBMS_ASSERT` en SQL dinámico | APLICADA (seguridad) | `tabla_segura` |
 | Hint `APPEND` / `APPEND_VALUES` (direct-path) | DESCARTADA | ver abajo |
 
 Medición en Oracle local (contenedor, sin concurrencia): 303 contrapartidas globales
@@ -38,11 +38,13 @@ no 8.000. Desde 11g se pueden referenciar campos de registro (`l_k(i).campo`) en
 Los datos maestros de un mensaje son iguales para todas sus copias: se comprueban una vez
 (un `COUNT(*)` por PK/UK, con índice) antes de insertar; si falta alguno se aborta sin escribir.
 
-## Un paquete por entidad
-El tamaño de un paquete no afecta a la velocidad de sus INSERT, pero sí al tiempo de
-compilación, a la memoria que ocupa en la *shared pool* y a la invalidación en cascada. Con
-un paquete por entidad cada cambio sólo recompila esa entidad, y un paquete con cientos de
-columnas sigue siendo manejable.
+## Un único paquete, tamaño vigilado (D-023)
+El tamaño de un paquete no afecta a la velocidad de sus INSERT, pero sí a la memoria y el
+tiempo de compilación. Medido en local: 219.000 líneas (600 entidades como la Contrapartida
+Global) compilan en 36 s; el doble agota la memoria de compilación de un contenedor pequeño.
+El generador informa del tamaño en cada ejecución y avisa a partir de 150.000 líneas.
+Los procedimientos de entidad son independientes entre sí (tipos y constantes locales), de
+modo que, si hiciera falta, separarlos en otro paquete sería un cambio sólo del generador.
 
 ## %TYPE con columnas CHAR (D-012)
 Los parámetros de variación se declaran con el `%TYPE` de la columna más restrictiva donde se

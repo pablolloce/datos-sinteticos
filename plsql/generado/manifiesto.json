@@ -1,4 +1,6 @@
 {
+  "paquete": "PKG_SINT",
+  "lineas_cuerpo": 655,
   "tablas_gestionadas": [
     "FT_T_FINS",
     "FT_T_FIST",
@@ -38,7 +40,7 @@
   "entidades": [
     {
       "nombre": "CONTRAPARTIDA_GLOBAL",
-      "paquete": "SINT_E_CONTRAPARTIDA_GLOBAL",
+      "procedimiento": "crear_contrapartida_global",
       "unidad": "FINS",
       "mensaje": "mensajes_entrada/Ejemplo_Alta_Contrapartida_Global.xml",
       "filas_por_entidad": 10,

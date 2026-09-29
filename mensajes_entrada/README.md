@@ -14,8 +14,8 @@ catálogo `catalogo.json`.
 
 ## Qué se genera a partir de cada mensaje (D-014, D-017)
 
-Cada mensaje produce un paquete `SINT_E_<ENTIDAD>` que crea **una entidad idéntica al
-mensaje**: mismos valores; sólo las claves internas (OIDs) son nuevas (`NEW_OID`).
+Cada mensaje produce un procedimiento `pkg_sint.crear_<entidad>` que crea **una entidad
+idéntica al mensaje**: mismos valores; sólo las claves internas (OIDs) son nuevas (`NEW_OID`).
 
 ## catalogo.json
 
@@ -23,7 +23,7 @@ mensaje**: mismos valores; sólo las claves internas (OIDs) son nuevas (`NEW_OID
 {
   "entidades": {
     "Ejemplo_Alta_Contrapartida_Global.xml": {         // ruta relativa a mensajes_entrada/
-      "nombre": "CONTRAPARTIDA_GLOBAL",                 // paquete SINT_E_<nombre> (máx. 23 caracteres)
+      "nombre": "CONTRAPARTIDA_GLOBAL",                 // procedimiento crear_<nombre> (máx. 24 caracteres)
       "descripcion": "Alta de contrapartida global ...",
       "parametros": {                                   // sólo si se piden variaciones
         "P_NOMBRE": {
