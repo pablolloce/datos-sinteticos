@@ -1,0 +1,205 @@
+EntitiesGroups
+Powered by GoldenSourceCopyright © GoldenSource CorporationWorkstation v8.7.1.102
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE STREET_REF SYSTEM "fti://repository/dtd/STREET_REF">
+
+<STREET_REF TRACE="false" USERID="GUEST">
+  <HEADER>
+    <CURRENTTIMESTAMP>09-29-2026 05:49:55 PM</CURRENTTIMESTAMP>
+    <DONOTPOST VALUE="N"/>
+    <LOCALE>
+      <NLS VALUE="ENGLISH"/>
+      <TIMEZONE VALUE="Europe/Madrid"/>
+    </LOCALE>
+    <MAIN_ENTITY_NME VALUE="PROBANDO"/>
+    <MAIN_ENTITY_TBL_TYP VALUE="FINS"/>
+    <MODEL>
+      <CHANGEMODEL VALUE="Y"/>
+      <MODLID VALUE="RDRFINSG"/>
+      <MODLSTARTTMS VALUE="01-01-2002 12:00:00 AM"/>
+    </MODEL>
+    <MSGCLASSIFICATION VALUE="WEBMSG"/>
+    <USERID VALUE="T045519"/>
+  </HEADER>
+  <SEGMENT TYPE="FinancialInstitution" ACTION="INSERT">
+    <FinancialInstitution>
+      <DATASRCID VALUE="RDR"/>
+      <DATASTATTYP VALUE="ACTIVE"/>
+      <INSTDESC VALUE="PROBANDO"/>
+      <INSTFOUNDINGDTE VALUE="09-29-2026 12:00:00 AM"/>
+      <INSTLEGALNME VALUE="PROBANDO"/>
+      <INSTMNEM VALUE="f-uBI7(qW1"/>
+      <INSTNME VALUE="PROBANDO"/>
+      <LASTCHGTMS VALUE="09-29-2026 05:49:55 PM"/>
+      <LASTCHGUSRID VALUE="T045519"/>
+      <STARTTMS VALUE="09-29-2026 05:49:20 PM"/>
+    </FinancialInstitution>
+  </SEGMENT>
+  <SEGMENT TYPE="FinancialInstitutionStatistic" ACTION="INSERT">
+    <FinancialInstitutionStatistic>
+      <DATASRCID VALUE="RDR"/>
+      <DATASTATTYP VALUE="ACTIVE"/>
+      <INSTMNEM VALUE="f-uBI7(qW1"/>
+      <LASTCHGTMS VALUE="09-29-2026 05:49:23 PM"/>
+      <LASTCHGUSRID VALUE="T045519"/>
+      <STARTTMS VALUE="09-29-2026 05:49:23 PM"/>
+      <STATCHARVALTXT VALUE="Y"/>
+      <STATDEFID VALUE="UKFIRM"/>
+    </FinancialInstitutionStatistic>
+  </SEGMENT>
+  <SEGMENT TYPE="FinancialInstitutionGeoUnitPrt" ACTION="INSERT">
+    <FinancialInstitutionGeoUnitPrt>
+      <DATASRCID VALUE="RDR"/>
+      <DATASTATTYP VALUE="ACTIVE"/>
+      <FINSGUPURPTYP VALUE="STSMNTCT"/>
+      <GUCNT VALUE="1"/>
+      <GUID VALUE="AF"/>
+      <GUNTOID VALUE="GUNT3B2==="/>
+      <GUTYP VALUE="COUNTRY"/>
+      <INSTMNEM VALUE="f-uBI7(qW1"/>
+      <LASTCHGTMS VALUE="09-29-2026 05:49:52 PM"/>
+      <LASTCHGUSRID VALUE="T045519"/>
+      <STARTTMS VALUE="09-29-2026 05:49:52 PM"/>
+    </FinancialInstitutionGeoUnitPrt>
+  </SEGMENT>
+  <SEGMENT TYPE="FinancialInstitutionStatistic" ACTION="INSERT">
+    <FinancialInstitutionStatistic>
+      <DATASRCID VALUE="RDR"/>
+      <DATASTATTYP VALUE="ACTIVE"/>
+      <INSTMNEM VALUE="f-uBI7(qW1"/>
+      <LASTCHGTMS VALUE="09-29-2026 05:49:23 PM"/>
+      <LASTCHGUSRID VALUE="T045519"/>
+      <STARTTMS VALUE="09-29-2026 05:49:23 PM"/>
+      <STATCHARVALTXT VALUE="Y"/>
+      <STATDEFID VALUE="MIFIFIRM"/>
+    </FinancialInstitutionStatistic>
+  </SEGMENT>
+  <SEGMENT TYPE="FinancialInstitution" ACTION="REFERENCE" NotNewEntity="Y">
+    <FinancialInstitution>
+      <DATASRCID VALUE="RDR"/>
+      <DATASTATTYP VALUE="ACTIVE"/>
+      <INSTDESC VALUE="PROBANDO"/>
+      <INSTFOUNDINGDTE VALUE="09-29-2026 12:00:00 AM"/>
+      <INSTLEGALNME VALUE="PROBANDO"/>
+      <INSTMNEM VALUE="f-uBI7(qW1"/>
+      <INSTNME VALUE="PROBANDO"/>
+      <LASTCHGTMS VALUE="09-29-2026 05:49:55 PM"/>
+      <LASTCHGUSRID VALUE="T045519"/>
+      <STARTTMS VALUE="09-29-2026 05:49:20 PM"/>
+    </FinancialInstitution>
+  </SEGMENT>
+  <SEGMENT TYPE="FINSFinancialLegalNames" ACTION="OPTIMISTICUPDATE">
+    <FINSFinancialLegalNames>
+      <DATASRCID VALUE="ABACO"/>
+      <DATASTATTYP VALUE="ACTIVE"/>
+      <FLGLEGALNME VALUE="PROBANDO"/>
+      <FLGOID VALUE="f-uFI7(qW1"/>
+      <INSTMNEM VALUE="f-uBI7(qW1"/>
+      <LASTCHGTMS VALUE="09-29-2026 05:49:52 PM"/>
+      <LASTCHGUSRID VALUE="T045519"/>
+      <STARTTMS VALUE="09-29-2026 05:49:52 PM"/>
+    </FINSFinancialLegalNames>
+  </SEGMENT>
+  <SEGMENT TYPE="FinancialInstitution" ACTION="REFERENCE" NotNewEntity="Y">
+    <FinancialInstitution>
+      <DATASRCID VALUE="RDR"/>
+      <DATASTATTYP VALUE="ACTIVE"/>
+      <INSTDESC VALUE="PROBANDO"/>
+      <INSTFOUNDINGDTE VALUE="09-29-2026 12:00:00 AM"/>
+      <INSTLEGALNME VALUE="PROBANDO"/>
+      <INSTMNEM VALUE="f-uBI7(qW1"/>
+      <INSTNME VALUE="PROBANDO"/>
+      <LASTCHGTMS VALUE="09-29-2026 05:49:55 PM"/>
+      <LASTCHGUSRID VALUE="T045519"/>
+      <STARTTMS VALUE="09-29-2026 05:49:20 PM"/>
+    </FinancialInstitution>
+  </SEGMENT>
+  <SEGMENT TYPE="FINSFinancialInstitutionRole" ACTION="INSERT">
+    <FINSFinancialInstitutionRole>
+      <DATASRCID VALUE="RDR"/>
+      <DATASTATTYP VALUE="ACTIVE"/>
+      <FINROID VALUE="f-uCI7(qW1"/>
+      <FINSRLSUBTYP VALUE="BUSINESS"/>
+      <FINSRLTYP VALUE="INDVDUAL"/>
+      <INSTMNEM VALUE="f-uBI7(qW1"/>
+      <LASTCHGTMS VALUE="09-29-2026 05:49:55 PM"/>
+      <LASTCHGUSRID VALUE="T045519"/>
+      <PREFIDCTXTTYP VALUE="Y"/>
+      <STARTTMS VALUE="09-29-2026 05:49:23 PM"/>
+    </FINSFinancialInstitutionRole>
+  </SEGMENT>
+  <SEGMENT TYPE="FINRFinsFinsRoleRelationship" ACTION="INSERT">
+    <FINRFinsFinsRoleRelationship>
+      <DATASRCID VALUE="RDR"/>
+      <DATASTATTYP VALUE="ACTIVE"/>
+      <FINROID VALUE="f-uCI7(qW1"/>
+      <FINSRLTYP VALUE="INDVDUAL"/>
+      <INSTMNEM VALUE="f-uBI7(qW1"/>
+      <LASTCHGTMS VALUE="09-29-2026 05:49:55 PM"/>
+      <LASTCHGUSRID VALUE="T045519"/>
+      <PRNTINSTMNEM VALUE="f-uBI7(qW1"/>
+      <RELTYP VALUE="GLOBAL"/>
+      <STARTTMS VALUE="09-29-2026 05:49:23 PM"/>
+    </FINRFinsFinsRoleRelationship>
+  </SEGMENT>
+  <SEGMENT TYPE="FINREnterpriseFinancialInstitutionRole" ACTION="INSERT">
+    <FINREnterpriseFinancialInstitutionRole>
+      <DATASRCID VALUE="RDR"/>
+      <DATASTATTYP VALUE="ACTIVE"/>
+      <ENFROID VALUE="f-uDI7(qW1"/>
+      <ENFRRLTYP VALUE="ENT_OWN"/>
+      <FINRINSTMNEM VALUE="f-uBI7(qW1"/>
+      <FINROID VALUE="f-uCI7(qW1"/>
+      <FINSRLTYP VALUE="INDVDUAL"/>
+      <LASTCHGTMS VALUE="09-29-2026 05:49:55 PM"/>
+      <LASTCHGUSRID VALUE="T045519"/>
+      <ORGID VALUE="0182"/>
+      <STARTTMS VALUE="09-29-2026 05:49:27 PM"/>
+    </FINREnterpriseFinancialInstitutionRole>
+  </SEGMENT>
+  <SEGMENT TYPE="FINREnterpriseFinancialInstitutionRole" ACTION="INSERT">
+    <FINREnterpriseFinancialInstitutionRole>
+      <DATASRCID VALUE="RDR"/>
+      <DATASTATTYP VALUE="ACTIVE"/>
+      <ENFROID VALUE="f-uEI7(qW1"/>
+      <ENFRRLTYP VALUE="BRANCH_OWN"/>
+      <FINRINSTMNEM VALUE="f-uBI7(qW1"/>
+      <FINROID VALUE="f-uCI7(qW1"/>
+      <FINSRLTYP VALUE="INDVDUAL"/>
+      <LASTCHGTMS VALUE="09-29-2026 05:49:55 PM"/>
+      <LASTCHGUSRID VALUE="T045519"/>
+      <ORGID VALUE="A18"/>
+      <STARTTMS VALUE="09-29-2026 05:49:37 PM"/>
+    </FINREnterpriseFinancialInstitutionRole>
+  </SEGMENT>
+  <SEGMENT TYPE="FinsRoleClassification" ACTION="INSERT">
+    <FinsRoleClassification>
+      <CLSFOID VALUE="=002DCDB88"/>
+      <CLVALUE VALUE="FINANCIAL"/>
+      <DATASRCID VALUE="RDR"/>
+      <DATASTATTYP VALUE="ACTIVE"/>
+      <FINROID VALUE="f-uCI7(qW1"/>
+      <FINSRLTYP VALUE="INDVDUAL"/>
+      <INDUSCLSETID VALUE="TPFINF"/>
+      <INSTMNEM VALUE="f-uBI7(qW1"/>
+      <LASTCHGTMS VALUE="09-29-2026 05:49:37 PM"/>
+      <LASTCHGUSRID VALUE="T045519"/>
+      <STARTTMS VALUE="09-29-2026 05:49:37 PM"/>
+    </FinsRoleClassification>
+  </SEGMENT>
+  <SEGMENT TYPE="FinancialInstitution" ACTION="REFERENCE" NotNewEntity="Y">
+    <FinancialInstitution>
+      <DATASRCID VALUE="RDR"/>
+      <DATASTATTYP VALUE="ACTIVE"/>
+      <INSTDESC VALUE="PROBANDO"/>
+      <INSTFOUNDINGDTE VALUE="09-29-2026 12:00:00 AM"/>
+      <INSTLEGALNME VALUE="PROBANDO"/>
+      <INSTMNEM VALUE="f-uBI7(qW1"/>
+      <INSTNME VALUE="PROBANDO"/>
+      <LASTCHGTMS VALUE="09-29-2026 05:49:55 PM"/>
+      <LASTCHGUSRID VALUE="T045519"/>
+      <STARTTMS VALUE="09-29-2026 05:49:20 PM"/>
+    </FinancialInstitution>
+  </SEGMENT>
+</STREET_REF>
