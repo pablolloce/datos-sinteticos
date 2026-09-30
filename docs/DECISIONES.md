@@ -388,6 +388,17 @@ Plantilla:
   Una regla asociada a un tipo de segmento se ejecuta una vez por segmento de ese tipo; las réplicas
   deben ser idempotentes.
 
+### D-034 — Alcance de la réplica: el guardado completo desde la Workstation
+- Fecha: 2026-09-30 · Estado: VIGENTE (indicación del usuario: "guardar por ventana" =
+  mensaje de Workstation + guardar, que lanza `CustomWorkstationWorkflow`)
+- Decisión: se replica lo que escribe en la BBDD el guardado: fase 1 (motor: message set y reglas
+  Java) y fase 2 (workflows lanzados tras el motor: REU, shortname, datos regulatorios, casos por
+  modelo, auditoría México...). Orden y bloqueos en `docs/motor/FLUJO_WORKSTATION.md`, apartado 3.
+  Publicaciones a ESB/MQ/JMS, ficheros y correos no se replican.
+- Consecuencias: la lógica de la fase 2 que está en BLOB se obtiene con
+  `fileloading/extracciones/extracciones_workstation.sql` (W1–W6) y se decodifica con
+  `fileloading/herramientas/decodificar_extracciones.py`; después se re-sincroniza.
+
 ---
 
 ## Preguntas abiertas
@@ -411,3 +422,5 @@ Plantilla:
 | P-015 | ¿Se puede obtener de GoldenSource la referencia de reglas del Reference Engine (`CFTI*`/`CGSC*`) o las librerías `GenericRules`/`CamsRules` del servidor? | ABIERTA |
 | P-016 | ¿Recorta el motor los espacios del nombre de clase de `CGSCInvokeJavaRule` (`CreateCopyLAGR `, `RulesCPTY `, `RulesLAGR `)? Si no, esas reglas no se ejecutan en GoldenSource. Se confirma con una huella de un mensaje LAGR/FINSX (notificaciones 9037/9043/9046/9050). | ABIERTA |
 | P-017 | Unicidades del motor (`FLG_Uniqueness` 9001 nombre legal, `Uniqueness` 9001–9003): GoldenSource rechazaría una segunda entidad con el mismo nombre legal/identificadores. ¿El generador debe fallar igual, o generar valores únicos (p. ej. sufijo) cuando se piden varias entidades o el valor ya existe en la BBDD? | ABIERTA |
+| P-018 | ¿Las pruebas funcionales consultan las tablas de control de difusión y cachés (`FT_T_EMM1`, `FT_T_RLT1`, `FT_T_CCA1`, `FT_T_CAC1`, `CACHE_COUNTERPARTIES`, `FT_T_VREQ`, `FT_T_ALG1`)? Si no, no se replican (D-034). | ABIERTA |
+| P-019 | Extraer W1–W6 (`fileloading/extracciones/extracciones_workstation.sql`) y subir los CSV a `fileloading/extracciones/workstation/`. | ABIERTA |

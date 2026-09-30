@@ -65,11 +65,15 @@ regla").
 
 ## 4. Plan para replicar el motor en PL/SQL
 
+> Tras el motor, el guardado lanza más workflows que también escriben (REU, shortname, datos
+> regulatorios...): ver [`FLUJO_WORKSTATION.md`](FLUJO_WORKSTATION.md) (D-034).
+
 | Fase | Qué | Estado |
 |---|---|---|
 | 0 | Saber qué reglas afectan a cada mensaje (`reglas_aplicables.py`) | Hecho |
+| 0 bis | Aplicar en el generador las reglas Java deterministas (`reglas_replicadas.py`) | Hecho (4 reglas) |
 | 1 | Capturar la huella real de cada tipo de entidad (empezando por Contrapartida Global) y anotar lo confirmado en `REGLAS_OBSERVADAS.md` | Pendiente (necesita entorno de pruebas) |
-| 2 | Decidir si la BBDD sintética debe reproducir el motor o seguir fiel al mensaje (P-013) | Pendiente del usuario |
+| 2 | Decidir si la BBDD sintética debe reproducir el motor (P-013) | Hecho: sí (D-031) |
 | 3 | Implementar cada regla confirmada **en el generador**, con una decisión `D-xxx` por regla | Pendiente de 1 y 2 |
 | 4 | Verificar: capturar la huella de `pkg_sint.crear_bbdd` y compararla con la real (misma herramienta) | Pendiente |
 

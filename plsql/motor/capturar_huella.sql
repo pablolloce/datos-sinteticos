@@ -12,7 +12,9 @@
 -- Ver docs/motor/README.md, apartado "Descubrir qué hace una regla".
 --
 -- Uso (SQL Developer, conectado como KYTL_GC, en un entorno de PRUEBAS tranquilo):
---   1. Anotar la hora, guardar la entidad en la Workstation, anotar la hora.
+--   1. Anotar la hora, guardar la entidad en la Workstation, esperar 2-3 minutos
+--      (los workflows posteriores al motor son asíncronos: REU, shortname,
+--      datos regulatorios...; ver docs/motor/FLUJO_WORKSTATION.md) y anotar la hora.
 --   2. Ajustar los DEFINE de abajo y pulsar F5.
 --   3. Exportar el resultado de la última consulta (SINT_HUELLA) a CSV
 --      (clic derecho > Exportar > csv) y dejarlo en huellas/<Mensaje>.csv.

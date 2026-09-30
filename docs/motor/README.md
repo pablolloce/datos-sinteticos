@@ -6,6 +6,8 @@ GoldenSource crearía de verdad.
 
 - [`MOTOR_GOLDENSOURCE.md`](MOTOR_GOLDENSOURCE.md): recorrido del mensaje dentro del motor,
   message set, reglas y plan para replicarlo.
+- [`FLUJO_WORKSTATION.md`](FLUJO_WORKSTATION.md): qué escribe en la BBDD el guardado desde la
+  Workstation (`CustomWorkstationWorkflow`): motor + workflows posteriores, y orden de réplica.
 - [`REGLAS_OBSERVADAS.md`](REGLAS_OBSERVADAS.md): comportamiento **confirmado** de cada regla
   (se rellena con las capturas de huella).
 - `reglas/<Mensaje>.md`: reglas que dispararía cada mensaje (`reglas_aplicables.py`).
