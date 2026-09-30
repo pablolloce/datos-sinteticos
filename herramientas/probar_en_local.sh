@@ -138,8 +138,17 @@ INSERT /*+ APPEND */ INTO hija_sin_indice SELECT ROWNUM, 'REALFINS01' FROM dual 
 COMMIT;
 EXEC DBMS_STATS.gather_table_stats(USER, 'HIJA_SIN_INDICE');
 EXEC pkg_sint.set_trazas(FALSE);
-EXEC pkg_sint.crear_contrapartida_global(p_cantidad => 4);
-COMMIT;
+-- 4 contrapartidas: FLG_Uniqueness (D-035) exige nombres legales distintos, así que tras
+-- crear cada una se le cambia el nombre antes de crear la siguiente.
+BEGIN
+   FOR i IN 1 .. 4 LOOP
+      pkg_sint.crear_contrapartida_global;
+      UPDATE financial_legal_names SET flg_legal_nme = 'PROBANDO ' || i
+       WHERE flg_legal_nme = 'PROBANDO' AND last_chg_usr_id = 'TESTING:RDR';
+   END LOOP;
+   COMMIT;
+END;
+/
 EXEC pkg_sint.set_trazas(TRUE);
 EXEC pkg_sint.eliminar_bbdd;
 DECLARE

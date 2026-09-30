@@ -132,8 +132,13 @@ def validaciones_bbdd(entidad) -> list[str]:
       -- Varias entidades en una llamada tendrían el mismo nombre: GoldenSource rechazaría desde la 2ª.
       rechazar_si_existe(CASE WHEN p_cantidad > 1 THEN 1 ELSE 0 END, 'FLG_Uniqueness',
                          {msg} || ' Se piden ' || p_cantidad || ' entidades con el mismo nombre legal: pide por el chat un nombre legal distinto para cada una.');
-      SELECT COUNT(*) INTO l_existe FROM {f.tabla.lower()}
-       WHERE flg_legal_nme = {expr}
-         AND data_stat_typ = 'ACTIVE';
+      -- No cuentan las filas sintéticas ya eliminadas que el job de borrado aún no ha
+      -- quitado (SINT_REGISTRO en estado BORRANDO, D-027): crear justo tras eliminar es válido.
+      SELECT COUNT(*) INTO l_existe FROM {f.tabla.lower()} x
+       WHERE x.flg_legal_nme = {expr}
+         AND x.data_stat_typ = 'ACTIVE'
+         AND NOT EXISTS (SELECT 1 FROM sint_registro r
+                          WHERE r.tabla = '{f.tabla}' AND r.clave = x.{f.pk.lower()}
+                            AND r.estado = 'BORRANDO');
       rechazar_si_existe(l_existe, 'FLG_Uniqueness', {msg} || {pedir});""")
     return bloques

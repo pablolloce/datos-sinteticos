@@ -425,6 +425,9 @@ Plantilla:
   desde la Workstation para obtenerlo) no se puede crear tal cual: hay que parametrizar el nombre
   legal (variación) o eliminar antes la entidad original. El nombre legal se busca en la tabla del
   segmento (`FINANCIAL_LEGAL_NAMES`); la regla original consulta `FT_T_FLG1` (P-020).
+- Ajuste (revisión 2026-09-30): no cuentan las filas sintéticas en `SINT_REGISTRO` con estado
+  `BORRANDO` (ya eliminadas, pendientes del job de D-027); así se puede crear justo después de
+  `eliminar_bbdd` sin esperar a que termine el borrado físico.
 
 ### D-036 — Se replican también las tablas de control, difusión y cachés
 - Fecha: 2026-09-30 · Estado: VIGENTE (P-018, indicación del usuario: "por si acaso")

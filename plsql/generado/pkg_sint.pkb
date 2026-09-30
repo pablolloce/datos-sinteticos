@@ -681,9 +681,14 @@ AS
       -- Varias entidades en una llamada tendrían el mismo nombre: GoldenSource rechazaría desde la 2ª.
       rechazar_si_existe(CASE WHEN p_cantidad > 1 THEN 1 ELSE 0 END, 'FLG_Uniqueness',
                          'STRDATA/JAVARULE/9001 (ERROR): Legal Name: ' || 'PROBANDO' || ' already exist.' || ' Se piden ' || p_cantidad || ' entidades con el mismo nombre legal: pide por el chat un nombre legal distinto para cada una.');
-      SELECT COUNT(*) INTO l_existe FROM financial_legal_names
-       WHERE flg_legal_nme = 'PROBANDO'
-         AND data_stat_typ = 'ACTIVE';
+      -- No cuentan las filas sintéticas ya eliminadas que el job de borrado aún no ha
+      -- quitado (SINT_REGISTRO en estado BORRANDO, D-027): crear justo tras eliminar es válido.
+      SELECT COUNT(*) INTO l_existe FROM financial_legal_names x
+       WHERE x.flg_legal_nme = 'PROBANDO'
+         AND x.data_stat_typ = 'ACTIVE'
+         AND NOT EXISTS (SELECT 1 FROM sint_registro r
+                          WHERE r.tabla = 'FINANCIAL_LEGAL_NAMES' AND r.clave = x.flg_oid
+                            AND r.estado = 'BORRANDO');
       rechazar_si_existe(l_existe, 'FLG_Uniqueness', 'STRDATA/JAVARULE/9001 (ERROR): Legal Name: ' || 'PROBANDO' || ' already exist.' || ' Ya existe en la BBDD: pide por el chat que se cambie el nombre legal (FINSFinancialLegalNames/FLGLEGALNME del mensaje) por uno que no exista.');
 
       -------------------------------------------------------------------------
