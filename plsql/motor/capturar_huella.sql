@@ -33,6 +33,8 @@
 --------------------------------------------------------------------------------
 SET SERVEROUTPUT ON SIZE UNLIMITED
 SET VERIFY OFF
+-- Por si en la misma sesión se ejecutó antes instalar.sql (SET DEFINE OFF): &desde, &hasta...
+SET DEFINE ON
 
 -- Ventana de tiempo (formato AAAA-MM-DD HH24:MI:SS). Holgura de unos segundos.
 DEFINE desde   = '2026-09-30 10:00:00'

@@ -762,6 +762,7 @@ AS
 
    PROCEDURE crear_bbdd (p_commit IN BOOLEAN DEFAULT TRUE)
    IS
+      l_savepoint BOOLEAN := FALSE;   -- el ROLLBACK TO sólo es válido tras el SAVEPOINT
    BEGIN
       traza('=== Creación de la BBDD sintética ===');
       IF hay_registro THEN
@@ -769,6 +770,7 @@ AS
             'Ya existe una BBDD sintética registrada: ejecute antes EXEC pkg_sint.eliminar_bbdd;');
       END IF;
       SAVEPOINT sp_crear_bbdd;
+      l_savepoint := TRUE;
 
       -------------------------------------------------------------------------
       -- 1. Entidades de los mensajes (una entidad idéntica a cada mensaje)
@@ -788,8 +790,10 @@ AS
             CASE WHEN p_commit THEN ' (COMMIT)' ELSE ' (pendiente de COMMIT)' END || ' ===');
    EXCEPTION
       WHEN OTHERS THEN
-         ROLLBACK TO SAVEPOINT sp_crear_bbdd;
-         traza('ERROR: creación deshecha. ' || SQLERRM);
+         IF l_savepoint THEN
+            ROLLBACK TO SAVEPOINT sp_crear_bbdd;
+            traza('ERROR: creación deshecha. ' || SQLERRM);
+         END IF;
          RAISE;
    END crear_bbdd;
 

@@ -189,11 +189,12 @@ sed -e "s/^DEFINE desde .*/DEFINE desde   = '$DESDE'/" -e "s/^DEFINE hasta .*/DE
     -e "s/^DEFINE modo .*/DEFINE modo    = 'TODAS'/" \
     "$RAIZ/plsql/motor/capturar_huella.sql" > /tmp/capturar_huella_local.sql
 docker cp /tmp/capturar_huella_local.sql "$CONTENEDOR:/tmp/plsql/capturar_huella_local.sql"
-sqlplus <<'EOF' | grep -E "ORA-|SP2-|Tablas revisadas|CON_FILAS|^ *[0-9]+ *$" || true
+sqlplus <<'EOF' | grep -E "ORA-|SP2-|^Modo |CON_FILAS=" || true
 SET FEEDBACK OFF
 @crear_bbdd_sintetica.sql
 @capturar_huella_local.sql
-SELECT COUNT(*) AS con_filas FROM sint_huella WHERE tabla NOT LIKE '#%' AND num_filas > 0;
+SELECT 'CON_FILAS=' || COUNT(*) || ' tablas con filas capturadas (entidad + datos maestros de la prueba)' AS r
+  FROM sint_huella WHERE tabla NOT LIKE '#%' AND num_filas > 0;
 DROP TABLE sint_huella PURGE;
 EXEC pkg_sint.eliminar_bbdd(p_segundo_plano => FALSE);
 EOF

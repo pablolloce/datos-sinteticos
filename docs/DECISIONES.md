@@ -391,6 +391,9 @@ Plantilla:
   `diagnostico_borrado.sql` y `capturar_huella.sql` se ejecutan sin errores. La prueba local crea
   ahora también las 6 tablas del motor que usa `capturar_huella.sql` (FT_T_TRID, NTEL, MSGP, MSGF,
   MSGS, JBLG) y la ejecuta.
+- Revisión 2026-09-30: `capturar_huella.sql` hace `SET DEFINE ON` (tras `instalar.sql`, que deja
+  `SET DEFINE OFF`, en la misma hoja de SQL Developer fallaba con ORA-01841); `crear_bbdd` ya no
+  envuelve ORA-20005 en ORA-01086 (sólo vuelve al SAVEPOINT si llegó a marcarlo).
 
 ### D-033 — Orden de ejecución de las reglas del message set
 - Fecha: 2026-09-30 · Estado: PROPUESTA (deducido, pendiente de confirmar con huellas)
