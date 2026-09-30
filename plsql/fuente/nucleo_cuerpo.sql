@@ -92,6 +92,19 @@
       END IF;
    END exigir_referencia;
 
+   /* Validación del motor de GoldenSource replicada (D-035): si p_encontradas > 0, el
+      motor rechazaría el mensaje con la notificación indicada; no se crea nada. */
+   PROCEDURE rechazar_si_existe (p_encontradas IN PLS_INTEGER,
+                                 p_regla       IN VARCHAR2,
+                                 p_mensaje     IN VARCHAR2)
+   IS
+   BEGIN
+      IF NVL(p_encontradas, 0) > 0 THEN
+         RAISE_APPLICATION_ERROR(ge_rechazo_motor,
+            'GoldenSource rechazaría el mensaje (' || p_regla || '): ' || p_mensaje);
+      END IF;
+   END rechazar_si_existe;
+
    /* Identificador validado para SQL dinámico (protección frente a inyección). */
    FUNCTION nombre_seguro (p_nombre IN VARCHAR2) RETURN VARCHAR2
    IS

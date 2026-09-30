@@ -399,6 +399,31 @@ Plantilla:
   `fileloading/extracciones/extracciones_workstation.sql` (W1–W6) y se decodifica con
   `fileloading/herramientas/decodificar_extracciones.py`; después se re-sincroniza.
 
+### D-035 — Validaciones del motor: el generador no crea lo que GoldenSource rechazaría
+- Fecha: 2026-09-30 · Estado: VIGENTE (P-017, indicación del usuario)
+- Contexto: el motor rechaza mensajes con notificaciones de severidad 40/50 (p. ej. `FLG_Uniqueness`:
+  nombre legal ya activo → STRDATA/JAVARULE/9001 ERROR).
+- Decisión (`herramientas/motor/validaciones_motor.py`):
+  1. **Al generar**: `generar_plsql.py` comprueba con los mensajes, el catálogo, las variaciones y las
+     cantidades si GoldenSource rechazaría algo (p. ej. dos entidades con el mismo nombre legal). Si
+     es así, falla con el texto de la notificación de GoldenSource, **no actualiza `plsql/generado/`**
+     y Claude devuelve ese mensaje al usuario por el chat.
+  2. **Al ejecutar**: cada `crear_<entidad>` comprueba antes de insertar, contra los datos que ya hay
+     en la BBDD, lo mismo que el motor; si lo rechazaría, falla con `ge_rechazo_motor` (-20006) y el
+     texto de la notificación, sin crear nada (`crear_bbdd` se deshace entera).
+- Replicadas: `FLG_Uniqueness` (nombre legal). Pendiente: `Uniqueness` (identificadores).
+- Consecuencias: un mensaje cuyo nombre legal ya existe en `KYTL_GC` (p. ej. porque se guardó
+  desde la Workstation para obtenerlo) no se puede crear tal cual: hay que parametrizar el nombre
+  legal (variación) o eliminar antes la entidad original. El nombre legal se busca en la tabla del
+  segmento (`FINANCIAL_LEGAL_NAMES`); la regla original consulta `FT_T_FLG1` (P-020).
+
+### D-036 — Se replican también las tablas de control, difusión y cachés
+- Fecha: 2026-09-30 · Estado: VIGENTE (P-018, indicación del usuario: "por si acaso")
+- Decisión: además de las entidades de negocio, se replican las escrituras de los workflows
+  posteriores al motor en `FT_T_RLT1`, `FT_T_EMM1`, `FT_T_CCA1`, `FT_T_CAC1`, `CACHE_COUNTERPARTIES`,
+  `FT_T_VREQ`, `FT_T_ALG1`, `FT_T_UTD1`. Siguen sin replicarse los envíos (ESB/MQ/JMS), ficheros y
+  correos. Orden: `docs/motor/FLUJO_WORKSTATION.md`, apartado 3 (prioridad 7 → se incluye).
+
 ---
 
 ## Preguntas abiertas
@@ -421,6 +446,7 @@ Plantilla:
 | P-014 | ¿Dónde se validan los scripts y se capturan las huellas? | RESUELTA → D-032. Pendiente saber si los mensajes de la Workstation guardan el mensaje procesado (`FT_T_MSGP`): lo dirá la primera huella |
 | P-015 | ¿Se puede obtener de GoldenSource la referencia de reglas del Reference Engine (`CFTI*`/`CGSC*`) o las librerías `GenericRules`/`CamsRules` del servidor? | ABIERTA |
 | P-016 | ¿Recorta el motor los espacios del nombre de clase de `CGSCInvokeJavaRule` (`CreateCopyLAGR `, `RulesCPTY `, `RulesLAGR `)? Si no, esas reglas no se ejecutan en GoldenSource. Se confirma con una huella de un mensaje LAGR/FINSX (notificaciones 9037/9043/9046/9050). | ABIERTA |
-| P-017 | Unicidades del motor (`FLG_Uniqueness` 9001 nombre legal, `Uniqueness` 9001–9003): GoldenSource rechazaría una segunda entidad con el mismo nombre legal/identificadores. ¿El generador debe fallar igual, o generar valores únicos (p. ej. sufijo) cuando se piden varias entidades o el valor ya existe en la BBDD? | ABIERTA |
-| P-018 | ¿Las pruebas funcionales consultan las tablas de control de difusión y cachés (`FT_T_EMM1`, `FT_T_RLT1`, `FT_T_CCA1`, `FT_T_CAC1`, `CACHE_COUNTERPARTIES`, `FT_T_VREQ`, `FT_T_ALG1`)? Si no, no se replican (D-034). | ABIERTA |
-| P-019 | Extraer W1–W6 (`fileloading/extracciones/extracciones_workstation.sql`) y subir los CSV a `fileloading/extracciones/workstation/`. | ABIERTA |
+| P-017 | Unicidades del motor: ¿fallar o generar valores únicos? | RESUELTA → D-035 (detectar, avisar por el chat y no actualizar el PL/SQL) |
+| P-018 | ¿Replicar las tablas de control de difusión y cachés? | RESUELTA → D-036 (sí) |
+| P-019 | Extraer W1–W6 (`fileloading/extracciones/extracciones_workstation.sql`). | RESUELTA: subidas a `fileloading/extracciones/` y decodificadas en `fileloading/extracciones/decodificado/` |
+| P-020 | `FLG_Uniqueness` consulta `FT_T_FLG1` y el generador inserta el nombre legal en `FINANCIAL_LEGAL_NAMES` (D-010). ¿`FT_T_FLG1` es un sinónimo o vista de `FINANCIAL_LEGAL_NAMES`? Si no, la validación en BBDD debe consultar `FT_T_FLG1`. | ABIERTA |

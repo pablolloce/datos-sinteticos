@@ -122,6 +122,11 @@ antes de traducir el mensaje a INSERT. Documentación en [`docs/motor/`](docs/mo
   (citar `Clase.process`); una nativa `CFTI*`/`CGSC*` sólo si una huella confirma su efecto y está
   en `docs/motor/REGLAS_OBSERVADAS.md` (D-030). Réplicas idempotentes (D-033).
 - Tras tocar una réplica: `python3 herramientas/motor/probar_reglas.py` (añadir un caso por regla).
+- Validaciones que rechazan el mensaje (D-035): `herramientas/motor/validaciones_motor.py`. Si
+  `generar_plsql.py` falla con "GoldenSource rechazaría estos mensajes", **no se sube nada**: se
+  devuelve el mensaje de error al usuario por el chat, tal cual, y se espera su indicación.
+- Se replican también las tablas de control, difusión y cachés de los workflows posteriores al
+  motor (D-036); no los envíos ESB/MQ/JMS, ficheros ni correos.
 - Por cada mensaje nuevo, además del informe de mapeo:
   `python3 herramientas/motor/reglas_aplicables.py mensajes_entrada/<Mensaje>.xml -o docs/motor/reglas/<Mensaje>.md`;
   revisar las reglas pendientes que le afectan y comentarlas con el usuario.

@@ -48,6 +48,7 @@ from analizar_mensaje import cargar_modelo, leer_xml, resolver_columna  # noqa: 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "motor"))
 from mensaje_motor import MensajeMotor  # noqa: E402
 from reglas_replicadas import aplicar_motor  # noqa: E402
+from validaciones_motor import validaciones_bbdd, validar_generacion  # noqa: E402
 
 RAIZ = Path(__file__).resolve().parent.parent
 ENTRADA = RAIZ / "mensajes_entrada"
@@ -125,6 +126,7 @@ class Entidad:
     avisos: list
     motor: list = field(default_factory=list)   # reglas del motor aplicadas/pendientes (D-031)
     cambios_motor: list = field(default_factory=list)   # cambios de las reglas sobre el mensaje
+    modelo_id: str = ""                                 # MODEL/MODLID del mensaje
     paquete: str = ""       # se asigna al agrupar por unidad
 
 
@@ -337,7 +339,7 @@ def construir_entidad(ruta: Path, config: dict, modelo: dict) -> Entidad:
     return Entidad(nombre, procedimiento, unidad, str(ruta.relative_to(RAIZ)), config.get("descripcion", ""),
                    filas, claves, list(parametros.values()),
                    [(t, list(cols), usado) for (t, cols), usado in referencias.items()], avisos,
-                   eventos_motor, mensaje_motor.cambios)
+                   eventos_motor, mensaje_motor.cambios, mensaje_motor.modelo_id)
 
 
 # ----------------------------------------------------------------------------------------------
@@ -433,6 +435,11 @@ def emitir_procedimiento(e: Entidad) -> str:
        WHERE {where};
       exigir_referencia(l_existe, {desc_expr});""")
     refs_txt = "\n\n".join(refs) or "      NULL;  -- el mensaje no referencia datos maestros"
+    validaciones = validaciones_bbdd(e)
+    val_txt = ("""      -------------------------------------------------------------------------
+      -- 0. Validaciones del motor de GoldenSource: lo que rechazaría (D-035)
+      -------------------------------------------------------------------------
+""" + "\n\n".join(validaciones) + "\n\n") if validaciones else ""
 
     inserts = []
     for f in e.filas:
@@ -479,7 +486,7 @@ def emitir_procedimiento(e: Entidad) -> str:
    BEGIN
       validar_cantidad(p_cantidad);
 
-      -------------------------------------------------------------------------
+{val_txt}      -------------------------------------------------------------------------
       -- 1. Datos maestros referenciados: deben existir (D-019)
       -------------------------------------------------------------------------
 {refs_txt}
@@ -882,6 +889,11 @@ def generar(destino: Path) -> tuple[list, dict]:
         errores.append(f"Procedimiento duplicado {n}: definir 'nombre' distinto en catalogo.json")
     if errores:
         raise ErrorGeneracion("\n".join(errores))
+    # Validaciones del motor de GoldenSource (D-035): si rechazaría algo, no se genera nada.
+    rechazos = validar_generacion(entidades, catalogo.get("variaciones", []), identificador)
+    if rechazos:
+        raise ErrorGeneracion("GoldenSource rechazaría estos mensajes (no se ha actualizado plsql/generado):\n"
+                              + "\n".join(f"  - {r}" for r in rechazos))
 
     spec, body, manifiesto = emitir_paquete(entidades, catalogo.get("variaciones", []), modelo)
     if destino.exists():
@@ -915,7 +927,7 @@ def main() -> int:
             return 0
         entidades, manifiesto = generar(SALIDA)
     except ErrorGeneracion as ex:
-        print(f"ERROR: no se puede generar (falta información):\n{ex}", file=sys.stderr)
+        print(f"ERROR: no se puede generar:\n{ex}", file=sys.stderr)
         return 1
     for e in sorted(entidades, key=lambda x: (x.unidad, x.nombre)):
         print(f"{e.unidad:<6} {e.procedimiento:<32} {len(e.filas):>4} filas/entidad  {e.mensaje}")

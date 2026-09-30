@@ -158,6 +158,19 @@ AS
       END IF;
    END exigir_referencia;
 
+   /* Validación del motor de GoldenSource replicada (D-035): si p_encontradas > 0, el
+      motor rechazaría el mensaje con la notificación indicada; no se crea nada. */
+   PROCEDURE rechazar_si_existe (p_encontradas IN PLS_INTEGER,
+                                 p_regla       IN VARCHAR2,
+                                 p_mensaje     IN VARCHAR2)
+   IS
+   BEGIN
+      IF NVL(p_encontradas, 0) > 0 THEN
+         RAISE_APPLICATION_ERROR(ge_rechazo_motor,
+            'GoldenSource rechazaría el mensaje (' || p_regla || '): ' || p_mensaje);
+      END IF;
+   END rechazar_si_existe;
+
    /* Identificador validado para SQL dinámico (protección frente a inyección). */
    FUNCTION nombre_seguro (p_nombre IN VARCHAR2) RETURN VARCHAR2
    IS
@@ -654,6 +667,18 @@ AS
       l_k       t_lista_claves;
    BEGIN
       validar_cantidad(p_cantidad);
+
+      -------------------------------------------------------------------------
+      -- 0. Validaciones del motor de GoldenSource: lo que rechazaría (D-035)
+      -------------------------------------------------------------------------
+      -- FLG_Uniqueness (segmento #6 FINSFinancialLegalNames): el nombre legal no puede estar ya ACTIVO.
+      -- Varias entidades en una llamada tendrían el mismo nombre: GoldenSource rechazaría desde la 2ª.
+      rechazar_si_existe(CASE WHEN p_cantidad > 1 THEN 1 ELSE 0 END, 'FLG_Uniqueness',
+                         'STRDATA/JAVARULE/9001 (ERROR): Legal Name: ' || 'PROBANDO' || ' already exist.' || ' (se piden ' || p_cantidad || ' entidades con el mismo nombre legal)');
+      SELECT COUNT(*) INTO l_existe FROM financial_legal_names
+       WHERE flg_legal_nme = 'PROBANDO'
+         AND data_stat_typ = 'ACTIVE';
+      rechazar_si_existe(l_existe, 'FLG_Uniqueness', 'STRDATA/JAVARULE/9001 (ERROR): Legal Name: ' || 'PROBANDO' || ' already exist.');
 
       -------------------------------------------------------------------------
       -- 1. Datos maestros referenciados: deben existir (D-019)

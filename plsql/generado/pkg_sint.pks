@@ -49,6 +49,7 @@ AS
    ge_purga_bloqueada      CONSTANT PLS_INTEGER  := -20003;
    ge_verificacion_fallida CONSTANT PLS_INTEGER  := -20004;
    ge_bbdd_ya_creada       CONSTANT PLS_INTEGER  := -20005;
+   ge_rechazo_motor        CONSTANT PLS_INTEGER  := -20006;  -- GoldenSource rechazaría el mensaje (D-035)
 
    /* Activa/desactiva las trazas por DBMS_OUTPUT (por defecto activadas). */
    PROCEDURE set_trazas (p_activas IN BOOLEAN);
