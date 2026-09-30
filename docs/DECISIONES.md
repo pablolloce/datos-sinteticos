@@ -384,6 +384,13 @@ Plantilla:
 - Decisión: la sintaxis del PL/SQL y de los scripts (incluido `plsql/motor/capturar_huella.sql`)
   se valida con la BBDD simulada de `herramientas/probar_en_local.sh`. El usuario ejecuta las
   capturas de huella en un entorno con GoldenSource y sube el CSV a `huellas/`.
+- Resultado (2026-09-30, entorno del usuario): `probar_en_local.sh` completo en verde (instalar sobre
+  versión anterior, crear, crear negado ORA-20005, eliminar en segundo plano, crear mientras borra,
+  borrado síncrono, índices temporales con hija de 300.000 filas, limpiar_restos, desinstalar: 0
+  índices `SINT_TMP_*`, 0 filas sintéticas, 0 objetos); `extraer_tablas_adicionales.sql`,
+  `diagnostico_borrado.sql` y `capturar_huella.sql` se ejecutan sin errores. La prueba local crea
+  ahora también las 6 tablas del motor que usa `capturar_huella.sql` (FT_T_TRID, NTEL, MSGP, MSGF,
+  MSGS, JBLG) y la ejecuta.
 
 ### D-033 — Orden de ejecución de las reglas del message set
 - Fecha: 2026-09-30 · Estado: PROPUESTA (deducido, pendiente de confirmar con huellas)

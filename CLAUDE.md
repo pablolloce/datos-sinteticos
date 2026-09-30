@@ -179,7 +179,7 @@ plsql/pruebas/local/               <- datos maestros mínimos para el Oracle loc
 
 | Entidad | Mensaje | Procedimiento | Unidad | Filas/entidad | Tablas | Estado |
 |---|---|---|---|---|---|---|
-| CONTRAPARTIDA_GLOBAL | `Ejemplo_Alta_Contrapartida_Global.xml` | `pkg_sint.crear_contrapartida_global` | FINS | 11 | FT_T_FINS, FT_T_FIST (x2), FT_T_FIGU, FINANCIAL_LEGAL_NAMES, FT_T_FINR, FT_T_FIRL, FT_T_ENFR (x2), FT_T_FRCL, REGISTER_LOG_TABLE (fase 2, CONTROLDR) | Réplica del motor (D-031..D-037) pendiente de probar en local y en KYTL_GC; pendiente de huella (reglas nativas) |
+| CONTRAPARTIDA_GLOBAL | `Ejemplo_Alta_Contrapartida_Global.xml` | `pkg_sint.crear_contrapartida_global` | FINS | 11 | FT_T_FINS, FT_T_FIST (x2), FT_T_FIGU, FINANCIAL_LEGAL_NAMES, FT_T_FINR, FT_T_FIRL, FT_T_ENFR (x2), FT_T_FRCL, REGISTER_LOG_TABLE (fase 2, CONTROLDR) | Probada en local (2026-09-30), incluida la réplica del motor D-031..D-037 y `capturar_huella.sql`; pendiente de ejecutar en KYTL_GC y de huella (reglas nativas) |
 
 Variaciones solicitadas por chat: ninguna.
 

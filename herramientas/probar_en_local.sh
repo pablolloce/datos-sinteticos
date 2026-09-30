@@ -31,6 +31,10 @@ vistas = []
 for t in m["tablas_referenciadas"] + m["tablas_gestionadas"]:
     if t not in vistas:
         vistas.append(t)
+# Tablas del motor que lee plsql/motor/capturar_huella.sql (transacción y notificaciones)
+for t in ["FT_T_JBLG", "FT_T_TRID", "FT_T_MSGS", "FT_T_MSGF", "FT_T_MSGP", "FT_T_NTEL"]:
+    if t not in vistas:
+        vistas.append(t)
 print("\n".join(vistas))
 EOF
 )
@@ -177,6 +181,19 @@ EXEC pkg_sint.set_trazas(FALSE);
 EXEC pkg_sint.set_trazas(TRUE);
 EXEC pkg_sint.limpiar_restos;
 SELECT COUNT(*) AS sinteticas_restantes FROM ft_t_fins WHERE last_chg_usr_id = 'TESTING:RDR';
+EOF
+echo "=============== plsql/motor/capturar_huella.sql (ventana de la última hora) ==============="
+DESDE="$(date -u -d '-1 hour' '+%Y-%m-%d %H:%M:%S')"; HASTA="$(date -u -d '+1 hour' '+%Y-%m-%d %H:%M:%S')"
+sed -e "s/^DEFINE desde .*/DEFINE desde   = '$DESDE'/" -e "s/^DEFINE hasta .*/DEFINE hasta   = '$HASTA'/" \
+    "$RAIZ/plsql/motor/capturar_huella.sql" > /tmp/capturar_huella_local.sql
+docker cp /tmp/capturar_huella_local.sql "$CONTENEDOR:/tmp/plsql/capturar_huella_local.sql"
+sqlplus <<'EOF' | grep -E "ORA-|SP2-|Tablas revisadas|CON_FILAS|^ *[0-9]+ *$" || true
+SET FEEDBACK OFF
+@crear_bbdd_sintetica.sql
+@capturar_huella_local.sql
+SELECT COUNT(*) AS con_filas FROM sint_huella WHERE tabla NOT LIKE '#%' AND num_filas > 0;
+DROP TABLE sint_huella PURGE;
+EXEC pkg_sint.eliminar_bbdd(p_segundo_plano => FALSE);
 EOF
 echo "=============== desinstalar.sql ==============="
 sqlplus <<'EOF'
