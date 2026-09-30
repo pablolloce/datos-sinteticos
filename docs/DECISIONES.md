@@ -424,6 +424,21 @@ Plantilla:
   `FT_T_VREQ`, `FT_T_ALG1`, `FT_T_UTD1`. Siguen sin replicarse los envíos (ESB/MQ/JMS), ficheros y
   correos. Orden: `docs/motor/FLUJO_WORKSTATION.md`, apartado 3 (prioridad 7 → se incluye).
 
+### D-037 — Fase 2: las escrituras de los workflows se añaden al mensaje como segmentos
+- Fecha: 2026-09-30 · Estado: VIGENTE
+- Contexto: tras el motor, `CustomWorkstationWorkflow` lanza workflows que escriben en la BBDD
+  (D-034, D-036). Su código está decodificado en `fileloading/extracciones/decodificado/`.
+- Decisión: `herramientas/motor/flujo_workstation.py` replica esos workflows sobre el mensaje ya
+  procesado por el motor y **añade un segmento STREET_REF por cada fila que escriben** (atributo
+  `ORIGEN` = workflow; etiquetas XELM del segmento de la tabla). El generador los traduce como el
+  resto: claves nuevas (las referencias a OIDs del mensaje se sustituyen), marca sintética
+  (`LAST_CHG_USR_ID`, D-001) y fechas técnicas; quedan en `SINT_REGISTRO` y se borran igual.
+  Lo que no está replicado se avisa como PENDIENTE en la cabecera del procedimiento; nunca se inventa.
+- Replicado: `Checks` (rama) y `CheckDatosRegulatorios` camino GLOBAL → fila de control `CONTROLDR`
+  en `FT_T_RLT1`. Para una contrapartida GLOBAL nueva el resto de workflows no escribe datos de
+  negocio ni de control (análisis en `docs/motor/FLUJO_WORKSTATION.md`, apartado 4).
+- Pendiente: la tabla física de `FT_T_RLT1` (P-021).
+
 ---
 
 ## Preguntas abiertas
@@ -450,3 +465,4 @@ Plantilla:
 | P-018 | ¿Replicar las tablas de control de difusión y cachés? | RESUELTA → D-036 (sí) |
 | P-019 | Extraer W1–W6 (`fileloading/extracciones/extracciones_workstation.sql`). | RESUELTA: subidas a `fileloading/extracciones/` y decodificadas en `fileloading/extracciones/decodificado/` |
 | P-020 | `FLG_Uniqueness` consulta `FT_T_FLG1` y el generador inserta el nombre legal en `FINANCIAL_LEGAL_NAMES` (D-010). ¿`FT_T_FLG1` es un sinónimo o vista de `FINANCIAL_LEGAL_NAMES`? Si no, la validación en BBDD debe consultar `FT_T_FLG1`. | ABIERTA |
+| P-021 | Las tablas custom `FT_T_*1` (p. ej. `FT_T_RLT1`, `FT_T_FLG1`) no están en `ALL_TAB_COLUMNS` de KYTL_GC: el modelo las deduce por columnas (`FT_T_RLT1` → `REGISTER_LOG_TABLE`, coinciden sus 21 columnas). Ejecutar `esquema/extraer_tablas_adicionales.sql` (consulta A, sinónimos) para confirmarlas; con `RLT1,REGISTER_LOG_TABLE` en `esquema/modelo/tablas_manual.csv` se activa la fila CONTROLDR de la Contrapartida Global. Responde también P-020. | ABIERTA |

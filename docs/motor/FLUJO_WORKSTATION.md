@@ -102,3 +102,24 @@ La huella de un guardado real (`plsql/motor/capturar_huella.sql`) captura **amba
 porque recorre todas las tablas en la ventana de tiempo. Así que confirma de una vez qué escribe
 el motor y qué escriben los workflows posteriores, siempre que la ventana cubra también los
 eventos asíncronos (dejar un margen de un par de minutos).
+
+## 4. Caso Contrapartida Global (`Ejemplo_Alta_Contrapartida_Global.xml`)
+
+Trazado con los scripts decodificados (fase 2 de una contrapartida GLOBAL nueva, modelo `RDRFINSG`):
+
+| Workflow | ¿Escribe? | Motivo |
+|---|---|---|
+| `Checks` | — | `valido=true`: el mensaje trae segmentos distintos de FinancialInstitution/Rating |
+| `CheckDatosRegulatorios` | **Sí**: `FT_T_RLT1` `CONTROLDR`, `SRC_VALUE='true'`, `GS_VALUE='GLOBAL'`, `MAIN_ENTITY_ID`=INST_MNEM | Camino GLOBAL; `CALCULO=true` porque el FIGU trae país (`GUID`) |
+| `RDR_CalculateREU` | No | Sólo en la rama `valido=false` y para OPERATIVE |
+| `AutoCodTesBDI` | No | Sólo modelo `FINSX` |
+| `AuditMex` | No | Exige LOCAL hijas con OPERATIVE de México (1145) |
+| `Sub_CallDifusion` | No | GLOBAL con 0 operativas → fin; la baja OLAP no borra nada (FINSID nuevo) |
+| `Sub_PublishChanges` → `CreateShortname` | Sólo infraestructura (`FT_T_JBLG`, `FT_T_TRID`) | Sin FIRL OPERATIVE no llega al INSERT de `FT_T_FRID` SHTNMEID |
+| `Sub_PublishChanges` → `Sub_PublishLocalGlobal` | No | 0 operativas bajo la GLOBAL → fin |
+| `RDR_PUBLISH_CG` | No | No hay filas `CuentaGestionada` (la regla `CuentasGestionadas` no aplica) |
+| `CustomWorkstationWorkflow` | `FT_T_TRID` `AUTO-CLOSE` | Transacción del guardado: no se replica (el generador no crea transacciones) |
+
+Condiciones que confirmar con una huella: la FIRL GLOBAL está confirmada cuando se lanzan los
+eventos; `CFTIInternalIdentifierCreator` crea el FIID `FINSID` (lo usa `CreateShortname`); los XSLT
+`ExtractChangesEntity`, `OLAP_TransformDelete` y `ManageAuditMex` (no extraídos) no cambian lo anterior.

@@ -45,8 +45,14 @@ csv.field_size_limit(sys.maxsize)
 
 
 def leer(nombre: str):
-    with (ORIGEN / nombre).open(encoding="utf-8", newline="") as f:
-        yield from csv.DictReader(f)
+    """Filas de esquema/old/<nombre> y, si existe, de su complemento *_ADICIONALES.csv
+    (tablas accedidas por sinónimo, esquema/extraer_tablas_adicionales.sql)."""
+    ficheros = [ORIGEN / nombre, ORIGEN / nombre.replace("_KYTL_GC.csv", "_ADICIONALES.csv")]
+    for ruta in dict.fromkeys(ficheros):
+        if ruta.exists():
+            with ruta.open(encoding="utf-8-sig", newline="") as f:
+                for fila in csv.DictReader(f):
+                    yield {k.strip().upper(): (v or "") for k, v in fila.items() if k is not None}
 
 
 def cargar_tablas() -> dict:

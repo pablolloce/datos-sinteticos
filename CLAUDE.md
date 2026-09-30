@@ -127,6 +127,12 @@ antes de traducir el mensaje a INSERT. Documentación en [`docs/motor/`](docs/mo
   devuelve el mensaje de error al usuario por el chat, tal cual, y se espera su indicación.
 - Se replican también las tablas de control, difusión y cachés de los workflows posteriores al
   motor (D-036); no los envíos ESB/MQ/JMS, ficheros ni correos.
+- Fase 2 (D-037): `herramientas/motor/flujo_workstation.py` añade al mensaje un segmento por cada
+  fila que escriben los workflows posteriores al motor, portando su código decodificado
+  (`fileloading/extracciones/decodificado/`). Lo no replicado queda como PENDIENTE en la cabecera
+  del procedimiento y se comenta con el usuario.
+- Estructura de tablas custom accedidas por sinónimo: `esquema/extraer_tablas_adicionales.sql`
+  → `esquema/old/*_ADICIONALES.csv` → `construir_modelo.py` (P-021).
 - Por cada mensaje nuevo, además del informe de mapeo:
   `python3 herramientas/motor/reglas_aplicables.py mensajes_entrada/<Mensaje>.xml -o docs/motor/reglas/<Mensaje>.md`;
   revisar las reglas pendientes que le afectan y comentarlas con el usuario.

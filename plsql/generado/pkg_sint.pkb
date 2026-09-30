@@ -637,6 +637,8 @@ AS
    --   Pendientes (consultan la BBDD): Uniqueness
    --   Pendientes (Java sin replicar): CheckUpdateStatusASTYPUEMIR
    --   Pendientes de huella (nativas del segmento): CGSCEndDateIdentifiers [FinancialInstitution B], CFTIConstrSTDFOID [FinancialInstitutionStatistic B], CGSCHandleCompositeKey [FinancialInstitutionGeoUnitPrt B], CGSCHandleCompositeKey [FinsRoleClassification B], CFTIInternalIdentifierCreator [FinancialInstitution F]
+   --   Fase 2 · CheckDatosRegulatorios: PENDIENTE — FT_T_RLT1 CONTROLDR (CALCULO=true, REL_TYP=GLOBAL): la tabla del segmento RegisterLogTable (REGISTER_LOG_TABLE, TBL_ID RLT1) está deducida por columnas: confirmarla en esquema/modelo/tablas_manual.csv (D-010)
+   --   Fase 2 · AutoCodTesBDI, AuditMex, Sub_CallDifusion, Sub_PublishChanges, RDR_PUBLISH_CG: SIN_ESCRITURA — GLOBAL nueva sin LOCAL/OPERATIVE: no escriben datos de negocio ni de control (CreateShortname sólo deja FT_T_JBLG/FT_T_TRID, no replicadas)
    --   Nativas de Initial/Final pendientes de huella: 19 (ver docs/motor/reglas/)
    -- ==========================================================================
    PROCEDURE crear_contrapartida_global (

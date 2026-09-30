@@ -49,6 +49,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "motor"))
 from mensaje_motor import MensajeMotor  # noqa: E402
 from reglas_replicadas import aplicar_motor  # noqa: E402
 from validaciones_motor import validaciones_bbdd, validar_generacion  # noqa: E402
+from flujo_workstation import aplicar_flujo  # noqa: E402
+from reglas_replicadas import Evento  # noqa: E402
 
 RAIZ = Path(__file__).resolve().parent.parent
 ENTRADA = RAIZ / "mensajes_entrada"
@@ -178,6 +180,9 @@ def construir_entidad(ruta: Path, config: dict, modelo: dict) -> Entidad:
     # Reglas del motor de GoldenSource replicadas (D-031): modifican el mensaje antes de traducirlo.
     mensaje_motor = MensajeMotor(raiz, modelo)
     eventos_motor = aplicar_motor(mensaje_motor)
+    # Fase 2 (D-034): escrituras de los workflows que se lanzan tras el motor, como segmentos más.
+    eventos_motor += [Evento(w, "WORKFLOW", "fase 2", "-", estado, detalle)
+                      for w, estado, detalle in aplicar_flujo(mensaje_motor)]
     cabecera = raiz.find("HEADER")
     nodo_unidad = cabecera.find("MAIN_ENTITY_TBL_TYP") if cabecera is not None else None
     unidad = identificador(config.get("unidad")
@@ -390,10 +395,10 @@ def comentario_motor(e: Entidad) -> str:
     lineas = ["   -- Motor GoldenSource (D-031), reglas en el orden del message set STREETREF:"]
     ignorados = [c for c in e.cambios_motor if "IGNORE" in c.descripcion]
     grupos = [
-        ("Aplicadas", [x for x in e.motor if x.estado == "REPLICADA" and not x.detalle.startswith("sin cambios")]),
-        ("Replicadas, sin efecto en este mensaje", [x for x in e.motor if x.estado == "REPLICADA" and x.detalle.startswith("sin cambios")]),
+        ("Aplicadas", [x for x in e.motor if x.tipo == "JAVA" and x.estado == "REPLICADA" and not x.detalle.startswith("sin cambios")]),
+        ("Replicadas, sin efecto en este mensaje", [x for x in e.motor if x.tipo == "JAVA" and x.estado == "REPLICADA" and x.detalle.startswith("sin cambios")]),
         ("Pendientes (consultan la BBDD)", [x for x in e.motor if x.estado == "PENDIENTE_BBDD"]),
-        ("Pendientes (Java sin replicar)", [x for x in e.motor if x.estado == "PENDIENTE"]),
+        ("Pendientes (Java sin replicar)", [x for x in e.motor if x.estado == "PENDIENTE" and x.tipo == "JAVA"]),
         ("Pendientes de huella (nativas del segmento)",
          [x for x in e.motor if x.estado == "PENDIENTE_HUELLA" and x.segmento not in ("Initial", "Final")]),
     ]
@@ -401,6 +406,8 @@ def comentario_motor(e: Entidad) -> str:
         if lista:
             lineas.append(f"   --   {titulo}: " + ", ".join(
                 f"{x.regla}" + (f" [{x.segmento} {x.fase}]" if x.tipo == "NATIVA" else "") for x in lista))
+    for x in (x for x in e.motor if x.tipo == "WORKFLOW"):
+        lineas.append(f"   --   Fase 2 · {x.regla}: {x.estado} — {x.detalle}")
     generales = [x for x in e.motor if x.estado == "PENDIENTE_HUELLA" and x.segmento in ("Initial", "Final")]
     if generales:
         lineas.append(f"   --   Nativas de Initial/Final pendientes de huella: {len(generales)} (ver docs/motor/reglas/)")
