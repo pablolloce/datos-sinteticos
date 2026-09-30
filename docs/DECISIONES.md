@@ -284,6 +284,27 @@ Plantilla:
 - Consecuencias: el coste de `eliminar_bbdd` es ≈ nº de filas padre sintéticas × nº de FKs
   sin índice × tamaño de las hijas, hasta que existan los índices.
 
+### D-027 — Borrado físico en segundo plano (DBMS_SCHEDULER)
+- Fecha: 2026-09-30 · Estado: VIGENTE (indicación del usuario; descartados: índices nuevos,
+  borrado lógico con END_TMS y desactivar FKs)
+- Contexto: el diagnóstico en KYTL_GC muestra ~90 FKs activas sin índice hacia `FT_T_FINS` y
+  ~80 hacia `FT_T_FINR` (p. ej. `FT_T_ISID` 15 M filas, `FT_T_SWCH` 2,6 M ×3, `FT_T_SUFR` 2,6 M,
+  `FT_T_FIID` 1,5 M, `FT_T_ENFR` 1,1 M...): ~38 M filas leídas por cada Contrapartida Global
+  borrada. El orden hijas→padres ya se aplica, pero no evita la comprobación: Oracle debe
+  demostrar que la hija no referencia a la fila padre y, sin índice, la recorre entera. Medido
+  en local (hija de 3 M filas): 1 fila padre 0,18 s, 10 → 1,7 s, 50 → 8,4 s, 100 → 17,1 s
+  (lineal; agrupar en una sentencia no ayuda). Sólo la validación de una FK recorre la hija
+  una vez para todas las claves, y exige desactivar/reactivar la FK (descartado).
+- Decisión: `eliminar_bbdd` marca las claves registradas como `BORRANDO` (instantáneo; permite
+  volver a crear enseguida) y lanza un job `SINT_ELIM_<fecha>` (DBMS_SCHEDULER, requiere
+  `CREATE JOB`) que borra por PK, hijas→padres, en bloques de 20 claves con COMMIT (progreso
+  visible y reanudable: relanzar `eliminar_bbdd` recoge lo pendiente). `estado_borrado`
+  informa de pendientes, jobs en curso y últimas ejecuciones con su error.
+  `eliminar_bbdd(p_segundo_plano => FALSE)` hace el borrado en la sesión (lo usa desinstalar).
+- Consecuencias: el comando es inmediato, pero el borrado físico total sigue siendo lineal con
+  el nº de filas padre sintéticas (con cientos de entidades, horas) y, mientras se comprueba
+  cada fila padre, Oracle bloquea brevemente la tabla hija frente a escrituras de la aplicación.
+
 ---
 
 ## Preguntas abiertas

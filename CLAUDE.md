@@ -29,9 +29,12 @@ Oracle 19c** sobre la BBDD relacional de GoldenSource (esquema **`KYTL_GC`**, ta
 - **Instalación y ejecución separadas** (D-025):
   - Instalar/actualizar (desinstala lo anterior e instala lo nuevo): `plsql/instalar.sql` (F5).
   - Crear (SÓLO inserts, rápido): `EXEC pkg_sint.crear_bbdd;`
-  - Eliminar (SÓLO borra lo insertado, rápido): `EXEC pkg_sint.eliminar_bbdd;`
-- Las filas creadas se anotan en la tabla **`SINT_REGISTRO`** y se borran por clave primaria:
-  crear y eliminar nunca recorren las tablas de GoldenSource (D-024).
+  - Eliminar (SÓLO borra lo insertado): `EXEC pkg_sint.eliminar_bbdd;` responde al instante;
+    un job de Oracle hace el borrado físico en segundo plano (D-027). Progreso:
+    `EXEC pkg_sint.estado_borrado;`
+- Las filas creadas se anotan en la tabla **`SINT_REGISTRO`** y se borran por clave primaria,
+  hijas antes que padres (D-024). El borrado físico de filas de tablas padre es lento por las
+  FKs sin índice de otras tablas (D-026): coste lineal con el nº de filas padre.
 
 ## 2. Reglas de trabajo
 
@@ -154,8 +157,10 @@ Variaciones solicitadas por chat: ninguna.
 - Patrón de `crear_<entidad>`: validar cantidad → validar referencias → claves nuevas en colección →
   `SAVEPOINT` → por segmento, un `FORALL` INSERT + un `FORALL` a `SINT_REGISTRO` → sin COMMIT.
   Ante error: `ROLLBACK TO SAVEPOINT`. Toda tabla gestionada debe tener PK de una columna (D-024).
-- `crear_bbdd`: sólo inserta (falla con ORA-20005 si ya hay BBDD registrada), verifica por clave
-  y COMMIT. `eliminar_bbdd`: borra por clave lo registrado y COMMIT. Ninguno recorre tablas.
+- `crear_bbdd`: sólo inserta (falla con ORA-20005 si hay claves ACTIVAS registradas), verifica
+  por clave y COMMIT. `eliminar_bbdd`: marca las claves como BORRANDO (inmediato) y lanza un job
+  `SINT_ELIM_*` que borra por clave, hijas→padres, con COMMIT cada 20 claves (D-027).
+  `SINT_REGISTRO.estado`: ACTIVO / BORRANDO.
 - `limpiar_restos`: borrado LENTO por `LAST_CHG_USR_ID`, sólo para restos no registrados.
 - Prefijos: `gc_` constantes, `g_` variables de paquete, `ge_` códigos de error, `p_` parámetros,
   `l_` variables locales, `c_` constantes locales, `t_` tipos, `k_` claves generadas.

@@ -55,7 +55,7 @@ docker exec -i "$CONTENEDOR" sqlplus -s / as sysdba >/dev/null <<'EOF'
 ALTER SESSION SET CONTAINER = FREEPDB1;
 DROP USER kytl_gc CASCADE;
 CREATE USER kytl_gc IDENTIFIED BY kytl QUOTA UNLIMITED ON users;
-GRANT CREATE SESSION, CREATE TABLE, CREATE PROCEDURE, CREATE SEQUENCE TO kytl_gc;
+GRANT CREATE SESSION, CREATE TABLE, CREATE PROCEDURE, CREATE SEQUENCE, CREATE JOB TO kytl_gc;
 EOF
 
 docker exec -u root "$CONTENEDOR" rm -rf /tmp/plsql
@@ -99,11 +99,33 @@ sqlplus <<'EOF' | grep -E "ORA-2000|TOTAL"
 @crear_bbdd_sintetica.sql
 EXEC pkg_sint.resumen;
 EOF
-echo "=============== eliminar_bbdd_sintetica.sql ==============="
+echo "=============== eliminar_bbdd_sintetica.sql (segundo plano: debe responder al instante) ==============="
 sqlplus <<'EOF'
 SET TIMING ON
 @eliminar_bbdd_sintetica.sql
+EOF
+echo "=============== crear de nuevo mientras el job borra (debe poder) ==============="
+sqlplus <<'EOF' | grep -E "ORA-|creada|Verificación"
+@crear_bbdd_sintetica.sql
+EOF
+echo "=============== esperar al job y consultar estado ==============="
+sqlplus <<'EOF'
+SET FEEDBACK OFF SERVEROUTPUT ON
+DECLARE
+   l_n PLS_INTEGER;
+BEGIN
+   FOR i IN 1 .. 60 LOOP
+      SELECT COUNT(*) INTO l_n FROM sint_registro WHERE estado = 'BORRANDO';
+      EXIT WHEN l_n = 0;
+      DBMS_SESSION.sleep(1);
+   END LOOP;
+END;
+/
+EXEC DBMS_SESSION.sleep(2);
+EXEC pkg_sint.estado_borrado;
 EXEC pkg_sint.resumen;
+PROMPT == eliminar síncrono (p_segundo_plano => FALSE)
+EXEC pkg_sint.eliminar_bbdd(p_segundo_plano => FALSE);
 SELECT COUNT(*) AS resto_sin_registrar FROM ft_t_fins WHERE last_chg_usr_id = 'TESTING:RDR';
 EOF
 echo "=============== crear + limpiar_restos (borra también lo no registrado) ==============="

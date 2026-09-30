@@ -8,8 +8,10 @@ AS
  * PKG_SINT — GENERADOR DE LA BBDD SINTÉTICA (único paquete, D-023)
  *
  *    EXEC pkg_sint.crear_bbdd;      -- SÓLO inserta toda la BBDD sintética y COMMIT (rápido)
- *    EXEC pkg_sint.eliminar_bbdd;   -- SÓLO borra lo insertado, por clave, y COMMIT (rápido)
- *    EXEC pkg_sint.resumen;         -- filas sintéticas registradas por tabla
+ *    EXEC pkg_sint.eliminar_bbdd;   -- elimina lo insertado: responde al instante y un job de
+ *                                   -- Oracle lo borra físicamente en segundo plano (D-027)
+ *    EXEC pkg_sint.estado_borrado;  -- progreso del borrado en segundo plano
+ *    EXEC pkg_sint.resumen;         -- filas sintéticas registradas por tabla y estado
  *    EXEC pkg_sint.limpiar_restos;  -- (ocasional, LENTO) borra por LAST_CHG_USR_ID lo no registrado
  *
  * Cada fila creada se anota en la tabla SINT_REGISTRO (tabla, columna PK, clave), de modo
@@ -18,7 +20,7 @@ AS
  * Organización:
  *    1. NÚCLEO      utilidades comunes (plsql/fuente/)
  *    2. ENTIDADES   un procedimiento crear_<entidad> por mensaje, agrupados por unidad
- *    3. API         crear_bbdd, eliminar_bbdd, resumen, verificar, limpiar_restos
+ *    3. API         crear_bbdd, eliminar_bbdd, estado_borrado, resumen, verificar, limpiar_restos
  *
  * Entidades: 1 · Variaciones: 0 · Tablas gestionadas: 8
  *   Unidad Procedimiento                  Filas  Mensaje
@@ -36,8 +38,10 @@ AS
     *
     * Utilidades que usan los procedimientos de entidad y la API:
     *   - traza, nuevo_oid, validar_cantidad, exigir_referencia
-    *   - registro de claves SINT_REGISTRO (D-024): hay_registro, borrar_registrados,
-    *     resumen_registro, verificar_registro  -> operaciones RÁPIDAS (por índice)
+    *   - registro de claves SINT_REGISTRO (D-024): hay_registro, resumen_registro,
+    *     verificar_registro -> operaciones RÁPIDAS (por índice)
+    *   - eliminación en segundo plano (D-027): marcar_para_borrar (inmediato),
+    *     lanzar_job_borrado, borrar_pendientes (lo ejecuta el job), informe_borrado
     *   - purgar_por_usuario: borrado LENTO por LAST_CHG_USR_ID (sólo para restos)
     * ======================================================================== */
 
@@ -46,6 +50,14 @@ AS
    TYPE t_lista_claves  IS TABLE OF sint_registro.clave%TYPE;
 
    g_trazas_activas BOOLEAN := TRUE;
+
+   -- Estados de una clave en SINT_REGISTRO (D-027).
+   gc_activo   CONSTANT VARCHAR2(10) := 'ACTIVO';     -- fila creada y vigente
+   gc_borrando CONSTANT VARCHAR2(10) := 'BORRANDO';   -- eliminación pedida; la borra el job
+
+   -- Borrado en segundo plano (D-027).
+   gc_prefijo_job    CONSTANT VARCHAR2(20) := 'SINT_ELIM_';   -- nombre de los jobs
+   gc_bloque_borrado CONSTANT PLS_INTEGER  := 20;             -- claves por COMMIT
 
    -- ORA-02292: existen registros hijos que referencian la fila a borrar.
    e_hijos_existentes EXCEPTION;
@@ -153,113 +165,205 @@ AS
    -- (índice) y NUNCA recorren las tablas de GoldenSource (millones de filas).
    ----------------------------------------------------------------------------
 
-   /* TRUE si hay claves registradas (la BBDD sintética está creada). */
+   /* TRUE si hay claves ACTIVAS registradas (la BBDD sintética está creada). Las claves
+      en estado BORRANDO (borrado en segundo plano en curso) no cuentan. */
    FUNCTION hay_registro RETURN BOOLEAN
    IS
       l_n PLS_INTEGER;
    BEGIN
-      SELECT COUNT(*) INTO l_n FROM sint_registro WHERE ROWNUM = 1;
+      SELECT COUNT(*) INTO l_n FROM sint_registro WHERE estado = gc_activo AND ROWNUM = 1;
       RETURN l_n > 0;
    END hay_registro;
 
-   /* Borra por PK las filas registradas de UNA tabla y quita sus claves del
-      registro. Devuelve el nº de filas borradas. */
-   FUNCTION borrar_tabla_registrada (p_tabla IN VARCHAR2) RETURN PLS_INTEGER
+   /* Segundos transcurridos desde p_desde (centésimas de DBMS_UTILITY.get_time). */
+   FUNCTION segundos (p_desde IN PLS_INTEGER) RETURN VARCHAR2
    IS
-      l_columna sint_registro.columna_pk%TYPE;
-      l_claves  t_lista_claves;
-      l_filas   PLS_INTEGER := 0;
    BEGIN
-      SELECT MAX(columna_pk) INTO l_columna FROM sint_registro WHERE tabla = p_tabla;
-      IF l_columna IS NULL THEN
-         RETURN 0;                                  -- nada registrado en esta tabla
-      END IF;
-      SELECT clave BULK COLLECT INTO l_claves FROM sint_registro WHERE tabla = p_tabla;
+      RETURN TO_CHAR((DBMS_UTILITY.get_time - p_desde) / 100, 'FM999990D00') || ' s';
+   END segundos;
 
-      -- Un DELETE por clave, enviado en bloque (FORALL): acceso por el índice de la PK.
-      FORALL i IN 1 .. l_claves.COUNT
-         EXECUTE IMMEDIATE
-            'DELETE FROM ' || DBMS_ASSERT.sql_object_name(nombre_seguro(p_tabla)) ||
-            ' WHERE ' || nombre_seguro(l_columna) || ' = :clave'
-            USING l_claves(i);
-      l_filas := SQL%ROWCOUNT;
-
-      DELETE FROM sint_registro WHERE tabla = p_tabla;
-      RETURN l_filas;
-   END borrar_tabla_registrada;
-
-   /* Borra todas las filas registradas: primero las tablas de p_orden (hijas antes
-      que padres) y después las que queden en el registro (p. ej. de entidades que
-      ya no están en el catálogo). Atómico: si falla, no borra nada (D-006). */
-   PROCEDURE borrar_registrados (p_orden  IN t_lista_tablas,
-                                 p_commit IN BOOLEAN)
+   /* Tablas con claves en estado BORRANDO: primero las de p_orden (hijas antes que
+      padres) y después las que sólo estén en el registro (entidades retiradas del catálogo). */
+   FUNCTION tablas_pendientes (p_orden IN t_lista_tablas) RETURN t_lista_tablas
    IS
-      l_total  PLS_INTEGER := 0;
-      l_filas  PLS_INTEGER;
-      l_tabla  VARCHAR2(128);
-      l_inicio PLS_INTEGER;                 -- centésimas de segundo (DBMS_UTILITY.get_time)
-      l_global PLS_INTEGER := DBMS_UTILITY.get_time;
-
-      FUNCTION segundos (p_desde IN PLS_INTEGER) RETURN VARCHAR2 IS
-      BEGIN
-         RETURN TO_CHAR((DBMS_UTILITY.get_time - p_desde) / 100, 'FM99990D00') || ' s';
-      END segundos;
+      l_tablas t_lista_tablas := t_lista_tablas();
+      l_n      PLS_INTEGER;
+      l_esta   BOOLEAN;
    BEGIN
-      traza('Borrando datos sintéticos registrados en SINT_REGISTRO');
-      SAVEPOINT sp_borrar;
-
-      -- Se mide cada tabla: si alguna tarda, es que otras tablas tienen FKs activas SIN
-      -- índice hacia ella y Oracle las recorre por cada fila borrada (D-026).
       FOR i IN 1 .. p_orden.COUNT LOOP
-         l_tabla  := p_orden(i);
-         l_inicio := DBMS_UTILITY.get_time;
-         l_filas  := borrar_tabla_registrada(l_tabla);
-         l_total  := l_total + l_filas;
-         IF l_filas > 0 THEN
-            traza('   ' || RPAD(l_tabla, 30) || LPAD(l_filas, 10) || ' filas borradas en ' || segundos(l_inicio));
+         SELECT COUNT(*) INTO l_n FROM sint_registro
+          WHERE tabla = p_orden(i) AND estado = gc_borrando AND ROWNUM = 1;
+         IF l_n > 0 THEN
+            l_tablas.EXTEND;
+            l_tablas(l_tablas.LAST) := p_orden(i);
          END IF;
       END LOOP;
+      FOR r IN (SELECT DISTINCT tabla FROM sint_registro WHERE estado = gc_borrando ORDER BY tabla) LOOP
+         l_esta := FALSE;
+         FOR i IN 1 .. l_tablas.COUNT LOOP
+            l_esta := l_esta OR l_tablas(i) = r.tabla;
+         END LOOP;
+         IF NOT l_esta THEN
+            l_tablas.EXTEND;
+            l_tablas(l_tablas.LAST) := r.tabla;
+         END IF;
+      END LOOP;
+      RETURN l_tablas;
+   END tablas_pendientes;
 
-      FOR r IN (SELECT DISTINCT tabla FROM sint_registro) LOOP   -- tablas fuera del catálogo actual
-         l_tabla := r.tabla;
-         l_filas := borrar_tabla_registrada(l_tabla);
-         l_total := l_total + l_filas;
-         traza('   ' || RPAD(l_tabla, 30) || LPAD(l_filas, 10) || ' filas borradas (fuera del catálogo)');
+   /* Paso 1 de la eliminación (inmediato): pasa todas las claves ACTIVAS a BORRANDO.
+      Devuelve cuántas. A partir de aquí crear_bbdd puede volver a ejecutarse. */
+   FUNCTION marcar_para_borrar RETURN PLS_INTEGER
+   IS
+      l_n PLS_INTEGER;
+   BEGIN
+      UPDATE sint_registro SET estado = gc_borrando WHERE estado = gc_activo;
+      l_n := SQL%ROWCOUNT;
+      COMMIT;
+      RETURN l_n;
+   END marcar_para_borrar;
+
+   /* Paso 2 de la eliminación (lento, lo ejecuta el job): borra FÍSICAMENTE, por PK, las
+      filas en estado BORRANDO, tabla a tabla en orden hijas -> padres y en bloques de
+      gc_bloque_borrado claves con COMMIT por bloque (progreso visible y reanudable).
+      Lo lento son las filas de tablas padre (FT_T_FINS, FT_T_FINR...): por cada una Oracle
+      recorre las tablas hijas cuya FK no tiene índice (D-026); no es evitable sin índices. */
+   PROCEDURE borrar_pendientes (p_orden IN t_lista_tablas)
+   IS
+      CURSOR c_claves (p_tabla IN VARCHAR2) IS
+         SELECT clave FROM sint_registro WHERE tabla = p_tabla AND estado = gc_borrando;
+      l_tablas  t_lista_tablas;
+      l_tabla   VARCHAR2(128);
+      l_columna sint_registro.columna_pk%TYPE;
+      l_claves  t_lista_claves;
+      l_filas   PLS_INTEGER;
+      l_tabla_n PLS_INTEGER;
+      l_total   PLS_INTEGER := 0;
+      l_inicio  PLS_INTEGER;
+      l_global  PLS_INTEGER := DBMS_UTILITY.get_time;
+   BEGIN
+      traza('Borrado físico de las claves en estado BORRANDO');
+      l_tablas := tablas_pendientes(p_orden);
+
+      FOR i IN 1 .. l_tablas.COUNT LOOP
+         l_tabla   := l_tablas(i);
+         l_tabla_n := 0;
+         l_inicio  := DBMS_UTILITY.get_time;
+         SELECT MAX(columna_pk) INTO l_columna FROM sint_registro WHERE tabla = l_tabla;
+
+         OPEN c_claves(l_tabla);
+         LOOP
+            FETCH c_claves BULK COLLECT INTO l_claves LIMIT gc_bloque_borrado;
+            EXIT WHEN l_claves.COUNT = 0;
+
+            -- Un DELETE por clave, enviado en bloque (FORALL): acceso por el índice de la PK.
+            FORALL j IN 1 .. l_claves.COUNT
+               EXECUTE IMMEDIATE
+                  'DELETE FROM ' || DBMS_ASSERT.sql_object_name(nombre_seguro(l_tabla)) ||
+                  ' WHERE ' || nombre_seguro(l_columna) || ' = :clave'
+                  USING l_claves(j);
+            l_filas := SQL%ROWCOUNT;
+
+            FORALL j IN 1 .. l_claves.COUNT
+               DELETE FROM sint_registro WHERE tabla = l_tabla AND clave = l_claves(j);
+            COMMIT;                                     -- bloque terminado
+
+            l_tabla_n := l_tabla_n + l_filas;
+            l_total   := l_total + l_filas;
+         END LOOP;
+         CLOSE c_claves;
+         traza('   ' || RPAD(l_tabla, 30) || LPAD(l_tabla_n, 10) || ' filas borradas en ' || segundos(l_inicio));
       END LOOP;
 
-      IF p_commit THEN
-         COMMIT;
-      END IF;
-      traza('Borradas ' || l_total || ' filas sintéticas en ' || segundos(l_global) ||
-            CASE WHEN p_commit THEN ' (COMMIT)' ELSE ' (pendiente de COMMIT)' END);
+      traza('Borradas ' || l_total || ' filas sintéticas en ' || segundos(l_global) || ' (COMMIT)');
    EXCEPTION
       WHEN e_hijos_existentes THEN
-         -- Registros NO sintéticos (p. ej. creados por las pruebas) cuelgan de un
-         -- registro sintético mediante una FK activa. Se deshace el borrado entero.
-         ROLLBACK TO SAVEPOINT sp_borrar;
+         -- Registros NO sintéticos (p. ej. creados por las pruebas) cuelgan de un registro
+         -- sintético mediante una FK activa. Se deshace el bloque en curso; los bloques ya
+         -- confirmados quedan borrados y el resto sigue en BORRANDO.
+         ROLLBACK;
+         IF c_claves%ISOPEN THEN CLOSE c_claves; END IF;
          RAISE_APPLICATION_ERROR(ge_purga_bloqueada,
-            'Borrado deshecho: hay registros hijos no sintéticos que referencian filas de ' ||
+            'Borrado detenido: hay registros hijos no sintéticos que referencian filas de ' ||
             l_tabla || '. Ver P-008. ' || SQLERRM);
       WHEN OTHERS THEN
-         ROLLBACK TO SAVEPOINT sp_borrar;
+         ROLLBACK;
+         IF c_claves%ISOPEN THEN CLOSE c_claves; END IF;
          RAISE;
-   END borrar_registrados;
+   END borrar_pendientes;
 
-   /* Filas sintéticas registradas por tabla (sólo lee SINT_REGISTRO). */
+   /* Lanza un job de DBMS_SCHEDULER que ejecuta pkg_sint.ejecutar_borrado_pendiente.
+      Cada llamada crea un job con nombre único; si coinciden dos, no hay problema: una
+      fila ya borrada por uno no la vuelve a borrar el otro (0 filas, sin comprobación de FKs). */
+   FUNCTION lanzar_job_borrado RETURN VARCHAR2
+   IS
+      l_job VARCHAR2(128) := gc_prefijo_job || TO_CHAR(SYSTIMESTAMP, 'YYYYMMDD_HH24MISSFF3');
+   BEGIN
+      DBMS_SCHEDULER.create_job(
+         job_name   => l_job,
+         job_type   => 'PLSQL_BLOCK',
+         job_action => 'BEGIN pkg_sint.ejecutar_borrado_pendiente; END;',
+         enabled    => TRUE,
+         auto_drop  => TRUE,
+         comments   => 'Generador de datos sintéticos: borrado físico en segundo plano');
+      RETURN l_job;
+   END lanzar_job_borrado;
+
+   /* Estado del borrado en segundo plano: claves pendientes, jobs en curso y últimas
+      ejecuciones (con su error, si lo hubo). */
+   PROCEDURE informe_borrado
+   IS
+      l_pendientes PLS_INTEGER;
+   BEGIN
+      SELECT COUNT(*) INTO l_pendientes FROM sint_registro WHERE estado = gc_borrando;
+      traza('Filas pendientes de borrado físico: ' || l_pendientes);
+      FOR r IN (SELECT tabla, COUNT(*) AS filas FROM sint_registro
+                 WHERE estado = gc_borrando GROUP BY tabla ORDER BY tabla) LOOP
+         traza('   ' || RPAD(r.tabla, 30) || LPAD(r.filas, 10));
+      END LOOP;
+
+      FOR r IN (SELECT job_name, elapsed_time FROM user_scheduler_running_jobs
+                 WHERE job_name LIKE gc_prefijo_job || '%' ORDER BY job_name) LOOP
+         traza('Job EN CURSO: ' || r.job_name || ' (lleva ' || r.elapsed_time || ')');
+      END LOOP;
+
+      traza('Últimas ejecuciones:');
+      FOR r IN (SELECT * FROM (
+                   SELECT job_name, status, actual_start_date, run_duration, additional_info
+                     FROM user_scheduler_job_run_details
+                    WHERE job_name LIKE gc_prefijo_job || '%'
+                    ORDER BY log_date DESC)
+                 WHERE ROWNUM <= 5) LOOP
+         traza('   ' || r.job_name || '  ' || RPAD(r.status, 10) ||
+               TO_CHAR(r.actual_start_date, 'DD/MM HH24:MI:SS') || '  duración ' || r.run_duration ||
+               CASE WHEN r.status <> 'SUCCEEDED' THEN '  ' || SUBSTR(r.additional_info, 1, 300) END);
+      END LOOP;
+
+      IF l_pendientes > 0 THEN
+         SELECT COUNT(*) INTO l_pendientes FROM user_scheduler_running_jobs
+          WHERE job_name LIKE gc_prefijo_job || '%';
+         IF l_pendientes = 0 THEN
+            traza('ATENCIÓN: hay filas pendientes y ningún job en curso. Relanzar con EXEC pkg_sint.eliminar_bbdd;');
+         END IF;
+      END IF;
+   END informe_borrado;
+
+   /* Filas sintéticas registradas por tabla y estado (sólo lee SINT_REGISTRO). */
    PROCEDURE resumen_registro
    IS
       l_total PLS_INTEGER := 0;
    BEGIN
-      traza('Filas sintéticas registradas por tabla:');
-      FOR r IN (SELECT tabla, COUNT(*) AS filas FROM sint_registro GROUP BY tabla ORDER BY tabla) LOOP
-         traza('   ' || RPAD(r.tabla, 30) || LPAD(r.filas, 10));
+      traza('Filas sintéticas registradas (ACTIVO = creadas; BORRANDO = borrado en curso):');
+      FOR r IN (SELECT tabla, estado, COUNT(*) AS filas FROM sint_registro
+                 GROUP BY tabla, estado ORDER BY estado, tabla) LOOP
+         traza('   ' || RPAD(r.tabla, 30) || RPAD(r.estado, 10) || LPAD(r.filas, 10));
          l_total := l_total + r.filas;
       END LOOP;
-      traza('   ' || RPAD('TOTAL', 30) || LPAD(l_total, 10));
+      traza('   ' || RPAD('TOTAL', 40) || LPAD(l_total, 10));
    END resumen_registro;
 
-   /* Comprueba, para cada tabla de p_tablas, que el registro tiene las filas
-      esperadas y que todas existen realmente en la tabla (búsqueda por PK). */
+   /* Comprueba, para cada tabla de p_tablas, que las claves ACTIVAS registradas son las
+      esperadas y que todas existen en la tabla (búsqueda por PK). */
    PROCEDURE verificar_registro (p_tablas    IN t_lista_tablas,
                                  p_esperadas IN t_lista_numeros)
    IS
@@ -270,15 +374,16 @@ AS
    BEGIN
       FOR i IN 1 .. p_tablas.COUNT LOOP
          SELECT COUNT(*), MAX(columna_pk) INTO l_registradas, l_columna
-           FROM sint_registro WHERE tabla = p_tablas(i);
+           FROM sint_registro WHERE tabla = p_tablas(i) AND estado = gc_activo;
          l_existentes := 0;
          IF l_registradas > 0 THEN
             -- Recorre el registro (pequeño) y busca cada clave por el índice de la PK.
             EXECUTE IMMEDIATE
-               'SELECT COUNT(*) FROM sint_registro r WHERE r.tabla = :t AND EXISTS (SELECT 1 FROM ' ||
+               'SELECT COUNT(*) FROM sint_registro r WHERE r.tabla = :t AND r.estado = :e' ||
+               ' AND EXISTS (SELECT 1 FROM ' ||
                DBMS_ASSERT.sql_object_name(nombre_seguro(p_tablas(i))) || ' x WHERE x.' ||
                nombre_seguro(l_columna) || ' = r.clave)'
-               INTO l_existentes USING p_tablas(i);
+               INTO l_existentes USING p_tablas(i), gc_activo;
          END IF;
          IF l_registradas <> p_esperadas(i) OR l_existentes <> l_registradas THEN
             l_errores := SUBSTR(l_errores || ' ' || p_tablas(i) || ': registradas=' || l_registradas ||
@@ -751,11 +856,36 @@ AS
       verificar_registro(g_tablas, g_filas_esperadas);
    END verificar;
 
-   PROCEDURE eliminar_bbdd (p_commit IN BOOLEAN DEFAULT TRUE)
+   PROCEDURE eliminar_bbdd (p_segundo_plano IN BOOLEAN DEFAULT TRUE)
+   IS
+      l_marcadas   PLS_INTEGER;
+      l_pendientes PLS_INTEGER;
+   BEGIN
+      l_marcadas := marcar_para_borrar;
+      SELECT COUNT(*) INTO l_pendientes FROM sint_registro WHERE estado = gc_borrando;
+      traza('Eliminación de la BBDD sintética: ' || l_marcadas || ' filas marcadas; ' ||
+            l_pendientes || ' pendientes de borrado físico');
+      IF l_pendientes = 0 THEN
+         traza('No hay nada que borrar.');
+      ELSIF p_segundo_plano THEN
+         traza('Borrado físico lanzado en segundo plano (job ' || lanzar_job_borrado ||
+               '). Progreso: EXEC pkg_sint.estado_borrado;');
+      ELSE
+         borrar_pendientes(g_tablas_purga);
+      END IF;
+   END eliminar_bbdd;
+
+   PROCEDURE estado_borrado
    IS
    BEGIN
-      borrar_registrados(g_tablas_purga, p_commit);
-   END eliminar_bbdd;
+      informe_borrado;
+   END estado_borrado;
+
+   PROCEDURE ejecutar_borrado_pendiente
+   IS
+   BEGIN
+      borrar_pendientes(g_tablas_purga);
+   END ejecutar_borrado_pendiente;
 
    PROCEDURE limpiar_restos (p_commit IN BOOLEAN DEFAULT TRUE)
    IS

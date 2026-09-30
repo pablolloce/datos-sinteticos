@@ -16,11 +16,12 @@ los registros se marcan con
 la carpeta `plsql/` y pulsar **F5**. Desinstala la versión anterior e instala la nueva
 (paquete `PKG_SINT` y tabla de registro `SINT_REGISTRO`). No toca datos.
 
-**Ejecutar** (rápido, no recorre tablas):
+**Ejecutar** (requiere el permiso `CREATE JOB` para el borrado en segundo plano):
 
 ```sql
 EXEC pkg_sint.crear_bbdd;      -- SÓLO inserta toda la BBDD sintética
-EXEC pkg_sint.eliminar_bbdd;   -- SÓLO borra lo insertado
+EXEC pkg_sint.eliminar_bbdd;   -- SÓLO borra lo insertado: responde al instante, un job lo borra en segundo plano
+EXEC pkg_sint.estado_borrado;  -- progreso del borrado en segundo plano (pendientes, jobs, errores)
 EXEC pkg_sint.resumen;         -- filas sintéticas por tabla
 EXEC pkg_sint.limpiar_restos;  -- ocasional y LENTO: borra restos no registrados (versiones anteriores)
 ```

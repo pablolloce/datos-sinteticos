@@ -46,6 +46,7 @@ BEGIN
             clave       VARCHAR2(100) NOT NULL,
             columna_pk  VARCHAR2(128) NOT NULL,
             entidad     VARCHAR2(30),
+            estado      VARCHAR2(10) DEFAULT 'ACTIVO' NOT NULL,
             creado_tms  DATE DEFAULT SYSDATE NOT NULL,
             CONSTRAINT sint_registro_pk PRIMARY KEY (tabla, clave)
          ) ORGANIZATION INDEX]';
@@ -54,6 +55,13 @@ BEGIN
       DBMS_OUTPUT.put_line('Creada tabla SINT_REGISTRO');
    ELSE
       DBMS_OUTPUT.put_line('SINT_REGISTRO ya existe: se conserva');
+      -- Versiones anteriores no tenían ESTADO (ACTIVO / BORRANDO, D-027)
+      SELECT COUNT(*) INTO l_existe FROM user_tab_columns
+       WHERE table_name = 'SINT_REGISTRO' AND column_name = 'ESTADO';
+      IF l_existe = 0 THEN
+         EXECUTE IMMEDIATE q'[ALTER TABLE sint_registro ADD (estado VARCHAR2(10) DEFAULT 'ACTIVO' NOT NULL)]';
+         DBMS_OUTPUT.put_line('Añadida columna SINT_REGISTRO.ESTADO');
+      END IF;
    END IF;
 END;
 /

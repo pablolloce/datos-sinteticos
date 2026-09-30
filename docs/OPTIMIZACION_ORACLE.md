@@ -33,6 +33,9 @@ El coste es proporcional a las filas sintéticas (cientos), no al tamaño de las
 **siempre que las FKs de otras tablas hacia las tablas borradas estén indexadas** (D-026):
 si no, Oracle recorre cada tabla hija por cada fila padre borrada (medido: 7,4 s por fila con
 una hija de 3 M filas sin índice, 0,01 s con índice). `plsql/diagnostico_borrado.sql` las lista.
+El coste es lineal con las filas padre (100 filas → 17 s por cada hija de 3 M filas) aunque se
+borren en una sola sentencia: por eso el borrado físico se hace en segundo plano (D-027), en
+bloques de 20 claves con COMMIT.
 
 ## SQL estático generado
 Cada entidad se traduce a INSERT estáticos. Frente a un motor genérico que construyera SQL

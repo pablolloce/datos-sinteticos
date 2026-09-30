@@ -8,8 +8,16 @@
 SET SERVEROUTPUT ON SIZE UNLIMITED
 WHENEVER SQLERROR EXIT SQL.SQLCODE ROLLBACK
 
-PROMPT == Borrando datos sintéticos
-EXEC pkg_sint.eliminar_bbdd;
+PROMPT == Parando jobs de borrado en curso
+BEGIN
+   FOR r IN (SELECT job_name FROM user_scheduler_jobs WHERE job_name LIKE 'SINT\_ELIM\_%' ESCAPE '\') LOOP
+      DBMS_SCHEDULER.drop_job(r.job_name, force => TRUE);
+   END LOOP;
+END;
+/
+
+PROMPT == Borrando datos sintéticos (en esta sesión; puede tardar, D-026)
+EXEC pkg_sint.eliminar_bbdd(p_segundo_plano => FALSE);
 
 PROMPT == Borrando PKG_SINT y SINT_REGISTRO
 DROP PACKAGE pkg_sint;

@@ -8,8 +8,10 @@ AS
  * PKG_SINT — GENERADOR DE LA BBDD SINTÉTICA (único paquete, D-023)
  *
  *    EXEC pkg_sint.crear_bbdd;      -- SÓLO inserta toda la BBDD sintética y COMMIT (rápido)
- *    EXEC pkg_sint.eliminar_bbdd;   -- SÓLO borra lo insertado, por clave, y COMMIT (rápido)
- *    EXEC pkg_sint.resumen;         -- filas sintéticas registradas por tabla
+ *    EXEC pkg_sint.eliminar_bbdd;   -- elimina lo insertado: responde al instante y un job de
+ *                                   -- Oracle lo borra físicamente en segundo plano (D-027)
+ *    EXEC pkg_sint.estado_borrado;  -- progreso del borrado en segundo plano
+ *    EXEC pkg_sint.resumen;         -- filas sintéticas registradas por tabla y estado
  *    EXEC pkg_sint.limpiar_restos;  -- (ocasional, LENTO) borra por LAST_CHG_USR_ID lo no registrado
  *
  * Cada fila creada se anota en la tabla SINT_REGISTRO (tabla, columna PK, clave), de modo
@@ -18,7 +20,7 @@ AS
  * Organización:
  *    1. NÚCLEO      utilidades comunes (plsql/fuente/)
  *    2. ENTIDADES   un procedimiento crear_<entidad> por mensaje, agrupados por unidad
- *    3. API         crear_bbdd, eliminar_bbdd, resumen, verificar, limpiar_restos
+ *    3. API         crear_bbdd, eliminar_bbdd, estado_borrado, resumen, verificar, limpiar_restos
  *
  * Entidades: 1 · Variaciones: 0 · Tablas gestionadas: 8
  *   Unidad Procedimiento                  Filas  Mensaje
@@ -89,8 +91,21 @@ AS
       hay una BBDD sintética registrada, falla (ORA-20005) para no duplicarla. */
    PROCEDURE crear_bbdd (p_commit IN BOOLEAN DEFAULT TRUE);
 
-   /* Borra, por clave primaria, todo lo insertado (SINT_REGISTRO) y hace COMMIT. */
-   PROCEDURE eliminar_bbdd (p_commit IN BOOLEAN DEFAULT TRUE);
+   /* Elimina FÍSICAMENTE todo lo insertado (D-027):
+        1. Inmediato: marca las claves registradas como BORRANDO (crear_bbdd ya puede volver
+           a ejecutarse).
+        2. Un job de Oracle (DBMS_SCHEDULER) borra por clave, hijas antes que padres.
+      p_segundo_plano => FALSE hace el paso 2 en esta sesión (espera a que termine).
+      El paso 2 es lento por cada fila de tabla padre (FT_T_FINS, FT_T_FINR...): Oracle
+      recorre las tablas hijas con FK sin índice (D-026). */
+   PROCEDURE eliminar_bbdd (p_segundo_plano IN BOOLEAN DEFAULT TRUE);
+
+   /* Progreso del borrado en segundo plano: filas pendientes, jobs en curso y últimas
+      ejecuciones (con el error, si lo hubo). */
+   PROCEDURE estado_borrado;
+
+   /* Uso interno: acción del job de borrado. No es necesario llamarlo a mano. */
+   PROCEDURE ejecutar_borrado_pendiente;
 
    /* Filas sintéticas registradas por tabla (sólo lee SINT_REGISTRO). */
    PROCEDURE resumen;
