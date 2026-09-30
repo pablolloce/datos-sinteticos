@@ -1,0 +1,2484 @@
+{
+ "message_set": "STREETREF",
+ "fichero": "StreetRefMsgSet.xml",
+ "bloques": [
+  {
+   "segmento": "Initial",
+   "reglas": [
+    {
+     "regla": "CGSCRealignALIDAfterMerge",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCIssuerDerivation",
+     "fase": "B",
+     "parametros": [
+      "INITIAL",
+      "CUSIP-3,CINS-3",
+      "CUSIP,CINS",
+      "MarkitREDEntity,SPGISFEntityIdentifiers",
+      "ISIDPLUS,CRSSWALK"
+     ]
+    },
+    {
+     "regla": "CGSCModelForcedReevaluation",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.CreateCopyISSUMex"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.IssueMexico"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.IssuesDuplis"
+     ]
+    },
+    {
+     "regla": "CFTIUniqueCheckAndIDLookup",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCCheckForIdenitifersInMessage",
+     "fase": "B",
+     "parametros": [
+      "InteractiveDataDescriptive",
+      "ISIN,CUSIP"
+     ]
+    },
+    {
+     "regla": "CFTIConstrIssueActionID",
+     "fase": "B",
+     "parametros": [
+      "NULLVALUEMATCH=Y",
+      "PROPRIETARY_IDENTIFIERS=CEDELULLXXX-CRPACTID=NM;CITIHKHXXXX-CRPACTID=NM;DEUTHKHHXXX-CRPACTID=NM;DEUTKRSEXXX-CRPACTID=NM;DEUTTWTPXXX-CRPACTID=NM;IRVTBEBBXXX-CRPACTID=NM;MOCAUI-CRPACTID=NM;NSCVE-CRPACTID=NM;NSCVN-CRPACTID=NM;PARBFRPPXXX-CRPACTID=NM;PARBGB2LXXX-CRPACTID=NM;BCMRMXMMSEC-CRPACTID=NM;IBRCESMMXXX-CRPACTID=NM;SOGEFRPPGSS-CRPACTID=NM;ADPGUS33XXX-CRPACTID=NM"
+     ]
+    },
+    {
+     "regla": "CFTIModelDefault",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCCheckPrimaryMktIdentifier",
+     "fase": "B",
+     "parametros": [
+      "TELEKURS,BB,REUTERS",
+      "INITIAL",
+      "EQSHR,OPTIONS,COMMON,CVTPFD,FUND,FUTURES,INDEXOP,PFD,RECEIPTS,RIGHTS,UNIT,UNITTRST,WARRANTS,HYBRID,MISC"
+     ]
+    },
+    {
+     "regla": "CGSCEquateListing",
+     "fase": "B",
+     "parametros": [
+      "EQSHR,OPTIONS,COMMON,CVTPFD,FUND,FUTURES,INDEXOP,PFD,RECEIPTS,RIGHTS,UNIT,UNITTRST,WARRANTS,MISC,HYBRID,STRATRAD,BOND,CASHSEC,COML PPR,FIXDBOND,GOVTBOND,IRG,LOAN,MONEYMAR,REPO,TBILL,TBOND,TNOTE,VAR BOND,ZERO CPN,CALL OPT,PUT OPT,COMODITY,CVTBOND,INDEX,REALESTA,LTDPART,ETF,ETN,ETP",
+      "BBCMPSEC,BBUNIQUE,BBCPTICK,LISTSYMB,PREFSYMB,TELEKURS,TICKER,RIC,TRDGSYMB,CPBBUNIQ,CPTICKER,EQFUNDTK,BBGLOBAL",
+      "Y",
+      "SEDOL,CPSEDOL"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.setDifusion"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.SwiftCTPTA"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.CCValidationSSIS"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.DeleteNew"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.FinancialInstitutionRatingOIDs"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.ValidateNFIESP"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.CreateCopyCNTC"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.addOfficeAtt"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.InactivateReactivateBDI"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.Uniqueness"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.CorporateEvents"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.CheckUpdateStatusASTYPUEMIR"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.UniquenessSCIS"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.AckNackReceived"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.BorradoClientela"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.UpdateUserInactiveDate"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.CargaFechasCtpdas"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.InactiveFundMIFID"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.InactiveIssuerIds"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.InactiveClearing"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.InactiveInternalParticipant"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.SinglePortfolio"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.CuentasGestionadas"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.RuleCalypso"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.CheckCLANCpty"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.DuplicidadesSDIs"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.DuplicidadesSCIs"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.LAGRduplis"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.DuplicarAnexe_LA"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.UpdateInactive"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.ThrdPartyCalypsoFilter"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.DuplicidadesContactos"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.generateLagrLaan"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.RDRInactivations"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.LegalOpinion"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.CreateCopyLAGR "
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.RulesCPTY "
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.RulesLAGR "
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.LegalOpinionCreateCopy"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.LAGRdates"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.getRefSectorAllocation"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.ValidateCountryRegion"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.ValidateCNPJ"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "Issue",
+   "reglas": [
+    {
+     "regla": "CFTIValIssueOverride",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCPricingFXRT",
+     "fase": "B",
+     "parametros": [
+      "ReutersEquityPricing,TKPRD"
+     ]
+    },
+    {
+     "regla": "CGSCEndDateIdentifiers",
+     "fase": "B",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "IssueIdentifier",
+   "reglas": [
+    {
+     "regla": "CGSCSetGlobalIdentifierIndicator",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCSetGlobalIdentifierIndicator",
+     "fase": "D",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICheckPrimaryIDToBeUpdated",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCCreateUnderlyingLink",
+     "fase": "F",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.ControlBaskets"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "Issuer",
+   "reglas": [
+    {
+     "regla": "CGSCEndDateIdentifiers",
+     "fase": "B",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "FinancialInstitution",
+   "reglas": [
+    {
+     "regla": "CGSCEndDateIdentifiers",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTIInternalIdentifierCreator",
+     "fase": "F",
+     "parametros": [
+      "FINSID"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "EmployeeCustomerRole",
+   "reglas": [
+    {
+     "regla": "CFTIFKLookupRule",
+     "fase": "B",
+     "parametros": [
+      "CUID"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "ISSUIssueActionDeclaration",
+   "reglas": [
+    {
+     "regla": "CFTILoadLogicalKey",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CFTISetMatchKey",
+     "fase": "B",
+     "parametros": [
+      "IADC_IMGID_ISSU_ISSR_ISCTP"
+     ]
+    },
+    {
+     "regla": "CFTIConstructGeoUnit",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTIConstrMKTOID",
+     "fase": "B",
+     "parametros": [
+      "N",
+      "N"
+     ]
+    },
+    {
+     "regla": "CFTIFKLookupRule",
+     "fase": "B",
+     "parametros": [
+      "FINS",
+      "OFR_"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "IssuerClassification",
+   "reglas": [
+    {
+     "regla": "CFTIConstructClassification",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "INCL"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.GetSectorAssetAllocation"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "IssuerStatistics",
+   "reglas": [
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.IssuerDataSourceChange"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "IssuerGeoUnit",
+   "reglas": [
+    {
+     "regla": "CFTIConstructGeoUnit",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "GUNT"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "IssuerRating",
+   "reglas": [
+    {
+     "regla": "CFTIConstructIssueRating",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "RTVL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "IssueDescription",
+   "reglas": [
+    {
+     "regla": "CFTIConstrMKTOID",
+     "fase": "B",
+     "parametros": [
+      "N",
+      "N"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "IssueRating",
+   "reglas": [
+    {
+     "regla": "CFTIConstructIssueRating",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCDeriveEffectiveTms",
+     "fase": "B",
+     "parametros": [
+      "BBCorpGovtConvPrfd"
+     ]
+    },
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "RTVL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "IssueStatistic",
+   "reglas": [
+    {
+     "regla": "CFTIConstrMKTOID",
+     "fase": "B",
+     "parametros": [
+      "Y",
+      "N"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "IssueCrossReference",
+   "reglas": [
+    {
+     "regla": "CFTIFKLookupRule",
+     "fase": "B",
+     "parametros": [
+      "ISID",
+      "RLD_"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "MarketIssueCharacteristics",
+   "reglas": [
+    {
+     "regla": "CGSCCreateListing",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCCheckPrimaryMktIdentifier",
+     "fase": "B",
+     "parametros": [
+      "TELEKURS,BB,REUTERS",
+      "MARKET",
+      "EQSHR,OPTIONS,COMMON,CVTPFD,FUND,FUTURES,INDEXOP,PFD,RECEIPTS,RIGHTS,UNIT,UNITTRST,WARRANTS,HYBRID,MISC"
+     ]
+    },
+    {
+     "regla": "CGSCCreateMIXR",
+     "fase": "A",
+     "parametros": [
+      "",
+      "WARNING"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "RelatedIssueDefinition",
+   "reglas": [
+    {
+     "regla": "CFTIFKLookupRule",
+     "fase": "B",
+     "parametros": [
+      "RIDF",
+      "RLD_"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "RelatedIssue",
+   "reglas": [
+    {
+     "regla": "CGSCUpdateMissingUnderlyingInfo",
+     "fase": "F",
+     "parametros": [
+      "Y"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "UnderwriterCharacteristics",
+   "reglas": [
+    {
+     "regla": "CFTIConstrMKTOID",
+     "fase": "B",
+     "parametros": [
+      "N",
+      "N"
+     ]
+    },
+    {
+     "regla": "CFTIConstrOFFERNUM",
+     "fase": "B",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "DepositoryOptions",
+   "reglas": [
+    {
+     "regla": "CFTIConstFINS",
+     "fase": "B",
+     "parametros": [
+      "N"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "IssueDocument",
+   "reglas": [
+    {
+     "regla": "CFTIFKLookupRule",
+     "fase": "B",
+     "parametros": [
+      "DCDF"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "IncomeEventDefinition",
+   "reglas": []
+  },
+  {
+   "segmento": "IncomeEventDefReplace",
+   "reglas": [
+    {
+     "regla": "CFTIReplaceIncomeEventDef",
+     "fase": "B",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "IncomePaymentDefinition",
+   "reglas": [
+    {
+     "regla": "CFTIConstrCurrency",
+     "fase": "B",
+     "parametros": [
+      ".PAY_CURR_CDE",
+      ".EV_INSTR_ID"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "StandardIndexStatistics",
+   "reglas": [
+    {
+     "regla": "CFTIConstrSourceFINS",
+     "fase": "B",
+     "parametros": [
+      "N"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "PrincipalPaymentDefinition",
+   "reglas": [
+    {
+     "regla": "CFTIConstrCurrency",
+     "fase": "B",
+     "parametros": [
+      ".PAY_CURR_CDE",
+      ".EV_INSTR_ID"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "PrincipalEventDefReplace",
+   "reglas": [
+    {
+     "regla": "CFTIReplacePrincipalEventDef",
+     "fase": "B",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "IndustryClassification",
+   "reglas": [
+    {
+     "regla": "CFTIGenerateCrossRefId",
+     "fase": "A",
+     "parametros": [
+      "Y"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "Final",
+   "reglas": [
+    {
+     "regla": "CFTIValIssueIdentifiers",
+     "fase": "B",
+     "parametros": [
+      "INTERNAL_IDENTIFIERS=INTERNAL,COMMON"
+     ]
+    },
+    {
+     "regla": "CFTIConstrPrefId",
+     "fase": "B",
+     "parametros": [
+      "Issue",
+      "PREF_ID_CTXT_TYP",
+      "PREF_ISS_ID",
+      "ISIN,CUSIP,CINS,SEDOL,MEX_ISIN",
+      "Y"
+     ]
+    },
+    {
+     "regla": "CFTIConstrPrefId",
+     "fase": "B",
+     "parametros": [
+      "FinancialInstitution",
+      "PREF_FINS_ID_CTXT_TYP",
+      "PREF_FINS_ID",
+      "LEI,CUSIP,CINS,DUNS,S&P,BBCMPYID,BCN,GK,RED,RTORGLID,FTCMPYID,BIC",
+      "Y"
+     ]
+    },
+    {
+     "regla": "CGSCEndDateMIXR",
+     "fase": "B",
+     "parametros": [
+      "BBCMPSEC,BBUNIQUE,BBCPTICK,LISTSYMB,PREFSYMB,TELEKURS,TICKER,RIC,TRDGSYMB,CPBBUNIQ,CPTICKER,EQFUNDTK,BBGLOBAL",
+      "SEDOL"
+     ]
+    },
+    {
+     "regla": "CGSCCheckPrimaryMktIdentifier",
+     "fase": "B",
+     "parametros": [
+      "TELEKURS,BB,REUTERS",
+      "FINAL",
+      "EQSHR,OPTIONS,COMMON,CVTPFD,FUND,FUTURES,INDEXOP,PFD,RECEIPTS,RIGHTS,UNIT,UNITTRST,WARRANTS,HYBRID,MISC"
+     ]
+    },
+    {
+     "regla": "CGSCConsolidationStat",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCSwapIssueActionID",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCValidateDPICConfig",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCEndDateFinsFinsRole",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCEndDateMultiEntityHierarchy",
+     "fase": "B",
+     "parametros": [
+      "FINS,CUST,FRCP,FINSRL_TYP=CREDHIER",
+      "CUST,ACCT,CACR,RL_TYP=CREDHIER"
+     ]
+    },
+    {
+     "regla": "CGSCHandleOrphanEntity",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.RegulationSecurityLabelBaskets"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.DerivativesMainIdValidation"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "EmptyFieldMatch",
+   "reglas": [
+    {
+     "regla": "CGSCEndDateSuspect",
+     "fase": "B",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "ConsolidationStatus",
+   "reglas": [
+    {
+     "regla": "CGSCEndDateSuspect",
+     "fase": "B",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "IssueGroupParticipant",
+   "reglas": [
+    {
+     "regla": "CFTILoadLogicalKey",
+     "fase": "A",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "FinsRoleRating",
+   "reglas": [
+    {
+     "regla": "CFTIConstructIssueRating",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "RTVL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "FINSRoleGeographicUnit",
+   "reglas": [
+    {
+     "regla": "CFTIConstructGeoUnit",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "GUNT"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "FinancialInstitutionStatistic",
+   "reglas": [
+    {
+     "regla": "CFTIConstrSTDFOID",
+     "fase": "B",
+     "parametros": [
+      "Y"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "FinancialMarket",
+   "reglas": [
+    {
+     "regla": "CFTIConstrSourceFINS",
+     "fase": "B",
+     "parametros": [
+      "N"
+     ]
+    },
+    {
+     "regla": "CFTIConstructGeoUnit",
+     "fase": "B",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "IssueClassification",
+   "reglas": [
+    {
+     "regla": "CFTIConstructClassification",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "INCL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "CompanyStatistics",
+   "reglas": []
+  },
+  {
+   "segmento": "IssueGeoUnit",
+   "reglas": [
+    {
+     "regla": "CFTIConstructGeoUnit",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "GUNT"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "IssueGeoStatistics",
+   "reglas": [
+    {
+     "regla": "CFTIConstructGeoUnit",
+     "fase": "B",
+     "parametros": [
+      "N"
+     ]
+    },
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "GUNT"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "IssueRegulatoryCharacteristics",
+   "reglas": [
+    {
+     "regla": "CFTIConstructGeoUnit",
+     "fase": "B",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "GeoUnitCalendarParticipant",
+   "reglas": [
+    {
+     "regla": "CFTIConstructGeoUnit",
+     "fase": "B",
+     "parametros": [
+      "E"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "MarketIssueStatistic",
+   "reglas": [
+    {
+     "regla": "CFTIConstrSourceFINS",
+     "fase": "B",
+     "parametros": [
+      "N"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "MarketIndexDefinition",
+   "reglas": [
+    {
+     "regla": "CFTIConstructGeoUnit",
+     "fase": "B",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "PrincipalEventDefinition",
+   "reglas": []
+  },
+  {
+   "segmento": "AddressType",
+   "reglas": [
+    {
+     "regla": "CFTIADTPProcessing",
+     "fase": "B",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "EADRAddressType",
+   "reglas": [
+    {
+     "regla": "CFTIADTPProcessing",
+     "fase": "B",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "MailingAddress",
+   "reglas": [
+    {
+     "regla": "CFTIAddressProcessing",
+     "fase": "B",
+     "parametros": [
+      "MADR",
+      "MADRAddressType"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "ACCTElectronicAddress",
+   "reglas": [
+    {
+     "regla": "CFTIAddressProcessing",
+     "fase": "B",
+     "parametros": [
+      "EADR",
+      "EADRAddressType"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "ElectronicAddress",
+   "reglas": [
+    {
+     "regla": "CFTIAddressProcessing",
+     "fase": "B",
+     "parametros": [
+      "EADR",
+      "AddressType"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "CentralCrossReference",
+   "reglas": [
+    {
+     "regla": "CFTIGetEntityDetailsForCCRF",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTISetMatchKey",
+     "fase": "B",
+     "parametros": [
+      "CCRF_MATCH_FINS"
+     ]
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "F",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "FINSCentralCrossReference",
+   "reglas": [
+    {
+     "regla": "CFTIGetEntityDetailsForCCRF",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTISetMatchKey",
+     "fase": "B",
+     "parametros": [
+      "CCRF_MATCH_FINS"
+     ]
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "F",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "ACCTCentralCrossReference",
+   "reglas": [
+    {
+     "regla": "CFTIGetEntityDetailsForCCRF",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTISetMatchKey",
+     "fase": "B",
+     "parametros": [
+      "CCRF_MATCH_ACCT"
+     ]
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "F",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "CUSTCentralCrossReference",
+   "reglas": [
+    {
+     "regla": "CFTIGetEntityDetailsForCCRF",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTISetMatchKey",
+     "fase": "B",
+     "parametros": [
+      "CCRF_MATCH_CUST"
+     ]
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "F",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "ENTRCentralCrossReference",
+   "reglas": [
+    {
+     "regla": "CFTIGetEntityDetailsForCCRF",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTISetMatchKey",
+     "fase": "B",
+     "parametros": [
+      "CCRF_ENTR_MATCH"
+     ]
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "F",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "AUSRCentralCrossReference",
+   "reglas": [
+    {
+     "regla": "CFTIGetEntityDetailsForCCRF",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "F",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "EMPLCentralCrossReference",
+   "reglas": [
+    {
+     "regla": "CFTIGetEntityDetailsForCCRF",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTISetMatchKey",
+     "fase": "B",
+     "parametros": [
+      "CCRF_MATCH_9"
+     ]
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "F",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "CNTCCentralCrossReference",
+   "reglas": [
+    {
+     "regla": "CFTIGetEntityDetailsForCCRF",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTISetMatchKey",
+     "fase": "B",
+     "parametros": [
+      "CCRF_CNTC_MATCH"
+     ]
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "F",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "ISSRCentralCrossReference",
+   "reglas": [
+    {
+     "regla": "CFTIGetEntityDetailsForCCRF",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTISetMatchKey",
+     "fase": "B",
+     "parametros": [
+      "CCRF_MATCH_5",
+      "L"
+     ]
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "F",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "DLERCentralCrossReference",
+   "reglas": [
+    {
+     "regla": "CFTIGetEntityDetailsForCCRF",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTISetMatchKey",
+     "fase": "B",
+     "parametros": [
+      "CCRF_MATCH_15"
+     ]
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "F",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "DLBRCentralCrossReference",
+   "reglas": [
+    {
+     "regla": "CFTIGetEntityDetailsForCCRF",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTISetMatchKey",
+     "fase": "B",
+     "parametros": [
+      "CCRF_MATCH_16"
+     ]
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "F",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "DREPCentralCrossReference",
+   "reglas": [
+    {
+     "regla": "CFTIGetEntityDetailsForCCRF",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTISetMatchKey",
+     "fase": "B",
+     "parametros": [
+      "CCRF_MATCH_17"
+     ]
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "F",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "FPROCentralCrossReference",
+   "reglas": [
+    {
+     "regla": "CFTIGetEntityDetailsForCCRF",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTISetMatchKey",
+     "fase": "B",
+     "parametros": [
+      "CCRF_MATCH_18"
+     ]
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "F",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "FINRCentralCrossReference",
+   "reglas": [
+    {
+     "regla": "CFTIGetEntityDetailsForCCRF",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTISetMatchKey",
+     "fase": "B",
+     "parametros": [
+      "CCRF_MATCH_6"
+     ]
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "F",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "ISSUCentralCrossReference",
+   "reglas": [
+    {
+     "regla": "CFTIGetEntityDetailsForCCRF",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTISetMatchKey",
+     "fase": "B",
+     "parametros": [
+      "CCRF_MATCH_13"
+     ]
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "F",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "MRKTCentralCrossReference",
+   "reglas": [
+    {
+     "regla": "CFTIGetEntityDetailsForCCRF",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTISetMatchKey",
+     "fase": "B",
+     "parametros": [
+      "CCRF_MATCH_14"
+     ]
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "A",
+     "parametros": []
+    },
+    {
+     "regla": "CFTICCRFProcessing",
+     "fase": "F",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "FinancialInstitutionRole",
+   "reglas": [
+    {
+     "regla": "CFTIRemoveIfUpdate",
+     "fase": "A",
+     "parametros": [
+      "CROSS_REF_ID",
+      "STRING",
+      "N"
+     ]
+    },
+    {
+     "regla": "CFTIRemoveIfUpdate",
+     "fase": "A",
+     "parametros": [
+      "START_TMS",
+      "TMS",
+      "N"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "FinancialInstitutionRating",
+   "reglas": [
+    {
+     "regla": "CFTIConstructIssueRating",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "RTVL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "CustomerRating",
+   "reglas": [
+    {
+     "regla": "CFTIConstructIssueRating",
+     "fase": "B",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "RTVL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "FinancialInstitutionGroupPrt",
+   "reglas": [
+    {
+     "regla": "CFTIConstFINS",
+     "fase": "B",
+     "parametros": [
+      "N"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "FINSFinancialInstitutionGroupPrt",
+   "reglas": []
+  },
+  {
+   "segmento": "ApplicationUserGroupParticipant",
+   "reglas": []
+  },
+  {
+   "segmento": "AUSRApplicationUserGroupParticipant",
+   "reglas": []
+  },
+  {
+   "segmento": "FeeTypeGroupParticipant",
+   "reglas": []
+  },
+  {
+   "segmento": "FTGRFeeTypeGroupParticipant",
+   "reglas": []
+  },
+  {
+   "segmento": "IssuerGroupParticipant",
+   "reglas": []
+  },
+  {
+   "segmento": "MarketIndexGroupParticipant",
+   "reglas": []
+  },
+  {
+   "segmento": "MRKXMarketIndexGroupParticipant",
+   "reglas": []
+  },
+  {
+   "segmento": "ISSRIssuerGroupParticipant",
+   "reglas": []
+  },
+  {
+   "segmento": "ElectronicAddressPreference",
+   "reglas": [
+    {
+     "regla": "CFTICopyFieldFromStorage",
+     "fase": "B",
+     "parametros": [
+      "CNTL_CROSS_REF_OID",
+      "CCRF"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "FundInvestmentCriteriaDetail",
+   "reglas": [
+    {
+     "regla": "CFTIFKLookupRule",
+     "fase": "B",
+     "parametros": [
+      "ISID",
+      "(INSTR_ID)",
+      "MATCH=ISID3_ID_CTXT_ISS_ID"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "LegalAgreement",
+   "reglas": [
+    {
+     "regla": "CFTISeqNumGenerator",
+     "fase": "A",
+     "parametros": [
+      "CROSS_REF_ID",
+      "STRING",
+      "E",
+      "OID"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "A",
+     "parametros": [
+      "es.bbva.kytl.rules.AddLAGRLAIDId",
+      "ParamValue1"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.ValidateLAGR"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.InactivateAnnexesForInactiveLegalAgreement"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "LegalAgreementAnnexure",
+   "reglas": [
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.InactivateAnnexesForInactiveLegalAgreement"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "FinsRoleIdentifier",
+   "reglas": [
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.ValidateStarCodeInactivation"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.ValidateStarRoleDuplicate"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "LAANStatistic",
+   "reglas": [
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.DuplicidadesCalypsoID"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.InactiveCalypso"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "SubDivision",
+   "reglas": [
+    {
+     "regla": "CFTISeqNumGenerator",
+     "fase": "A",
+     "parametros": [
+      "SUBDIV_ID",
+      "STRING",
+      "E",
+      "SUBDIVISION_ID_SEQ"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "StandardSettlementInstructions",
+   "reglas": [
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.GenerateSSISId",
+      "ParamValue1"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "Issue",
+   "reglas": [
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.GenerateBasketId",
+      "ParamValue1"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.ControlBaskets"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.RulesISSU"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "Contact",
+   "reglas": [
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.CJavaRDRSetCai1AltID",
+      "ParamValue1"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "StandardConfirmationInstruction",
+   "reglas": [
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.RDRConfirmationsCoi1AltID",
+      "ParamValue1"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "MADRAddressType",
+   "reglas": [
+    {
+     "regla": "CFTIADTPProcessing",
+     "fase": "B",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "Account",
+   "reglas": [
+    {
+     "regla": "CGSCTrackRecordInTransaction",
+     "fase": "F",
+     "parametros": []
+    },
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "ACTP"
+     ]
+    },
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.BookValidation"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "AccountGroup",
+   "reglas": [
+    {
+     "regla": "CGSCTrackRecordInTransaction",
+     "fase": "F",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "FinancialLegalNames",
+   "reglas": [
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.FLG_Uniqueness"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "FINSFinancialLegalNames",
+   "reglas": [
+    {
+     "regla": "CGSCInvokeJavaRule",
+     "fase": "B",
+     "parametros": [
+      "es.bbva.kytl.rules.FLG_Uniqueness"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "AccountGroupParticipant",
+   "reglas": [
+    {
+     "regla": "CGSCTrackRecordInTransaction",
+     "fase": "F",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "ACCTAccountGroupParticipant",
+   "reglas": [
+    {
+     "regla": "CGSCTrackRecordInTransaction",
+     "fase": "F",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "BNCHClassification",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "INCL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "ExecutedTradeClassification",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "INCL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "CustomerClassification",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "INCL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "IADCIssueActionClassification",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "INCL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "AccountClassification",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "INCL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "EnterpriseClassification",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "INCL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "MKISMarketIssueClassification",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "INCL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "IssueTypeClassification",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "INCL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "EmployeeClassification",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "INCL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "SubdivisionClassification",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "INCL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "TransactionEventClassification",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "INCL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "FinancialInstitutionClassification",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "INCL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "FinsRoleClassification",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "INCL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "GUNTGeographicUnitRating",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "RTVL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "BNCHRating",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "RTVL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "LMTGLoanMortgageRating",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "RTVL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "ACCTAccountRating",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "RTVL"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "FinancialInstitutionGeoUnitPrt",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "GUNT"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "IssueActionGeographicUnit",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "GUNT"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "CustomerGeographicUnit",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "GUNT"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "EmployeeGeographicUnit",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "GUNT"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "PRODProductGeographicUnit",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "GUNT"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "BNCHGeographicUnit",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "GUNT"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "GUNTLoanMortgageGeographicUnit",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "GUNT"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "MRKTMarketGeographicUnit",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "GUNT"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "AccountGeographicUnit",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "GUNT"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "ACCTTaxWithholding",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "GUNT"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "ISSUTaxWithholding",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "GUNT"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "BalanceHistory",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "LGER"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "BFDFDataGroupParticipant",
+   "reglas": [
+    {
+     "regla": "CGSCDerivePartSeqNumForDGDP",
+     "fase": "A",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "BFDFBusinessEntityFieldDefinition",
+   "reglas": [
+    {
+     "regla": "CGSCRejectDeletionIfRelatedDataExist",
+     "fase": "B",
+     "parametros": []
+    }
+   ]
+  },
+  {
+   "segmento": "TaxTreatmentCharacteristics",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "GUNT"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "ISSUIssueThresholdValues",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "GUNT"
+     ]
+    }
+   ]
+  },
+  {
+   "segmento": "ISSUIssueRegulatoryValues",
+   "reglas": [
+    {
+     "regla": "CGSCHandleCompositeKey",
+     "fase": "B",
+     "parametros": [
+      "GUNT"
+     ]
+    }
+   ]
+  }
+ ]
+}

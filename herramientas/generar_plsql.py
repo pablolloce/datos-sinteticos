@@ -45,6 +45,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from analizar_mensaje import cargar_modelo, leer_xml, resolver_columna  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parent / "motor"))
+from mensaje_motor import MensajeMotor  # noqa: E402
+from reglas_replicadas import aplicar_motor  # noqa: E402
+
 RAIZ = Path(__file__).resolve().parent.parent
 ENTRADA = RAIZ / "mensajes_entrada"
 CATALOGO = ENTRADA / "catalogo.json"
@@ -119,6 +123,8 @@ class Entidad:
     parametros: list
     referencias: list       # (tabla_ref, [(col_ref, expresion)], usado_por)
     avisos: list
+    motor: list = field(default_factory=list)   # reglas del motor aplicadas/pendientes (D-031)
+    cambios_motor: list = field(default_factory=list)   # cambios de las reglas sobre el mensaje
     paquete: str = ""       # se asigna al agrupar por unidad
 
 
@@ -167,6 +173,9 @@ def identificador(texto: str) -> str:
 # ----------------------------------------------------------------------------------------------
 def construir_entidad(ruta: Path, config: dict, modelo: dict) -> Entidad:
     raiz = leer_xml(ruta)
+    # Reglas del motor de GoldenSource replicadas (D-031): modifican el mensaje antes de traducirlo.
+    mensaje_motor = MensajeMotor(raiz, modelo)
+    eventos_motor = aplicar_motor(mensaje_motor)
     cabecera = raiz.find("HEADER")
     nodo_unidad = cabecera.find("MAIN_ENTITY_TBL_TYP") if cabecera is not None else None
     unidad = identificador(config.get("unidad")
@@ -327,7 +336,8 @@ def construir_entidad(ruta: Path, config: dict, modelo: dict) -> Entidad:
 
     return Entidad(nombre, procedimiento, unidad, str(ruta.relative_to(RAIZ)), config.get("descripcion", ""),
                    filas, claves, list(parametros.values()),
-                   [(t, list(cols), usado) for (t, cols), usado in referencias.items()], avisos)
+                   [(t, list(cols), usado) for (t, cols), usado in referencias.items()], avisos,
+                   eventos_motor, mensaje_motor.cambios)
 
 
 # ----------------------------------------------------------------------------------------------
@@ -373,6 +383,30 @@ def emitir_declaracion(e: Entidad) -> str:
 """
 
 
+def comentario_motor(e: Entidad) -> str:
+    """Resumen de las reglas del motor de GoldenSource para la entidad (D-031)."""
+    lineas = ["   -- Motor GoldenSource (D-031), reglas en el orden del message set STREETREF:"]
+    ignorados = [c for c in e.cambios_motor if "IGNORE" in c.descripcion]
+    grupos = [
+        ("Aplicadas", [x for x in e.motor if x.estado == "REPLICADA" and not x.detalle.startswith("sin cambios")]),
+        ("Replicadas, sin efecto en este mensaje", [x for x in e.motor if x.estado == "REPLICADA" and x.detalle.startswith("sin cambios")]),
+        ("Pendientes (consultan la BBDD)", [x for x in e.motor if x.estado == "PENDIENTE_BBDD"]),
+        ("Pendientes (Java sin replicar)", [x for x in e.motor if x.estado == "PENDIENTE"]),
+        ("Pendientes de huella (nativas del segmento)",
+         [x for x in e.motor if x.estado == "PENDIENTE_HUELLA" and x.segmento not in ("Initial", "Final")]),
+    ]
+    for titulo, lista in grupos:
+        if lista:
+            lineas.append(f"   --   {titulo}: " + ", ".join(
+                f"{x.regla}" + (f" [{x.segmento} {x.fase}]" if x.tipo == "NATIVA" else "") for x in lista))
+    generales = [x for x in e.motor if x.estado == "PENDIENTE_HUELLA" and x.segmento in ("Initial", "Final")]
+    if generales:
+        lineas.append(f"   --   Nativas de Initial/Final pendientes de huella: {len(generales)} (ver docs/motor/reglas/)")
+    if ignorados:
+        lineas.append(f"   --   Segmentos puestos en IGNORE por el motor: {', '.join('#' + str(c.segmento) for c in ignorados)}")
+    return "\n".join(lineas)
+
+
 def emitir_procedimiento(e: Entidad) -> str:
     """Implementación de la entidad en el cuerpo del paquete de su unidad."""
     ancho = max([len(c.nombre) for f in e.filas for c in f.columnas] + [10])
@@ -409,6 +443,7 @@ def emitir_procedimiento(e: Entidad) -> str:
             vals.append(f"             {c.expresion + coma:<{max(ancho, 40) + 2}} -- {c.nombre:<{ancho}} <- {c.origen}")
         omit = (f"\n      --   Elementos sin columna física (lógicos del motor, no se insertan): {', '.join(f.omitidos)}"
                 if f.omitidos else "")
+        omit += "".join(f"\n      --   Motor: {c.regla}: {c.descripcion}" for c in e.cambios_motor if c.segmento == f.numero)
         inserts.append(f"""      -- Segmento #{f.numero} {f.segmento} ({f.accion}) -> {f.tabla}{omit}
       FORALL i IN 1 .. l_k.COUNT
          INSERT INTO {f.tabla.lower()} (
@@ -423,6 +458,7 @@ def emitir_procedimiento(e: Entidad) -> str:
     sp = f"sp_{e.nombre.lower()[:25]}"
     return f"""   -- ==========================================================================
    -- {e.nombre} — mensaje {e.mensaje}
+{comentario_motor(e)}
    -- ==========================================================================
 {firma(e, con_defecto=False)}
    IS
@@ -752,7 +788,10 @@ END pkg_sint;
                   "tablas_referenciadas": sorted({r[0] for e in entidades for r in e.referencias}),
                   "entidades": [{"nombre": e.nombre, "procedimiento": e.procedimiento, "unidad": e.unidad,
                                  "mensaje": e.mensaje, "filas_por_entidad": len(e.filas),
-                                 "avisos": e.avisos} for e in orden]}
+                                 "avisos": e.avisos,
+                                 "motor": [{"regla": x.regla, "tipo": x.tipo, "segmento": x.segmento, "fase": x.fase,
+                                            "estado": x.estado, "detalle": x.detalle} for x in e.motor]}
+                                for e in orden]}
     return spec, body, manifiesto
 
 

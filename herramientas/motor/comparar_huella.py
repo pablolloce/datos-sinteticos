@@ -143,7 +143,7 @@ def reglas_candidatas(tabla: str, segmentos_msg: set[str], ms, nativas, java, mo
                 if tabla in meta["tablas"] or tbl_id in meta["descripcion"]:
                     salida.append(f"`{nombre}` (Java, {seg})")
             else:
-                desc = nativas.get(r.nombre, {}).get("DESCRIPCION_INFERIDA", "")
+                desc = nativas.get(r.nombre, {}).get("descripcion_inferida", "")
                 if re.search(rf"\b{tbl_id}\b", desc) or tabla in desc:
                     salida.append(f"`{r.nombre}` (nativa, {seg})")
     return list(dict.fromkeys(salida))

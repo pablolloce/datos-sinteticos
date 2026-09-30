@@ -21,7 +21,7 @@ diferencias potenciales entre la BBDD sintética y lo que crearía GoldenSource.
 Uso:
     python3 herramientas/motor/reglas_aplicables.py mensajes_entrada/<Mensaje>.xml [-o docs/motor/reglas/<Mensaje>.md]
 
-Requiere el repositorio fileloading (``FILELOADING_REPO`` o ``../fileloading``).
+Usa la configuración sincronizada en ``esquema/motor/`` (sincronizar_fileloading.py).
 """
 
 from __future__ import annotations
@@ -124,8 +124,8 @@ def informe(ruta: Path) -> str:
         for r in reglas:
             n = nativas.get(r.nombre, {})
             filas.append(f"| {r.orden} | {r.fase} | `{r.nombre}` | {' / '.join(p.strip() for p in r.parametros)} | "
-                         f"{n.get('DESCRIPCION_INFERIDA', '**SIN CATALOGAR**')} | {n.get('CONFIANZA', '-')} | "
-                         f"{n.get('IMPACTO_EN_DATOS_SINTETICOS', '-')} |")
+                         f"{n.get('descripcion_inferida', '**SIN CATALOGAR**')} | {n.get('confianza', '-')} | "
+                         f"{n.get('impacto_en_datos_sinteticos', '-')} |")
         return filas
 
     cab_java = ["| # | Fase | Regla Java | Veredicto | Motivo | Qué hace | Efecto |", "|---|---|---|---|---|---|---|"]

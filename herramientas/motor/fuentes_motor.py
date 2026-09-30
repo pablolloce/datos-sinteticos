@@ -2,38 +2,33 @@
 fuentes_motor.py
 ================
 
-Acceso de solo lectura a la información del motor de GoldenSource que vive en el
-repositorio **pablolloce/fileloading** (no se copia aquí; ver docs/motor/README.md):
+Acceso a la configuración del motor de GoldenSource sincronizada en ``esquema/motor/``
+(``herramientas/motor/sincronizar_fileloading.py`` la genera a partir del repositorio
+pablolloce/fileloading, D-029):
 
-    <fileloading>/extracciones/StreetRefMsgSet.xml   message set: reglas por segmento
-    <fileloading>/extracciones/13-*.csv               catálogo y textos de notificaciones
-    <fileloading>/analisis/reglas_java.json           metadatos de las reglas Java (rdrRules.jar)
-    <fileloading>/analisis/reglas_nativas.csv         comportamiento inferido de las reglas C++ (CFTI*/CGSC*)
-
-Ruta del clon de fileloading: variable de entorno ``FILELOADING_REPO`` o, por defecto,
-la carpeta hermana ``../fileloading``.
+    message_set.json     reglas por segmento del message set STREETREF
+    reglas_java.json     metadatos de las reglas Java de rdrRules.jar
+    reglas_nativas.json  comportamiento inferido de las reglas C++ (CFTI*/CGSC*)
+    notificaciones.json  catálogo de notificaciones
 """
 
 from __future__ import annotations
 
-import csv
 import json
-import os
-import re
 import sys
-import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
+MOTOR = RAIZ / "esquema" / "motor"
 
 
-def repo_fileloading() -> Path:
-    ruta = Path(os.environ.get("FILELOADING_REPO", RAIZ.parent / "fileloading")).resolve()
-    if not (ruta / "extracciones" / "StreetRefMsgSet.xml").exists():
-        sys.exit(f"No encuentro el repositorio fileloading en {ruta}.\n"
-                 "Clónalo junto a este repositorio o indica su ruta con FILELOADING_REPO=/ruta.")
-    return ruta
+def _json(nombre: str):
+    ruta = MOTOR / nombre
+    if not ruta.exists():
+        sys.exit(f"No existe {ruta.relative_to(RAIZ)}. Ejecuta antes: "
+                 "python3 herramientas/motor/sincronizar_fileloading.py")
+    return json.loads(ruta.read_text(encoding="utf-8"))
 
 
 # Fases de ejecución de una regla (atributo ORDER_TYP del message set).
@@ -71,49 +66,32 @@ class MessageSet:
     segmentos_duplicados: list[str] = field(default_factory=list)
 
 
-def cargar_message_set(fichero: str = "StreetRefMsgSet.xml") -> MessageSet:
-    texto = (repo_fileloading() / "extracciones" / fichero).read_text(encoding="utf-8")
-    texto = re.sub(r"<!DOCTYPE[^>]*>", "", texto)
-    raiz = ET.fromstring(texto)
-    ms = MessageSet(raiz.get("SET", fichero))
-    for seg in raiz.findall("SEGMENT"):
-        tipo = seg.get("TYPE")
+def cargar_message_set() -> MessageSet:
+    datos = _json("message_set.json")
+    ms = MessageSet(datos["message_set"])
+    for bloque in datos["bloques"]:
+        tipo = bloque["segmento"]
         if tipo in ms.reglas:
             ms.segmentos_duplicados.append(tipo)
         lista = ms.reglas.setdefault(tipo, [])
-        for regla in seg.findall("RULE"):
-            lista.append(Regla(regla.get("RULE_NME"), regla.get("ORDER_TYP"),
-                               [p.text or "" for p in regla.findall("PARAM")], tipo, len(lista) + 1))
+        for r in bloque["reglas"]:
+            lista.append(Regla(r["regla"], r["fase"], r["parametros"], tipo, len(lista) + 1))
     return ms
 
 
 def cargar_reglas_java() -> dict:
-    ruta = repo_fileloading() / "analisis" / "reglas_java.json"
-    return json.loads(ruta.read_text(encoding="utf-8"))["reglas"]
+    return _json("reglas_java.json")["reglas"]
 
 
 def cargar_reglas_nativas() -> dict[str, dict]:
-    ruta = repo_fileloading() / "analisis" / "reglas_nativas.csv"
-    with ruta.open(encoding="utf-8") as f:
-        return {r["REGLA"]: r for r in csv.DictReader(f, delimiter=";")}
+    """REGLA -> {descripcion_inferida, confianza, impacto_en_datos_sinteticos}."""
+    return _json("reglas_nativas.json")
 
 
 def cargar_notificaciones() -> dict[tuple[str, str, str], dict]:
     """(APPL_ID, PART_ID, NOTFCN_ID) -> {severidad, texto}."""
-    base = repo_fileloading() / "extracciones"
-    csv.field_size_limit(10**9)
-    textos = {}
-    with (base / "13-texto-notificaciones.csv").open(encoding="utf-8", errors="replace") as f:
-        for r in csv.DictReader(f):
-            if r["NLS_CDE"].strip() in ("ENGLISH", ""):
-                clave = (r["APPL_ID"].strip(), r["PART_ID"].strip(), r["NOTFCN_ID"].strip())
-                textos[clave] = r["NOTFCN_LONG_TXT"].strip() or r["NOTFCN_SHORT_TXT"].strip()
-    salida = {}
-    with (base / "13-catalogo-notificaciones.csv").open(encoding="utf-8", errors="replace") as f:
-        for r in csv.DictReader(f):
-            clave = (r["APPL_ID"].strip(), r["PART_ID"].strip(), r["NOTFCN_ID"].strip())
-            salida[clave] = {"severidad": r["DFLT_SEVERITY_CDE"].strip(), "texto": textos.get(clave, "")}
-    return salida
+    return {(n["aplicacion"], n["parte"], n["id"]): {"severidad": n["severidad"], "texto": n["texto"]}
+            for n in _json("notificaciones.json")}
 
 
 SEVERIDADES = {"10": "SUCCESS", "20": "INFO", "30": "WARNING", "40": "ERROR", "50": "FATAL"}

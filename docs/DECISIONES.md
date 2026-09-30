@@ -138,7 +138,7 @@ Plantilla:
   La prueba local no sustituye una primera ejecución controlada en `KYTL_GC`.
 
 ### D-014 — Fidelidad al mensaje; variaciones sólo bajo petición
-- Fecha: 2026-09-29 · Estado: VIGENTE (indicación del usuario)
+- Fecha: 2026-09-29 · Estado: VIGENTE, MATIZADA POR D-031 ("idéntica" = como la dejaría GoldenSource)
 - Contexto: la BBDD sintética se construye principalmente a partir de mensajes XML.
 - Decisión: cada paquete de entidad, llamado **sin parámetros**, crea **una** entidad con
   exactamente los valores del mensaje; sólo las claves internas son nuevas (`NEW_OID`, D-018).
@@ -148,7 +148,7 @@ Plantilla:
   `pkg_sint.crear_bbdd`.
 
 ### D-015 — Valores "raros" del frontal se respetan
-- Fecha: 2026-09-29 · Estado: VIGENTE (confirmado por el usuario)
+- Fecha: 2026-09-29 · Estado: VIGENTE salvo lo que cambien las reglas del motor (D-031)
 - Decisión: se inserta lo que envía el frontal aunque parezca incoherente. Casos confirmados:
   `FT_T_FINR.PREF_ID_CTXT_TYP = 'Y'` es normal; en `FT_T_ENFR` el frontal no informa
   `INST_MNEM` (sólo `FINR_INST_MNEM`) y se deja nulo (otros procesos lo rellenan con
@@ -328,25 +328,65 @@ Plantilla:
   FT_T_ISID, ~350–400 MB) y ralentizan levemente las escrituras en esas hijas; al ser
   invisibles no cambian los planes de las consultas de la aplicación.
 
-### D-029 — Conocimiento del motor de GoldenSource enlazado desde `fileloading`
-- Fecha: 2026-09-30 · Estado: PROPUESTA
-- Contexto: para acercar la BBDD sintética a lo que crea GoldenSource hay que saber qué reglas
-  ejecuta el motor con cada mensaje. El EAR, `rdrRules.jar`, el message set y las extracciones
-  de configuración están en el repositorio `pablolloce/fileloading`.
-- Decisión: ese material **no se copia** a este repositorio. Las herramientas de
-  `herramientas/motor/` lo leen del clon de `fileloading` (`FILELOADING_REPO` o
-  `../fileloading`). Aquí sólo viven las herramientas, la documentación (`docs/motor/`) y los
-  informes generados.
-- Consecuencias: para usar `herramientas/motor/` hay que tener clonados los dos repositorios.
-  El generador (`generar_plsql.py`) no depende de `fileloading`.
+### D-029 — Conocimiento del motor de GoldenSource sincronizado desde `fileloading`
+- Fecha: 2026-09-30 · Estado: VIGENTE (confirmada por el usuario: el entorno de trabajo es este
+  repositorio y `fileloading` es la fuente)
+- Contexto: el EAR, `rdrRules.jar`, el message set y las extracciones de configuración están en
+  `pablolloce/fileloading` (rama `main`).
+- Decisión: ese material **no se copia**. `herramientas/motor/sincronizar_fileloading.py` es el
+  único que lee `fileloading` (`FILELOADING_REPO` o `../fileloading`) y escribe en
+  `esquema/motor/` los derivados que usan el generador y las herramientas (message set, metadatos
+  de reglas Java, reglas nativas, notificaciones, commit de origen). Se re-sincroniza y se sube
+  cada vez que cambia `fileloading`.
+- Consecuencias: el generador no necesita `fileloading` para funcionar; `esquema/motor/origen.json`
+  dice de qué commit salen los datos.
 
 ### D-030 — Comportamiento de reglas nativas: sólo lo observado
-- Fecha: 2026-09-30 · Estado: PROPUESTA
+- Fecha: 2026-09-30 · Estado: VIGENTE
 - Contexto: las reglas `CFTI*`/`CGSC*` son C++ compilado y no tenemos su código.
 - Decisión: una regla nativa sólo se replica cuando su efecto está **confirmado** por una
   captura de huella (`plsql/motor/capturar_huella.sql` + `herramientas/motor/comparar_huella.py`)
   y anotado en `docs/motor/REGLAS_OBSERVADAS.md`. La inferencia por nombre
   (`fileloading/analisis/reglas_nativas.csv`) sólo sirve para priorizar.
+
+
+### D-031 — El generador replica el motor de GoldenSource (mensajes de la Workstation)
+- Fecha: 2026-09-30 · Estado: VIGENTE (P-013, indicación del usuario; modifica D-014 y D-015)
+- Contexto: los mensajes de `mensajes_entrada/` los genera la Workstation al guardar desde una
+  ventana (`WEBMSG`). El guardado dispara `CustomWorkstationWorkflow` (v22), que envía el mensaje
+  al motor (`Basic Message Processing`, motor TPS-UI) y después lanza procesos de negocio.
+  El motor aplica el message set STREETREF y las reglas Java de `rdrRules.jar` antes de escribir.
+- Decisión: la BBDD sintética debe quedar **como la dejaría GoldenSource** al procesar el mensaje,
+  no como el mensaje literal. Reglas:
+  1. Antes de traducir, `generar_plsql.py` aplica al mensaje las reglas replicadas
+     (`herramientas/motor/reglas_replicadas.py`) en el orden del message set: `Initial`, por
+     segmento fases B y A, fase F y `Final` (D-033).
+  2. Réplicas deterministas (sólo dependen del mensaje): en Python, sobre el mensaje.
+     Réplicas que consultan o escriben la BBDD: funciones del núcleo PL/SQL (pendiente).
+  3. Cada procedimiento generado documenta en su cabecera las reglas aplicadas, las replicadas
+     sin efecto y las pendientes; cada segmento, los cambios que le hizo el motor. El manifiesto
+     las lista por entidad.
+  4. Una regla Java se replica a partir de su código; una nativa sólo tras confirmarla con una
+     huella (D-030).
+  5. La marca sintética `LAST_CHG_USR_ID = 'TESTING:RDR'` (D-001) prevalece sobre los usuarios que
+     fijan las reglas (p. ej. `DIFUSION` de `setDifusion`).
+- Consecuencias: D-014 pasa a significar "entidad idéntica a la que crearía GoldenSource con ese
+  mensaje"; D-015 se mantiene para lo que el motor no cambia. Replicadas hoy: `ValidateCountryRegion`,
+  `setDifusion` (altas), `generateLagrLaan`, `FLG_Uniqueness` (parte MEX→MX); sin efecto:
+  `GenerateSSISId`, `InactiveFundMIFID`. Pruebas: `herramientas/motor/probar_reglas.py`.
+
+### D-032 — Validación: sintaxis en Oracle local, comportamiento en el entorno del usuario
+- Fecha: 2026-09-30 · Estado: VIGENTE (P-014)
+- Decisión: la sintaxis del PL/SQL y de los scripts (incluido `plsql/motor/capturar_huella.sql`)
+  se valida con la BBDD simulada de `herramientas/probar_en_local.sh`. El usuario ejecuta las
+  capturas de huella en un entorno con GoldenSource y sube el CSV a `huellas/`.
+
+### D-033 — Orden de ejecución de las reglas del message set
+- Fecha: 2026-09-30 · Estado: PROPUESTA (deducido, pendiente de confirmar con huellas)
+- Decisión: `Initial` (una vez) → por cada segmento del mensaje, en su orden, reglas de su tipo de
+  fase `B` y luego `A` → reglas de fase `F` de todos los segmentos (`D` sólo en borrados) → `Final`.
+  Una regla asociada a un tipo de segmento se ejecuta una vez por segmento de ese tipo; las réplicas
+  deben ser idempotentes.
 
 ---
 
@@ -366,6 +406,8 @@ Plantilla:
 | P-010 | Firma exacta de `NEW_OID`. | RESUELTA: función sin parámetros que devuelve el OID de 10 caracteres, accesible desde `KYTL_GC` (D-008) |
 | P-011 | Variaciones y cantidades de la Contrapartida Global. | RESUELTA → D-014 (una entidad idéntica al mensaje; variaciones sólo por petición) |
 | P-012 | ¿Puede el DBA crear los índices que propone `plsql/diagnostico_borrado.sql` sobre las FKs sin índice (D-026)? ¿Edición Enterprise (para `CREATE INDEX ... ONLINE`)? | ABIERTA |
-| P-013 | ¿La BBDD sintética debe reproducir lo que haría el motor (identificador FINSID, identificador preferente, `DATA_SRC_ID` de difusión, unicidades...) aunque difiera del mensaje, o seguir fiel al mensaje (D-014/D-015)? Ver `docs/motor/MOTOR_GOLDENSOURCE.md`. | ABIERTA |
-| P-014 | ¿Hay un entorno de pruebas donde guardar entidades desde la Workstation y ejecutar `plsql/motor/capturar_huella.sql`? ¿Guardan los tipos de mensaje de la Workstation el mensaje procesado (`FT_T_MSGP`)? | ABIERTA |
+| P-013 | ¿La BBDD sintética debe reproducir lo que haría el motor aunque difiera del mensaje? | RESUELTA → D-031 (sí, para mensajes de la Workstation) |
+| P-014 | ¿Dónde se validan los scripts y se capturan las huellas? | RESUELTA → D-032. Pendiente saber si los mensajes de la Workstation guardan el mensaje procesado (`FT_T_MSGP`): lo dirá la primera huella |
 | P-015 | ¿Se puede obtener de GoldenSource la referencia de reglas del Reference Engine (`CFTI*`/`CGSC*`) o las librerías `GenericRules`/`CamsRules` del servidor? | ABIERTA |
+| P-016 | ¿Recorta el motor los espacios del nombre de clase de `CGSCInvokeJavaRule` (`CreateCopyLAGR `, `RulesCPTY `, `RulesLAGR `)? Si no, esas reglas no se ejecutan en GoldenSource. Se confirma con una huella de un mensaje LAGR/FINSX (notificaciones 9037/9043/9046/9050). | ABIERTA |
+| P-017 | Unicidades del motor (`FLG_Uniqueness` 9001 nombre legal, `Uniqueness` 9001–9003): GoldenSource rechazaría una segunda entidad con el mismo nombre legal/identificadores. ¿El generador debe fallar igual, o generar valores únicos (p. ej. sufijo) cuando se piden varias entidades o el valor ya existe en la BBDD? | ABIERTA |

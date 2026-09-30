@@ -22,7 +22,8 @@ Oracle 19c** sobre la BBDD relacional de GoldenSource (esquema **`KYTL_GC`**, ta
   (`herramientas/generar_plsql.py`, D-017) usando XSEG/XELM y la estructura física real de
   las tablas, condensados en [`esquema/modelo/modelo.json`](esquema/modelo/).
 - En la BBDD hay **un único paquete, `PKG_SINT`** (D-023), sea cual sea el nº de entidades.
-- Cada mensaje genera **una entidad idéntica al mensaje** (sólo cambian las claves internas).
+- Cada mensaje genera **la entidad que crearía GoldenSource al guardar ese mensaje desde la
+  Workstation** (D-031): se aplican las reglas del motor replicadas y cambian las claves internas.
   Las variaciones **sólo** se crean cuando se piden por chat (D-014) y se declaran en
   [`mensajes_entrada/catalogo.json`](mensajes_entrada/catalogo.json).
 - **Todo registro sintético lleva `LAST_CHG_USR_ID = 'TESTING:RDR'`** (D-001).
@@ -106,19 +107,26 @@ Oracle 19c** sobre la BBDD relacional de GoldenSource (esquema **`KYTL_GC`**, ta
   llamada (D-007). Fechas de negocio del mensaje (`MM-DD-YYYY HH:MI:SS AM`) → `TO_DATE` literal.
 - Se respeta lo que envía el frontal aunque parezca incoherente (D-015).
 
-## 4 bis. Motor de GoldenSource (D-029, D-030)
+## 4 bis. Réplica del motor de GoldenSource (D-029 a D-033)
 
-El generador traduce el mensaje literalmente; el motor de GoldenSource además ejecuta reglas
-(message set `STREETREF` + `rdrRules.jar`) que añaden filas, rellenan columnas, cambian
-acciones o rechazan el mensaje. Documentación y herramientas en [`docs/motor/`](docs/motor/README.md).
+Guardar desde una ventana de la Workstation genera el mensaje (`WEBMSG`) y dispara
+`CustomWorkstationWorkflow`, que lo procesa con el motor (`Basic Message Processing`, TPS-UI):
+message set `STREETREF` + reglas Java de `rdrRules.jar`. El generador replica ese procesamiento
+antes de traducir el mensaje a INSERT. Documentación en [`docs/motor/`](docs/motor/README.md).
 
+- Configuración del motor: `esquema/motor/*.json`, generada con
+  `python3 herramientas/motor/sincronizar_fileloading.py` desde el repositorio `fileloading`
+  (`FILELOADING_REPO` o `../fileloading`). No copiar aquí material de GoldenSource (D-029).
+- Réplicas: `herramientas/motor/reglas_replicadas.py` (`REPLICAS`), sobre la vista del mensaje por
+  columnas de `herramientas/motor/mensaje_motor.py`. Una regla Java se replica desde su código
+  (citar `Clase.process`); una nativa `CFTI*`/`CGSC*` sólo si una huella confirma su efecto y está
+  en `docs/motor/REGLAS_OBSERVADAS.md` (D-030). Réplicas idempotentes (D-033).
+- Tras tocar una réplica: `python3 herramientas/motor/probar_reglas.py` (añadir un caso por regla).
 - Por cada mensaje nuevo, además del informe de mapeo:
-  `python3 herramientas/motor/reglas_aplicables.py mensajes_entrada/<Mensaje>.xml -o docs/motor/reglas/<Mensaje>.md`
-  y avisar al usuario de las reglas con impacto (P-013).
-- Las herramientas de `herramientas/motor/` necesitan el repositorio `fileloading`
-  (`FILELOADING_REPO` o `../fileloading`). El material de GoldenSource no se copia aquí.
-- Una regla nativa (`CFTI*`/`CGSC*`) sólo se replica si su efecto está confirmado por una
-  huella y anotado en `docs/motor/REGLAS_OBSERVADAS.md`.
+  `python3 herramientas/motor/reglas_aplicables.py mensajes_entrada/<Mensaje>.xml -o docs/motor/reglas/<Mensaje>.md`;
+  revisar las reglas pendientes que le afectan y comentarlas con el usuario.
+- Huellas: el usuario ejecuta `plsql/motor/capturar_huella.sql` en su entorno y deja el CSV en
+  `huellas/`; se analiza con `herramientas/motor/comparar_huella.py` (D-032).
 
 ## 5. Estructura del repositorio
 
@@ -137,7 +145,8 @@ herramientas/analizar_mensaje.py   <- informe de mapeo de un mensaje / segmento 
 herramientas/generar_plsql.py      <- mensajes + catálogo + núcleo -> plsql/generado/pkg_sint.*
 herramientas/generar_ddl_pruebas.py<- DDL de tablas para el Oracle local de pruebas
 herramientas/probar_en_local.sh    <- prueba de extremo a extremo en Oracle local (docker)
-herramientas/motor/                <- reglas del motor de GoldenSource (lee ../fileloading, D-029)
+herramientas/motor/                <- réplica del motor: sincronización, reglas, huellas (D-029..D-033)
+esquema/motor/                     <- configuración del motor sincronizada desde fileloading (NO editar)
 docs/motor/                        <- funcionamiento del motor, reglas observadas e informes
 plsql/motor/capturar_huella.sql    <- captura lo que hizo GoldenSource con un mensaje (D-030)
 huellas/                           <- capturas exportadas a CSV (entrada de comparar_huella.py)

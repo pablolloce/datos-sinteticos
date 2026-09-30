@@ -1,0 +1,4566 @@
+[
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "1",
+  "severidad": "30",
+  "texto": "The index /%IndexName%/ with /%IdContextType%/-/%BenchmarkId%/ is a new index"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "2",
+  "severidad": "50",
+  "texto": "The benchmark /%BnchName%/ with /%IdCtxtType%/-/%BnchId%/ is not 'Enabled'"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "3",
+  "severidad": "30",
+  "texto": "The issue /%IssName%/ with /%IdCtxtType%/-/%IssId%/ is a non-index issue"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "4",
+  "severidad": "30",
+  "texto": "Weighting for the issue /%IssName%/ belonging to index /%BMName%/ is missing"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "5",
+  "severidad": "50",
+  "texto": "The sum of the weightings of the participants or components is not 100%"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "6",
+  "severidad": "50",
+  "texto": "Number of participants does not match with actual number of participants"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "7",
+  "severidad": "40",
+  "texto": "Number of participants does not match with number of participants in Database"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "8",
+  "severidad": "50",
+  "texto": "Number of participants for the benchmark /%BenchmarkName%/ created is ZERO"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "9",
+  "severidad": "30",
+  "texto": "The issue /%IssueName%/ with /%IdCtxtTyp%/-/%IssueId%/ is a new issue"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "10",
+  "severidad": "30",
+  "texto": "The /%FieldName%/ of the Benchmark /%BenchmarkName%/ violated tolerance limit"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "11",
+  "severidad": "30",
+  "texto": "The /%FieldName%/ of the Issue /%IssueName%/ violated tolerance limit"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "12",
+  "severidad": "30",
+  "texto": "A Constituent in Benchmark /%BenchName%/ left the Vendor Index"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "13",
+  "severidad": "30",
+  "texto": "Unable to determine if Rebalance Date /%Date%/ is a business day"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "14",
+  "severidad": "30",
+  "texto": "Index file not loaded for Date /%Date%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "15",
+  "severidad": "50",
+  "texto": "Constituents arrived before new index /%BnchName%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "16",
+  "severidad": "30",
+  "texto": "The index /%IndexName%/ is a new index from the index provider /%IndexProvider%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "17",
+  "severidad": "50",
+  "texto": "Benchmark Participant Not Created as no valid /%PART%/ could be retrieved"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "18",
+  "severidad": "50",
+  "texto": "BM Participant Not Valid as both Issue and Benchmark selected as participant"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "19",
+  "severidad": "30",
+  "texto": "Deleted Participant participates in other Benchmarks"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "20",
+  "severidad": "30",
+  "texto": "The participant issue /%IssName%/ exists more than once in the hierarchy"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "21",
+  "severidad": "30",
+  "texto": "The participant benchmark /%BenchName%/ exists more than once in the hierarchy"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "22",
+  "severidad": "30",
+  "texto": "Missing CloseMarketCap(s) for issue /%IssName%/ belonging to index /%BMName%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "23",
+  "severidad": "30",
+  "texto": "Forex rate from index provider/preferred provider is not available"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "24",
+  "severidad": "30",
+  "texto": "Forex rate not found as index/preferred FX rate provider has not been defined"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "25",
+  "severidad": "30",
+  "texto": "Market cap of the Index /%BNCHName%/ in /%Curr%/ is suspect"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "26",
+  "severidad": "30",
+  "texto": "Market cap of a participant of the index /%BNCHName%/ missing"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "27",
+  "severidad": "30",
+  "texto": "Market cap in currency /*currency*/ for all participants is missing"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "28",
+  "severidad": "30",
+  "texto": "Previous Forex rate from index provider/preferred provider is not available"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "29",
+  "severidad": "30",
+  "texto": "Requested Participant cannot be deleted as it was not found in the benchmark"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "BNCHMRK",
+  "id": "30",
+  "severidad": "30",
+  "texto": "Benchmark /%BMName%/ is either disabled or enabled to index level only."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "ENRICH",
+  "id": "1",
+  "severidad": "50",
+  "texto": "Error in Enrichment Service Integration."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "ENRICH",
+  "id": "2",
+  "severidad": "30",
+  "texto": "Error Retreiving Subscriber Details."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "8000",
+  "severidad": "40",
+  "texto": "/%FIELD%/ field should be equal or less than /%MAXALLOWED%/ characters"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "8001",
+  "severidad": "50",
+  "texto": "CORP '/%CORP%/' is ignored because no parameterization was found in the database. Message filtered."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "8002",
+  "severidad": "50",
+  "texto": "CORP '/%CORP%/' is ignored."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9001",
+  "severidad": "40",
+  "texto": "/%IdTyp%/: /%Ident%/ already exist."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9002",
+  "severidad": "40",
+  "texto": "/%IdTyp1%/ can not be modified to /%IdTyp2%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9003",
+  "severidad": "40",
+  "texto": "Legal Name: /%LegalName%/ is already assigned to other entity."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9004",
+  "severidad": "40",
+  "texto": "Confirmation already exists with the same branch and product"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9006",
+  "severidad": "40",
+  "texto": "The selected account is not valid"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9008",
+  "severidad": "40",
+  "texto": "RDR hasn't received any ACKNACK message from MGC about the creation of this entity."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9009",
+  "severidad": "40",
+  "texto": "The instruction is /%TypDupl%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9011",
+  "severidad": "40",
+  "texto": "The Account is /%AccDupl%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9014",
+  "severidad": "40",
+  "texto": "Data not empty in /%tipo%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9015",
+  "severidad": "40",
+  "texto": "The /%tipo%/ is duplicated"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9016",
+  "severidad": "40",
+  "texto": "The problem is /%tipo%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9017",
+  "severidad": "40",
+  "texto": "The Financial Institution /%tipo%/ in Contact cannot be inactivated"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9019",
+  "severidad": "40",
+  "texto": "An IM collateral cannot be added to a legal agreement"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9020",
+  "severidad": "40",
+  "texto": "IM collateral With effects from and With effects to dates are required"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9021",
+  "severidad": "40",
+  "texto": "An IM collateral cannot be added to a legal agreement"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9022",
+  "severidad": "40",
+  "texto": "The With effects to date of the Legacy collateral cannot be higher than the With effects from date of the VM collateral"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9023",
+  "severidad": "40",
+  "texto": "The legal agreement has duplicated collaterals"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9024",
+  "severidad": "40",
+  "texto": "Some of the parameters Activity or Legal Entity Subtype sended from the window dont return classification right"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9025",
+  "severidad": "40",
+  "texto": "Error in /%tipo%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9026",
+  "severidad": "40",
+  "texto": "Error in /%tipo%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9027",
+  "severidad": "40",
+  "texto": "The \"With effects to\" date cannot be higher than the \"With effects from\" date of the Settlement Currency"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9028",
+  "severidad": "40",
+  "texto": "The \"With effects to\" date cannot be lower than now of the Settlement Currency"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9029",
+  "severidad": "40",
+  "texto": "The \"With effects from\" date cannot be higher than now of the Settlement Currency"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9030",
+  "severidad": "40",
+  "texto": "The Murex Id (CPARTY role) cannot be inactivated if the same Murex ID is active in the issuer role"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9031",
+  "severidad": "40",
+  "texto": "The Murex ID of the issuer role doesnt exist in the CPARTY role. The same Murex ID has to exist in the CPARTY role"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9032",
+  "severidad": "40",
+  "texto": "Inactivation of the Internal Participant BBVA role is not allowed"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9033",
+  "severidad": "40",
+  "texto": "Portfolio /%nombrePF%/ addition not allowed"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9034",
+  "severidad": "40",
+  "texto": "Portfolio /%nombrePF%/ addition not allowed"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9035",
+  "severidad": "40",
+  "texto": "Book /%nombreBOOK%/ change not allowed"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9036",
+  "severidad": "40",
+  "texto": "This counterparty has Mandated Accounts. It is not possible to import the Client data. LEI must be removed and imported again."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9037",
+  "severidad": "40",
+  "texto": "The Legal Agreement is /%LegAgrDupl%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9038",
+  "severidad": "40",
+  "texto": "Information of the security duplicated"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9039",
+  "severidad": "40",
+  "texto": "Error in Cparty branches."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9040",
+  "severidad": "40",
+  "texto": "Information of the ISIN duplicated"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9041",
+  "severidad": "40",
+  "texto": "Information of the Market duplicated"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9042",
+  "severidad": "40",
+  "texto": "ISIN Mexico not matching"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9045",
+  "severidad": "40",
+  "texto": "Error in BBVA Partipant."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9046",
+  "severidad": "40",
+  "texto": "Star Data duplicated"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9047",
+  "severidad": "40",
+  "texto": "check CNPJ"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9048",
+  "severidad": "40",
+  "texto": "STAR code duplicated"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "9049",
+  "severidad": "40",
+  "texto": "Principal ID inactivation error"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "90003",
+  "severidad": "40",
+  "texto": "/%lastChgUsrId%/: The ID Calypso /%statCharValTxt%/ is duplicated because it already exists in an annex from the contract with ID /%idContrato%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "90004",
+  "severidad": "40",
+  "texto": "/%lastChgUsrId%/: The ID Calypso is filled when CSA Op Typ = RV"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "JAVARULE",
+  "id": "99012",
+  "severidad": "40",
+  "texto": ""
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "MASSUPD",
+  "id": "2",
+  "severidad": "30",
+  "texto": "Mass Update for Phone number failed"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "MASSUPD",
+  "id": "3",
+  "severidad": "10",
+  "texto": "Mass Update for Phone number information"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "MASSUPD",
+  "id": "4",
+  "severidad": "30",
+  "texto": "Mass Update for Dealer-Branch Merge failed"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "MASSUPD",
+  "id": "5",
+  "severidad": "10",
+  "texto": "Dealer-Branch Merge information"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "MASSUPD",
+  "id": "6",
+  "severidad": "30",
+  "texto": "Error updating Address for Customer"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "MASSUPD",
+  "id": "7",
+  "severidad": "50",
+  "texto": "Error updating Address & windowkey."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "MASSUPD",
+  "id": "8",
+  "severidad": "10",
+  "texto": "Trillium Cleanser service Parser Process."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "MASSUPD",
+  "id": "9",
+  "severidad": "10",
+  "texto": "Trillium Cleanser service Geocoder Process."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "MASSUPD",
+  "id": "10",
+  "severidad": "10",
+  "texto": "Trillium Parser Confidence and Comprehension Codes."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "MASSUPD",
+  "id": "11",
+  "severidad": "20",
+  "texto": "Customer & Dealer relationship information"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "MASSUPD",
+  "id": "12",
+  "severidad": "20",
+  "texto": "Customer/DREP/FPRO Merge process information"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "MASSUPD",
+  "id": "13",
+  "severidad": "20",
+  "texto": "Trillium Matcher information"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "MASSUPD",
+  "id": "14",
+  "severidad": "50",
+  "texto": "Trillium Server Starting status"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "MASSUPD",
+  "id": "15",
+  "severidad": "30",
+  "texto": "Dealer-Branch Merge Warning"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEDWH",
+  "id": "10188",
+  "severidad": "50",
+  "texto": "Multiple Rows Found in the table.."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEDWH",
+  "id": "10189",
+  "severidad": "50",
+  "texto": "Cross Reference Fields do not match...."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEDWH",
+  "id": "10190",
+  "severidad": "40",
+  "texto": "Rule Failed"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEDWH",
+  "id": "10191",
+  "severidad": "40",
+  "texto": "Database Error"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEDWH",
+  "id": "10192",
+  "severidad": "20",
+  "texto": "No Previous Active Record Found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEDWH",
+  "id": "10193",
+  "severidad": "40",
+  "texto": "Number of columns are not equal.."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "1",
+  "severidad": "40",
+  "texto": "Financial Institution"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "2",
+  "severidad": "40",
+  "texto": "SQL error while looking up Financial Institution ID. /%ErrMsg%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "3",
+  "severidad": "40",
+  "texto": "SQL error while looking up Institution Mnemonic by Institution Name  /%ErrMsg%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "4",
+  "severidad": "40",
+  "texto": "SQL error while looking up Market OID by Market Name. /%ErrMsg%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "5",
+  "severidad": "40",
+  "texto": "SQL error while looking up Market OID. /%ErrMsg%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "6",
+  "severidad": "40",
+  "texto": "Statistical definition"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "7",
+  "severidad": "40",
+  "texto": "Industry Classification Set was not found in table INCS."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "8",
+  "severidad": "40",
+  "texto": "Industry Classification Value was not found in table INCL."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "9",
+  "severidad": "40",
+  "texto": "SQL error while looking up Industry Classification Set ID.  /%ErrMsg%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "10",
+  "severidad": "40",
+  "texto": "Classification ID not found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "11",
+  "severidad": "40",
+  "texto": "Country Code"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "12",
+  "severidad": "40",
+  "texto": "City /%CityName%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "13",
+  "severidad": "40",
+  "texto": "State or Province"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "14",
+  "severidad": "40",
+  "texto": "Geographic Region"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "15",
+  "severidad": "40",
+  "texto": "County"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "16",
+  "severidad": "40",
+  "texto": "Township"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "17",
+  "severidad": "40",
+  "texto": "Invalid geographic unit."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "18",
+  "severidad": "40",
+  "texto": "SQL error while looking up Geographic Unit ID.  /%ErrMsg%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "19",
+  "severidad": "40",
+  "texto": "Financial Exchange"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "20",
+  "severidad": "40",
+  "texto": "Rating Set /%RtName%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "21",
+  "severidad": "40",
+  "texto": "Rating value not found in table RTVL."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "22",
+  "severidad": "40",
+  "texto": "Technical error while processing SQL Statement."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "23",
+  "severidad": "40",
+  "texto": "/%FieldName%/ has invalid character value"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "24",
+  "severidad": "40",
+  "texto": "Field does not pass the validation."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "25",
+  "severidad": "40",
+  "texto": "Validation failed."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "26",
+  "severidad": "40",
+  "texto": "The Field /%Name%/ does not exist."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "27",
+  "severidad": "40",
+  "texto": "Date Field not greater than time stamp at the time of processing."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "28",
+  "severidad": "40",
+  "texto": "Issue Identifier Context Type not found."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "29",
+  "severidad": "40",
+  "texto": "Issue Identifier not found."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "30",
+  "severidad": "40",
+  "texto": "Issue Identifier did not pass validation"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "31",
+  "severidad": "40",
+  "texto": "SQL error while looking up Country Code. /%ErrMsg%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "32",
+  "severidad": "40",
+  "texto": "Field does not have a valid length."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "33",
+  "severidad": "40",
+  "texto": "Updating is not permitted."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "34",
+  "severidad": "30",
+  "texto": "Field changed to a new value."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "35",
+  "severidad": "40",
+  "texto": "Value is not within the valid range."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "36",
+  "severidad": "40",
+  "texto": "Field not a member of the valid set."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "37",
+  "severidad": "40",
+  "texto": "Validation ValSourceExists fails."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "38",
+  "severidad": "40",
+  "texto": "Field value of /%FieldName%/ in Child segment of type /%SegName%/  is not found."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "39",
+  "severidad": "40",
+  "texto": "Issue Identifier segments was not found for the Issue in the message."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "40",
+  "severidad": "40",
+  "texto": "SQL error while looking up INSTR_ID by ISS_ID & Context./%ErrMsg%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "41",
+  "severidad": "40",
+  "texto": "SQL error while looking up MKT_OID by MKT_NME for ISID lookup. /%ErrMsg%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "42",
+  "severidad": "40",
+  "texto": "SQL error while looking up MKT_OID by MKT_ID  & MKT_ID_CTXT_TYP for ISID lookup."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "44",
+  "severidad": "40",
+  "texto": "SQL error while looking up Instrument ID. /%ErrMsg%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "56",
+  "severidad": "40",
+  "texto": "Financial Exchange not found in the table"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "57",
+  "severidad": "40",
+  "texto": "SQL error while looking up STDF_OID by STATS_DEF_ID  /%ErrMsg%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "58",
+  "severidad": "40",
+  "texto": "SQL error while looking up RTNG_VALUE_OID."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "59",
+  "severidad": "40",
+  "texto": "Issuer Identifier segments not found for the Issuer."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "60",
+  "severidad": "40",
+  "texto": "SQL error while looking up INSTR_ISSR_ID by ISSR_ID & Context. /%ErrMsg%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "61",
+  "severidad": "30",
+  "texto": "Issuer Identifier not found."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "62",
+  "severidad": "30",
+  "texto": "Issuer Identifier Context Type was not found in the input record."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "63",
+  "severidad": "30",
+  "texto": "Could not find row for table"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "65",
+  "severidad": "40",
+  "texto": "Copying String Failed."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "66",
+  "severidad": "40",
+  "texto": "Issuer was not found for this Issue."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "67",
+  "severidad": "40",
+  "texto": "Issuer was not found in table IRID for /%ISIdentifier%/ /%ISIDValue%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "68",
+  "severidad": "40",
+  "texto": "Looking up offer number fails"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "69",
+  "severidad": "50",
+  "texto": "/%ISIdentifier%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "70",
+  "severidad": "50",
+  "texto": "The incoming record points to multiple issues."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "71",
+  "severidad": "50",
+  "texto": "Multiple issuers have same identifier as that of the segment."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "72",
+  "severidad": "50",
+  "texto": "This segment does not have a corresponding child segment of type /%SegName%/.."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "73",
+  "severidad": "50",
+  "texto": "SQL Error while loading markets. /%ErrMsg%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "80",
+  "severidad": "50",
+  "texto": "Failed to get data from the message."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "87",
+  "severidad": "50",
+  "texto": "Unknown operator in constant compare validation rule."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "88",
+  "severidad": "50",
+  "texto": "Unknown data type in Construction rule."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "89",
+  "severidad": "40",
+  "texto": "Failed Rules Processing (Message Enhancement #  spool off)."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "90",
+  "severidad": "40",
+  "texto": "Required field missing in the segment."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "91",
+  "severidad": "40",
+  "texto": "Record already exists in the table."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "92",
+  "severidad": "40",
+  "texto": "Value in segment is too large."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "93",
+  "severidad": "40",
+  "texto": "The underlying issue not found."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "94",
+  "severidad": "40",
+  "texto": "The underlying issue not found."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "96",
+  "severidad": "50",
+  "texto": "The OCC Key not found."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "97",
+  "severidad": "50",
+  "texto": "The OCC Add record with OPTIONID is already in database."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "98",
+  "severidad": "50",
+  "texto": "The Options Underlying not found or not complete."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "99",
+  "severidad": "40",
+  "texto": "The Options Underlying related to multiple instruments."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "100",
+  "severidad": "30",
+  "texto": "The Option TICKER not classified as a Flex Option."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "101",
+  "severidad": "50",
+  "texto": "The OCC Change/Adjustment record not in database."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "102",
+  "severidad": "50",
+  "texto": "/%SegPrefix%/ The OCC Delete record  is not in database."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "103",
+  "severidad": "40",
+  "texto": "OCC Special Settlement record not found."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "104",
+  "severidad": "50",
+  "texto": "The OCC record status is not a predefined value."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "105",
+  "severidad": "50",
+  "texto": "The OCC Adjustment record does not contain an adjustment indicator."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "106",
+  "severidad": "50",
+  "texto": "Instrument ID  not found."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "107",
+  "severidad": "40",
+  "texto": "Unable to retrieve GUID after /%Retries%/ tries."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "108",
+  "severidad": "20",
+  "texto": "The GUID was retrieved after /%Retries%/ tries."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "109",
+  "severidad": "50",
+  "texto": "SQL error with EndDate Table."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "110",
+  "severidad": "40",
+  "texto": "GUID Genarator is turned off. Failed to acess GUIDs."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "111",
+  "severidad": "50",
+  "texto": "Failed to retrieve the handle to the function in GUID Generator."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "115",
+  "severidad": "50",
+  "texto": "Validation ValNotUpdated failed."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "116",
+  "severidad": "50",
+  "texto": "Processor %ProcessorName% Not found in ProcessorFactory."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "117",
+  "severidad": "50",
+  "texto": "SQL Error while looking at rules table. /%ErrMsg%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "118",
+  "severidad": "50",
+  "texto": "Missing attribute at creation of Rule."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "119",
+  "severidad": "50",
+  "texto": "Invalid number of parameters for rule."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "120",
+  "severidad": "50",
+  "texto": "Fail to create rule."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "121",
+  "severidad": "50",
+  "texto": "Looking up in DB fails."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "122",
+  "severidad": "50",
+  "texto": "Table not registered with FT_T_XTBL."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "123",
+  "severidad": "50",
+  "texto": "SQL Error while Loading the XTBL Table./%ErrMsg%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "124",
+  "severidad": "50",
+  "texto": "Primary table not found in business object."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "125",
+  "severidad": "50",
+  "texto": "Looking at business object primary table fails./%ErrMsg%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "126",
+  "severidad": "50",
+  "texto": "Invalid Table FT_T_XSTO"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "127",
+  "severidad": "50",
+  "texto": "SQL Error while looking at segment table objects. /%ErrMsg%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "128",
+  "severidad": "50",
+  "texto": "Could not find procedure 'GetTableObject' in StreetMap.dll"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "129",
+  "severidad": "50",
+  "texto": "Invalid field name for rule parameter."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "130",
+  "severidad": "50",
+  "texto": "Unknown DataType used in Rule."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "131",
+  "severidad": "40",
+  "texto": "Data Look up Error."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "132",
+  "severidad": "40",
+  "texto": "Fail to add FINSOID to the message: /%ErrMsg%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "133",
+  "severidad": "30",
+  "texto": "There is not enough data to try to get FINS_OID."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "134",
+  "severidad": "40",
+  "texto": "Could not Create FINR."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "135",
+  "severidad": "30",
+  "texto": "Could not find FINSRL_NME to lookup FINS_OID"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "136",
+  "severidad": "30",
+  "texto": "Could not find FINSRL_TYP to lookup FINS_OID"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "137",
+  "severidad": "40",
+  "texto": "Error while trying to delete//end date table /%TableName%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "138",
+  "severidad": "40",
+  "texto": "Error While Trying to insert into table /%TableName%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "139",
+  "severidad": "40",
+  "texto": "Could not find record to update in database for Table Object /%TableName%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "140",
+  "severidad": "40",
+  "texto": "Could not execute update//insert on the database for Table Object /%TableName%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "141",
+  "severidad": "40",
+  "texto": "Insert cannot be performed on table."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "142",
+  "severidad": "40",
+  "texto": "Update cannot be performed on table /%TableName%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "143",
+  "severidad": "40",
+  "texto": "Delete cannot be performed on table /%TableName%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "144",
+  "severidad": "40",
+  "texto": "Action cannot be performed on table /%TableName%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "145",
+  "severidad": "40",
+  "texto": "Invalid Action /%ActionName%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "146",
+  "severidad": "50",
+  "texto": "Inserting duplicate record into /%TableName%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "151",
+  "severidad": "40",
+  "texto": "Fail to lookup Issue Type by the Issue Type Name"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "152",
+  "severidad": "30",
+  "texto": "Field copying failed."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "159",
+  "severidad": "50",
+  "texto": "Instrument not matched using Internal Id"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "160",
+  "severidad": "50",
+  "texto": "Instrument not matched using Primary Id"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "161",
+  "severidad": "40",
+  "texto": "Instrument not matched using Secondary Id"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "162",
+  "severidad": "50",
+  "texto": "No Instrument Found using Internal Instrument ID /%ISSValue%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "163",
+  "severidad": "50",
+  "texto": "No Valid Primary Identifier in the Message"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "164",
+  "severidad": "20",
+  "texto": "Lock on Entity is found."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "165",
+  "severidad": "50",
+  "texto": "Trying to change Primary Identifier"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "290",
+  "severidad": "50",
+  "texto": "SQL Error while looking at message definition table(FT_T_XMSG). /%ErrMsg%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "291",
+  "severidad": "50",
+  "texto": "SQL Error while looking at message set table(FT_T_XMGS). /%ErrMsg%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "292",
+  "severidad": "50",
+  "texto": "MSGSET: ID=/%MsgSetId%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "293",
+  "severidad": "50",
+  "texto": "MSGSET(or XML blob)  for message: ID=/%MsgId%/ doesn't exist in FT_T_XMGS"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "294",
+  "severidad": "50",
+  "texto": "The overriding  MSGSET: /%MsgSetNme%/ doesn't exist in FT_T_XMGS"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "300",
+  "severidad": "30",
+  "texto": "Issuer could not be located."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "301",
+  "severidad": "35",
+  "texto": "Low Quality Mark: /%WarningInfo%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "302",
+  "severidad": "30",
+  "texto": "Financial Institution Change on Instrument."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "303",
+  "severidad": "30",
+  "texto": "Issuer Change on Instrument."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "304",
+  "severidad": "35",
+  "texto": "Coupon Rate must be Within Tolerance."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "305",
+  "severidad": "35",
+  "texto": "Issue Date is invalid."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "306",
+  "severidad": "35",
+  "texto": "First coupon rate must be greater than zero."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "307",
+  "severidad": "35",
+  "texto": "The maturity date is invalid."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "308",
+  "severidad": "35",
+  "texto": "The maturity date is not null."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "309",
+  "severidad": "35",
+  "texto": "A coupon and/or payment is present ."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "310",
+  "severidad": "35",
+  "texto": "No spread specified."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "312",
+  "severidad": "35",
+  "texto": "Coupon Type is not Zero."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "313",
+  "severidad": "35",
+  "texto": "No Linked to Principal Strip."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "314",
+  "severidad": "35",
+  "texto": "Coupon Frequency is Not Set."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "315",
+  "severidad": "35",
+  "texto": "Min Tradable Amount Not Less than Issue Amount."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "316",
+  "severidad": "35",
+  "texto": "Min Tradable Amount Not Less than Amount Outstanding."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "317",
+  "severidad": "35",
+  "texto": "Issue Amount is not Completely Divisible by the Minimum Denomination."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "318",
+  "severidad": "35",
+  "texto": "Amount Outstanding is not Divisible by the Minimum Denomination."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "319",
+  "severidad": "35",
+  "texto": "A Gap within the Coupons Exists or Incorrect dual currency configuration."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "320",
+  "severidad": "35",
+  "texto": "The Amount Outstanding is Greater than or equal to the Original Issue Amount."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "321",
+  "severidad": "35",
+  "texto": "An abnormal Coupon Rate Differential."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "322",
+  "severidad": "35",
+  "texto": "Factor Missing on Asset Backed / Mortgage Backed Instrument."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "323",
+  "severidad": "35",
+  "texto": "Failed Basic Completeness."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "324",
+  "severidad": "35",
+  "texto": "First Possible Settlement Date Missing."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "325",
+  "severidad": "35",
+  "texto": "Value changed for the table field."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "326",
+  "severidad": "35",
+  "texto": "Coupon Type Missing on Instrument."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "327",
+  "severidad": "35",
+  "texto": "Cannot Link Issuer/Financial Institution."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "328",
+  "severidad": "40",
+  "texto": "Unable to access the DB Sequence."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "329",
+  "severidad": "30",
+  "texto": "Multiple Country Code so CalculationType is set to DEFAULT"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "330",
+  "severidad": "30",
+  "texto": "Subscribed to keep track of changes to a table"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "331",
+  "severidad": "40",
+  "texto": "Multiple Rows For Matched Currency"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "332",
+  "severidad": "30",
+  "texto": "Instruments cannot be inserted using this feed"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "333",
+  "severidad": "50",
+  "texto": "Delete record recently end-dated."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "334",
+  "severidad": "50",
+  "texto": "Delete record already end-dated."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "335",
+  "severidad": "50",
+  "texto": "Illegal OPRA Code ending with Z."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "336",
+  "severidad": "50",
+  "texto": "Adjust failed: To data already in database."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "337",
+  "severidad": "50",
+  "texto": "Adjust failed: To data incomplete."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "338",
+  "severidad": "40",
+  "texto": "Instrument ID for issue identifier missing."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "339",
+  "severidad": "40",
+  "texto": "Illegal OPRA code in old ticker."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "340",
+  "severidad": "40",
+  "texto": "Illegal OPRA code in new ticker."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "341",
+  "severidad": "50",
+  "texto": "Change of ISID not allowed."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "342",
+  "severidad": "50",
+  "texto": "Issue Identifer not found in DB."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "343",
+  "severidad": "50",
+  "texto": "ISID lookup failed."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "344",
+  "severidad": "40",
+  "texto": "Missing Starter Set Value in the Database."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "345",
+  "severidad": "40",
+  "texto": "Sequence Access Error."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "346",
+  "severidad": "40",
+  "texto": "Could not add field to Message"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "347",
+  "severidad": "40",
+  "texto": "Could not add field to table object"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "348",
+  "severidad": "40",
+  "texto": "MultipleRowsForMatchedPURP"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "349",
+  "severidad": "40",
+  "texto": "Currency does not exist"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "350",
+  "severidad": "50",
+  "texto": "Failed to get FINS_OID even after INSTR_ID Look Up"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "351",
+  "severidad": "40",
+  "texto": "IssId used by another instrument"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "352",
+  "severidad": "30",
+  "texto": "Issuer Id used by another Issuer"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "353",
+  "severidad": "30",
+  "texto": "Override Record found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "354",
+  "severidad": "30",
+  "texto": "Cannot produce OBS Code"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "355",
+  "severidad": "35",
+  "texto": "Missing Penultimate Coupon Date"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "356",
+  "severidad": "35",
+  "texto": "Penultimate Coupon Date Exists"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "357",
+  "severidad": "35",
+  "texto": "Attribute Missing in Deriving PenCpnDte"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "358",
+  "severidad": "40",
+  "texto": "Match data used by another entity"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "359",
+  "severidad": "50",
+  "texto": "Duplicate entities found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "360",
+  "severidad": "50",
+  "texto": "No match with record in message"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "361",
+  "severidad": "30",
+  "texto": "Cannot Perform Tolerance Check"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "362",
+  "severidad": "50",
+  "texto": "No match using regular identifiers"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "363",
+  "severidad": "50",
+  "texto": "No match record found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "364",
+  "severidad": "50",
+  "texto": "Derived Segment Creation Error."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "365",
+  "severidad": "30",
+  "texto": "Getting Data Source from segment failed."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "366",
+  "severidad": "50",
+  "texto": "Error while Loading ISSUE_ACT_ID . /%ErrMsg%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "367",
+  "severidad": "50",
+  "texto": "Error while Loading DPIC and IADC table Records. /%ErrMsg%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "368",
+  "severidad": "50",
+  "texto": "Error while getting Issue Action Type. /%ErrMsg%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "369",
+  "severidad": "50",
+  "texto": "Any one of INSTRID or INSTRISSRID Not Found."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "370",
+  "severidad": "20",
+  "texto": "Field removed to avoid update."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "371",
+  "severidad": "30",
+  "texto": "Unable to apply the Price correction"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "372",
+  "severidad": "30",
+  "texto": "Value of Field2 and Field3 is  not null"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "373",
+  "severidad": "20",
+  "texto": "Segment generates error in ILOG Processing."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "374",
+  "severidad": "30",
+  "texto": "Incoming Price failed Tolerance check"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "375",
+  "severidad": "50",
+  "texto": "Fatal Exception in Trillium Logic Process."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "376",
+  "severidad": "10",
+  "texto": "Trillium Parser Process."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "377",
+  "severidad": "10",
+  "texto": "Trillium Geocoder Process."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "378",
+  "severidad": "10",
+  "texto": "Trillium Parser Confidence and Comprehension Codes."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "379",
+  "severidad": "10",
+  "texto": "Trillium Informational Message."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "380",
+  "severidad": "50",
+  "texto": "/%ACTVY_STAT_TYP%/ Issue Action does not have an active record in the Database"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "381",
+  "severidad": "50",
+  "texto": "Invalid Activity Status type - Controlled by Street Actions"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "382",
+  "severidad": "50",
+  "texto": "Database record Activity Status type -COMPLETE"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "383",
+  "severidad": "50",
+  "texto": "Full Issue Action Replacement Rejected due to lower vendor"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "384",
+  "severidad": "30",
+  "texto": "Stale Price"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "385",
+  "severidad": "30",
+  "texto": "Not Business Day"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "386",
+  "severidad": "30",
+  "texto": "Employee Not Authorized"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "387",
+  "severidad": "30",
+  "texto": "Business Day Adjustment"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "388",
+  "severidad": "40",
+  "texto": "Template Used for the request does not match the Issue Type returned."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "389",
+  "severidad": "20",
+  "texto": "Vendor Request status is updated for the Issue"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "390",
+  "severidad": "30",
+  "texto": "The preferred identifier has been set to /%IDCTXTTYP%/-/%ISSID%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "391",
+  "severidad": "30",
+  "texto": "Key Information to create /%IdContext%/ is not present in the incoming record."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "392",
+  "severidad": "30",
+  "texto": "Multiple Issue Action detected for Issue Action Type /%IssueActionType%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "393",
+  "severidad": "40",
+  "texto": "Alternate identifier not created because the /%entity%/ failed"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "394",
+  "severidad": "40",
+  "texto": "The Incoming Financial Institution has the same name and Address as in DB."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "400",
+  "severidad": "30",
+  "texto": "Parent And Child Financial Institution cannot be same"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "401",
+  "severidad": "30",
+  "texto": "Invalid Parent Child Relationship between two Financial Institutions"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "402",
+  "severidad": "50",
+  "texto": "More than one matching issue action found for issue /%IssueActionType%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "403",
+  "severidad": "50",
+  "texto": "More than one matching issue action found for issue /%IssueActionType%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "500",
+  "severidad": "50",
+  "texto": "Core Issue atribute update from invalid source."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "501",
+  "severidad": "30",
+  "texto": "Issue level attributes insert/update from Non-Primary Exchange."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "502",
+  "severidad": "50",
+  "texto": "Issue identifier for more than one issue"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "503",
+  "severidad": "40",
+  "texto": "/%DataSourcename%/ is not a primary feed - cannot add a new issue"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "504",
+  "severidad": "50",
+  "texto": "/%ParamNme%/ is not from the parameter list"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "505",
+  "severidad": "50",
+  "texto": "Issue received with all non matching identifiers."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "506",
+  "severidad": "50",
+  "texto": "Error Accessing the Stored Procedure"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "507",
+  "severidad": "40",
+  "texto": "Error Procesing Rule"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "508",
+  "severidad": "50",
+  "texto": "End Date of INSTGUID /%IssID%/ for Issue /%PrefIssNme%/ failed."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "509",
+  "severidad": "20",
+  "texto": "Market Information Missing For Listing Identifiers"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "510",
+  "severidad": "30",
+  "texto": "Old Listing has been end-dated"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "511",
+  "severidad": "40",
+  "texto": "Rejecting Listing as no associated identifiers were found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "512",
+  "severidad": "30",
+  "texto": "Primary Market information for an issue has been end-dated"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "513",
+  "severidad": "30",
+  "texto": "An issue exists without any primary market"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "514",
+  "severidad": "50",
+  "texto": "Primary identifier being updated from Invalid Source"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "515",
+  "severidad": "40",
+  "texto": "Invalid number of parameter in the rule."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "516",
+  "severidad": "40",
+  "texto": "Attribute does not exist at segment level."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "517",
+  "severidad": "30",
+  "texto": "Mismatch in model definition due to difference in Security Type."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "518",
+  "severidad": "50",
+  "texto": "Any one of INSTRID or INSTRISSRID Not Found."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "519",
+  "severidad": "30",
+  "texto": "Any one of CURR or security info not Found."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "520",
+  "severidad": "10",
+  "texto": "Issue Type not found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "521",
+  "severidad": "50",
+  "texto": "Different /%EntityType%/ Groups found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "522",
+  "severidad": "50",
+  "texto": "Issue Identifier Not Found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "523",
+  "severidad": "40",
+  "texto": "Issue Identifier Failed"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "524",
+  "severidad": "50",
+  "texto": "Issue Identifier Not Found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "525",
+  "severidad": "35",
+  "texto": "The first coupon date is invalid."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "526",
+  "severidad": "40",
+  "texto": "Identifier did not pass validation"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "527",
+  "severidad": "40",
+  "texto": "Issue Identifier did not pass validation"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "528",
+  "severidad": "30",
+  "texto": "The preferred identifier has been reset to /%IDCTXTTYP%/-/%ISSID%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "529",
+  "severidad": "50",
+  "texto": "No match using primary identifiers"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "530",
+  "severidad": "30",
+  "texto": "Override Record found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "531",
+  "severidad": "40",
+  "texto": "Match data used by another entity"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "532",
+  "severidad": "50",
+  "texto": "Invalid Reject requested"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "533",
+  "severidad": "50",
+  "texto": "Multiple Rows Found in the Issue Action Identifier table.."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "534",
+  "severidad": "50",
+  "texto": "Endating an Identifier failed as no other active Identifier exists."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "535",
+  "severidad": "50",
+  "texto": "Update of entity failed as there are no active identifiers for enity."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "536",
+  "severidad": "30",
+  "texto": "Multiple records for MIXR fetched for /%IdContextTyp%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "537",
+  "severidad": "20",
+  "texto": "Existing ModelID /%ModelId%/ in the DB is not updated with modelid /%MsgModId%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "538",
+  "severidad": "30",
+  "texto": "/%ModelParticipantType%/ is locked"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "539",
+  "severidad": "30",
+  "texto": "Multiple listing relationships found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "540",
+  "severidad": "10",
+  "texto": "Total number of ChangeAuditLog approvals received /%TotalRecs%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "541",
+  "severidad": "50",
+  "texto": "/%Entity%/ is not found in DB but the action /%Action%/ indicates it exists."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "542",
+  "severidad": "20",
+  "texto": "Empty match found for Incoming Issue Action"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "543",
+  "severidad": "30",
+  "texto": "Issue Action found by resolving IAID"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "544",
+  "severidad": "30",
+  "texto": "End-dating pending suspect match"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "545",
+  "severidad": "40",
+  "texto": "Error when merging entities"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "546",
+  "severidad": "30",
+  "texto": "The approval has to be done by a different user"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "547",
+  "severidad": "50",
+  "texto": "An existing record found in DB but action /%Action%/ indicates it is new entity."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "548",
+  "severidad": "50",
+  "texto": "/%Entity%/ not found in the vendor database"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "549",
+  "severidad": "30",
+  "texto": "Cash flow schedule is not calculated when the Coupon Frequency is /%VALUE%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "550",
+  "severidad": "30",
+  "texto": "Cash Flow Schedule couldn't be calculated due to missing value of /%FIELD_NME%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "551",
+  "severidad": "30",
+  "texto": "The Issue /%PREFISSNME%/ with /%IDCTXTTYP%/ - /%ISSID%/ is a new issue"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "552",
+  "severidad": "30",
+  "texto": "Forex Rate Correction received for /%Date%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "553",
+  "severidad": "30",
+  "texto": "Issue - /%IdCtxtType%/ /%IssID%/ Deleted"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "554",
+  "severidad": "50",
+  "texto": "Benchmark for this issue /%idctxt%/-/%issid%/ is disabled"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "555",
+  "severidad": "50",
+  "texto": "Benchmark is enabled at Benchmark level hence issue is rejected"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "556",
+  "severidad": "50",
+  "texto": "Issue Identifier Not Found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "557",
+  "severidad": "50",
+  "texto": "Issue Identifier Failed or is Inactive"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "558",
+  "severidad": "50",
+  "texto": "Issue Identifier Not Found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "559",
+  "severidad": "40",
+  "texto": "Instrument ID could not be found from ALTERNATE Instrument ID LookUp"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "560",
+  "severidad": "20",
+  "texto": "Mismatch Identifier found for Broken Up Entities"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "561",
+  "severidad": "20",
+  "texto": "Created Market on real time basis."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "562",
+  "severidad": "40",
+  "texto": "MIC market identifier absent in message."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "563",
+  "severidad": "20",
+  "texto": "The market in the incoming message was encountered as end dated in the database."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "564",
+  "severidad": "40",
+  "texto": "Unable to access the DB Procedure."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "565",
+  "severidad": "10",
+  "texto": "ISID not configured in Delist Specified Identifier Config"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "566",
+  "severidad": "50",
+  "texto": "Incoming pricing currency does not match with the database pricing currency"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "567",
+  "severidad": "30",
+  "texto": "Incoming notional amount does not match with database notional amount"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "568",
+  "severidad": "30",
+  "texto": "Multiple /%PriceSegmentName%/ records are found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "569",
+  "severidad": "50",
+  "texto": "Multiple Issue Price records are found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "570",
+  "severidad": "50",
+  "texto": "No Issue Price record is found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "571",
+  "severidad": "50",
+  "texto": "Multiple Price Status records are found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "572",
+  "severidad": "30",
+  "texto": "No Price Status record is found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "573",
+  "severidad": "50",
+  "texto": "Multiple Issue Identifier records are found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "574",
+  "severidad": "30",
+  "texto": "Cannot find the corresponding issue action type in the defined configuration."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "575",
+  "severidad": "30",
+  "texto": "Configuration XML not found for /%rulename%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "576",
+  "severidad": "40",
+  "texto": "0 value for Base field /%Fldname%/ of segment /%SegDetail%/ in Ratio calculation"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "577",
+  "severidad": "40",
+  "texto": "Identifier /%IdCxtxTyp%/ not found in database to update the Issue Usage Type"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "578",
+  "severidad": "40",
+  "texto": "Multiple records of /%IdCxtxTyp%/ found in database to update Issue Usage Type"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "579",
+  "severidad": "40",
+  "texto": "Conflicting validation criteria found for the price"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "580",
+  "severidad": "50",
+  "texto": "Multiple currencies found for instrument traded in market %MRKTNME%"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "581",
+  "severidad": "50",
+  "texto": "No currency record found for instrument traded in market %MRKTNME%"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "582",
+  "severidad": "50",
+  "texto": "Price currency code not available for instrument traded in market/%MRKTNME%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "583",
+  "severidad": "50",
+  "texto": "Input Price currency mismatched with the price currency in DB for market"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "584",
+  "severidad": "50",
+  "texto": "Mutilple Currency Code found in ISST for Dummy Instrument."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "585",
+  "severidad": "40",
+  "texto": "Identifier /%IdCxtxTyp%/ not found in database to update the Issue Usage Type"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "586",
+  "severidad": "40",
+  "texto": "Multiple records of /%IdCxtxTyp%/ found in database to update Issue Usage Type"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "587",
+  "severidad": "40",
+  "texto": "Could not identify entity with record in message /%MisMatchedLookUpData%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "588",
+  "severidad": "40",
+  "texto": "Could not identify unique entity with regular identifier /%MisMatchedLookUpData%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "589",
+  "severidad": "40",
+  "texto": "Could not identify entity with primary identifier /%MisMatchedLookUpData%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "590",
+  "severidad": "20",
+  "texto": "Round lot size information missing for listing identifiers"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "591",
+  "severidad": "40",
+  "texto": "Critical information of market missing for listing identifiers"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "592",
+  "severidad": "30",
+  "texto": "Listing or listing identifier processed with warning."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "593",
+  "severidad": "30",
+  "texto": "Financial Institution"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "594",
+  "severidad": "40",
+  "texto": "Field copying failed."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "595",
+  "severidad": "50",
+  "texto": "Field copying failed."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "596",
+  "severidad": "50",
+  "texto": "No issue identifier associated with issue."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "597",
+  "severidad": "40",
+  "texto": "0 value for Base field /%Fldname%/ of segment /%SegDetail%/ in Ratio calculation"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "598",
+  "severidad": "40",
+  "texto": "No Base field value for Ratio calculation in segment /%SegDetail%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "599",
+  "severidad": "40",
+  "texto": "No field is marked for ratio calculation in segment /%SegDetail%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "600",
+  "severidad": "30",
+  "texto": "Update to CA resulted in a Suspect. Go to CA Merge screen to merge the records."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "601",
+  "severidad": "30",
+  "texto": "Issue with - %PrefIdCtxtTyp% did not have /%IdCtxtTyp%/.Rejecting the message."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "602",
+  "severidad": "50",
+  "texto": "Incorrect Parent Child Hierarchy in DPIC Records. /%ErrMsg%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "603",
+  "severidad": "50",
+  "texto": "Incorrect rating correction received from vendor"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "604",
+  "severidad": "30",
+  "texto": "Incoming Issue Action Identifier is already set up in the system with a different event."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "605",
+  "severidad": "40",
+  "texto": "Missing Jurisdiction Tax Withholding Rate for Enterprise having organisation ID /%ORG_ID%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "606",
+  "severidad": "40",
+  "texto": "Missing Country/Location for Market /%MARKET_INFO%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "607",
+  "severidad": "40",
+  "texto": "Missing Corporate Action /%CODE%/ Rate."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "608",
+  "severidad": "40",
+  "texto": "Missing Currency Instrument for Issue Participation Role /%ISS_PART_RL_TYP%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "609",
+  "severidad": "30",
+  "texto": "Country Code"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "610",
+  "severidad": "30",
+  "texto": "City /%CityName%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "611",
+  "severidad": "30",
+  "texto": "State or Province"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "612",
+  "severidad": "30",
+  "texto": "Geographic Region"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "613",
+  "severidad": "30",
+  "texto": "County"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "614",
+  "severidad": "30",
+  "texto": "Township"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "615",
+  "severidad": "30",
+  "texto": "Invalid geographic unit."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "616",
+  "severidad": "50",
+  "texto": "The Field /%Name%/ does not exist."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "617",
+  "severidad": "30",
+  "texto": "The Field /%Name%/ does not exist."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "618",
+  "severidad": "30",
+  "texto": "Issue Identifier Context Type not found."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "619",
+  "severidad": "30",
+  "texto": "Issue Identifier not found."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "620",
+  "severidad": "50",
+  "texto": "SQL error while looking up INSTR_ID by ISS_ID and Context./%ErrMsg%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "621",
+  "severidad": "30",
+  "texto": "Issuer was not found for this Issue."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "622",
+  "severidad": "50",
+  "texto": "Data Look up Error."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "623",
+  "severidad": "30",
+  "texto": "Data Look up Error."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "624",
+  "severidad": "30",
+  "texto": "Insert cannot be performed on table."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "625",
+  "severidad": "30",
+  "texto": "Fail to lookup Issue Type by the Issue Type Name"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "626",
+  "severidad": "50",
+  "texto": "Fail to lookup Issue Type by the Issue Type Name"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "627",
+  "severidad": "30",
+  "texto": "Sequence Access Error."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "628",
+  "severidad": "50",
+  "texto": "Sequence Access Error."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "629",
+  "severidad": "20",
+  "texto": "Derived Segment Creation Error."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "630",
+  "severidad": "40",
+  "texto": "Fatal Exception in Trillium Logic Process."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "631",
+  "severidad": "30",
+  "texto": "Trillium Parser Process."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "632",
+  "severidad": "30",
+  "texto": "/%ACTVY_STAT_TYP%/ Issue Action does not have an active record in the Database"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "633",
+  "severidad": "50",
+  "texto": "The Incoming Financial Institution has the same name and Address as in DB."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "634",
+  "severidad": "50",
+  "texto": "Error Processing Rule"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "635",
+  "severidad": "30",
+  "texto": "Error Processing Rule"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "636",
+  "severidad": "40",
+  "texto": "Multiple listing relationships found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "637",
+  "severidad": "30",
+  "texto": "Instrument ID could not be found from ALTERNATE Instrument ID LookUp"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "638",
+  "severidad": "40",
+  "texto": "Missing Country/Location for security /%SECURITY_INFO%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "639",
+  "severidad": "40",
+  "texto": "Multiple Primary market found for /%SECURITY_INFO%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "640",
+  "severidad": "40",
+  "texto": "/%ERROR_MSG%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "641",
+  "severidad": "30",
+  "texto": "CFI code validation failed."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "642",
+  "severidad": "40",
+  "texto": "CFI code validation failed."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "643",
+  "severidad": "20",
+  "texto": "End Dating /%ISIDInfo%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "644",
+  "severidad": "50",
+  "texto": "MT568 Issue Action message for Issue Action /%IAIDDetails%/ is rejected as it is processed before MT564"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "645",
+  "severidad": "30",
+  "texto": "Update to database record is rejected since it is modified by the business user. The incoming feed has following values: /%LKFieldValues%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "646",
+  "severidad": "40",
+  "texto": "Update to database record is rejected since it is modified by the business user. The incoming feed has following values: /%LKFieldValues%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "647",
+  "severidad": "20",
+  "texto": "/%entityType%/ entity /%entitynme%/ end dated as no active Identifier exists."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "648",
+  "severidad": "40",
+  "texto": "/%CODE%/ rates exist for Issue Action Option having Option Choice Number /%PROC_CHCE_NUM%/ and Issue Action Option Type /%ISSACT_PROC_TYP%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "649",
+  "severidad": "40",
+  "texto": "Ratio field /%Fldname%/ of segment /%SegDetail%/ in Ratio calculation is 0"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "650",
+  "severidad": "40",
+  "texto": "Input Data is ignored for Corporate Action."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "652",
+  "severidad": "20",
+  "texto": "Corporate action is setup without a security."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "653",
+  "severidad": "40",
+  "texto": "Incoming vendor record for IssuePrice is rejected since there already exists a record for %ErrorText%. The incoming record has Price Quotation Method Type as %PrcQutMethTyp% which is different from the database value. As per the business specifications the Price Quotation Method for a particular instrument"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "654",
+  "severidad": "40",
+  "texto": "Trading Currency of market missing for listing identifiers"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "655",
+  "severidad": "40",
+  "texto": "Incoming listing could not be matched to an existing segment level listing."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "656",
+  "severidad": "20",
+  "texto": "Entity data will be processed as it is part of securities of interest(SOI)"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "657",
+  "severidad": "20",
+  "texto": "Entity data is rejected since incoming security is not part of securities of interest(SOI)"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "658",
+  "severidad": "20",
+  "texto": "Group and participant table detail missing for incoming entity"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "659",
+  "severidad": "40",
+  "texto": "Rejecting deletion of Business Entity Field /%BEFIELD%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "660",
+  "severidad": "40",
+  "texto": "Rejecting deletion of Business Entity Field /%BEFIELD%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "661",
+  "severidad": "50",
+  "texto": "Could not setup a new entity /%Entity%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "662",
+  "severidad": "20",
+  "texto": "Product Code not found for /%INSTR_ID%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "663",
+  "severidad": "30",
+  "texto": "Product Code not found for /%INSTR_ID%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "664",
+  "severidad": "40",
+  "texto": "Product Code not found for /%INSTR_ID%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "670",
+  "severidad": "20",
+  "texto": "Multiple Product Code found for /%INSTR_ID%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "671",
+  "severidad": "30",
+  "texto": "Multiple Product Code found for /%INSTR_ID%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "672",
+  "severidad": "40",
+  "texto": "Multiple Product Code found for /%INSTR_ID%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "673",
+  "severidad": "40",
+  "texto": "Multiple entity associated with the identifier /%IDENTIFIER_DETAILS%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "674",
+  "severidad": "20",
+  "texto": "Linkage created between cross reference entity with the identifier /%IDENTIFIER_DETAILS%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "675",
+  "severidad": "20",
+  "texto": "Alid creation not done since there is no  cross reference entity found for the identifier /%IDENTIFIER_DETAILS%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "676",
+  "severidad": "40",
+  "texto": "EXCH_CODE /%CDE%/ is not present in FinancialMarketIdentifier"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "678",
+  "severidad": "30",
+  "texto": "Linkage of ISIN/CUSIP to other ISINs/CUSIPs present in ISST is no longer valid."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "682",
+  "severidad": "30",
+  "texto": "The underlying instrument related to /%Context%/ - /%Identifier%/ is not found."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "RULEPRC",
+  "id": "687",
+  "severidad": "50",
+  "texto": "Incoming Issue Action Identifier is already set up in the system with a different event. Rejecting the message."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "46",
+  "severidad": "40",
+  "texto": "/%TableName%/ failed to process."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "47",
+  "severidad": "40",
+  "texto": "Error While Trying to delete record from table /%TableName%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "48",
+  "severidad": "40",
+  "texto": "Could not find record to delete from Table Object /%TableName%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "49",
+  "severidad": "40",
+  "texto": "Error While Trying to Update record from table /%TableName%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "50",
+  "severidad": "40",
+  "texto": "Error While Trying to Lookup record from table /%TableName%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "51",
+  "severidad": "30",
+  "texto": "Identifying data not in the message for this segment."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "52",
+  "severidad": "50",
+  "texto": "Unknown error while processing the message."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "74",
+  "severidad": "40",
+  "texto": "/%Tablename%/ failed to process."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "75",
+  "severidad": "40",
+  "texto": "/%Tablename%/ failed to process"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "76",
+  "severidad": "40",
+  "texto": "/%Tablename%/ failed to process."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "77",
+  "severidad": "40",
+  "texto": "Referred record in /%TableName%/ not found. No row in DB with /%FieldValues%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "78",
+  "severidad": "40",
+  "texto": "Parent state does not allow the child to be processed."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "79",
+  "severidad": "40",
+  "texto": "Could not retrieve any identifying data from the message."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "81",
+  "severidad": "40",
+  "texto": "Error Generating OIDs"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "82",
+  "severidad": "40",
+  "texto": "Error Removing OIDs"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "83",
+  "severidad": "40",
+  "texto": "Could not retrieve required data from parent segment."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "84",
+  "severidad": "50",
+  "texto": "Invalid return code from SQL Insert."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "85",
+  "severidad": "50",
+  "texto": "Invalid return code from SQL Update."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "86",
+  "severidad": "50",
+  "texto": "Invalid return code from SQL Delete."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "95",
+  "severidad": "40",
+  "texto": "Error while updating Segment Processed Indicator"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "112",
+  "severidad": "40",
+  "texto": "Error in Updating Segment Processed Indicator to E."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "114",
+  "severidad": "40",
+  "texto": "MessageProcess Failed: /%ErrMsg%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "147",
+  "severidad": "50",
+  "texto": "Invalid State Map For processors."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "148",
+  "severidad": "50",
+  "texto": "Invalid update for the transaction."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "153",
+  "severidad": "50",
+  "texto": "Additional information:/%ErrorMessage%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "154",
+  "severidad": "30",
+  "texto": "Record already exists in the system."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "155",
+  "severidad": "40",
+  "texto": "Error Locking Attributes Level."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "156",
+  "severidad": "40",
+  "texto": "Error Locking Core Level."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "157",
+  "severidad": "40",
+  "texto": "Error Unlocking Attribute Level."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "158",
+  "severidad": "50",
+  "texto": "Segment has an error in Override Processor."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "166",
+  "severidad": "50",
+  "texto": "Segment has an error in Set Override Processor."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "167",
+  "severidad": "50",
+  "texto": "Segment has an error Locking Issue in Set Override Processor."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "168",
+  "severidad": "50",
+  "texto": "Segment has an error looking up Field IDs in TBFP table."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "169",
+  "severidad": "50",
+  "texto": "Error occured while processing UI message"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "170",
+  "severidad": "20",
+  "texto": "Applying Override"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "171",
+  "severidad": "20",
+  "texto": "Removing Override."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "172",
+  "severidad": "20",
+  "texto": "Setting Override for attribute set."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "173",
+  "severidad": "40",
+  "texto": "Failed To process the time series table."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "174",
+  "severidad": "40",
+  "texto": "Failed To check the time series table."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "175",
+  "severidad": "40",
+  "texto": "Failed To check the time series table."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "176",
+  "severidad": "20",
+  "texto": "Issue Level Lock Set."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "177",
+  "severidad": "40",
+  "texto": "Overlapping period for /%Tablename%/ in a time series schedule"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "178",
+  "severidad": "40",
+  "texto": "Overlapping period for Payment Event in a time series schedule."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "179",
+  "severidad": "40",
+  "texto": "Incorrect Action Type."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "180",
+  "severidad": "20",
+  "texto": "Core Attribute Lock"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "181",
+  "severidad": "40",
+  "texto": "Field(s) is/are not set."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "182",
+  "severidad": "20",
+  "texto": "UI Setting Override."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "183",
+  "severidad": "20",
+  "texto": "Perpetual Attribute Lock"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "184",
+  "severidad": "50",
+  "texto": "Segment has an error in Subscription Processor."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "185",
+  "severidad": "20",
+  "texto": "Global Subscription Applied."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "186",
+  "severidad": "20",
+  "texto": "Entity Subscription Applied."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "187",
+  "severidad": "20",
+  "texto": "Attribute Subscription Applied."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "188",
+  "severidad": "40",
+  "texto": "Multiple Rows Found in the table.."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "189",
+  "severidad": "30",
+  "texto": "Update for segment /%SegPrefix%/ is rejected."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "190",
+  "severidad": "40",
+  "texto": "Delete Task:/%Task%/ for Model:/%MODL_ID%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "191",
+  "severidad": "40",
+  "texto": "Delete Required to Create Field=/%FieldName%/ Error:/%FieldLabel%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "192",
+  "severidad": "50",
+  "texto": "Missing Required to Create Field=/%MissingField%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "193",
+  "severidad": "50",
+  "texto": "Incorrect model assigned to the message"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "194",
+  "severidad": "50",
+  "texto": "Missing Task:/%MissingOccurence%/ for Entity:/%EntityDescription%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "195",
+  "severidad": "30",
+  "texto": "Entity was created without a Model"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "196",
+  "severidad": "30",
+  "texto": "Entity Model is different from the Input one"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "197",
+  "severidad": "30",
+  "texto": "Entity is missing Required Task/Field"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "198",
+  "severidad": "30",
+  "texto": "Incomplete status Overridden to complete"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "199",
+  "severidad": "50",
+  "texto": "New entity cannot have a Change Model Flag"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "200",
+  "severidad": "50",
+  "texto": "New entity cannot have an existing setup record in FT_T_STUP"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "201",
+  "severidad": "40",
+  "texto": "VDDB AQ Publishing failed"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "202",
+  "severidad": "40",
+  "texto": "A record in the /%Tablename%/ already exists."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "203",
+  "severidad": "30",
+  "texto": "Not Enqueueing Message for VTTR processing."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "204",
+  "severidad": "50",
+  "texto": "The Message did not met the expected completeness level"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "205",
+  "severidad": "50",
+  "texto": "Segment has an error in Real Processor."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "206",
+  "severidad": "40",
+  "texto": "Error in Translation because data not found in the External Domain table."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "207",
+  "severidad": "40",
+  "texto": "Error in Translation. The data not found in the Internal Domain table."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "208",
+  "severidad": "50",
+  "texto": "Message Publishing failed."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "209",
+  "severidad": "10",
+  "texto": "Completeness Level of the /%EntityTyp%/ is Incomplete."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "210",
+  "severidad": "30",
+  "texto": "Wrong VSH Field Type define in VSH Model."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "211",
+  "severidad": "50",
+  "texto": "Error setting up Field VSH."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "212",
+  "severidad": "40",
+  "texto": "Field with value not in domain values."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "213",
+  "severidad": "50",
+  "texto": "require approval."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "214",
+  "severidad": "40",
+  "texto": "Wrong values in split & combined fields."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "215",
+  "severidad": "30",
+  "texto": "Unable to resolve nested segment."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "216",
+  "severidad": "50",
+  "texto": "Model is Locked & message is from UI."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "217",
+  "severidad": "30",
+  "texto": "Model not Changed as Lock exists"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "218",
+  "severidad": "30",
+  "texto": "Remove Completeness /%LockedField%/ lock"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "219",
+  "severidad": "30",
+  "texto": "Pending records in CHAL for the model."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "220",
+  "severidad": "30",
+  "texto": "Approval required for attributes which also have TS set."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "221",
+  "severidad": "40",
+  "texto": "Start/ Statistic effective timestamp not in message."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "222",
+  "severidad": "40",
+  "texto": "Start Timestamp is later than the END Timestamp."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "223",
+  "severidad": "40",
+  "texto": "Could not normalize StartTms or EndTms in the message"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "224",
+  "severidad": "40",
+  "texto": "An overlap was detected in the Timeseries data for /%Tablename%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "225",
+  "severidad": "40",
+  "texto": "An overlap was detected in the Timeseries data for /%Tablename%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "226",
+  "severidad": "40",
+  "texto": "Parent table failed to process successfully."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "227",
+  "severidad": "40",
+  "texto": "Overlapping period for Issue Rating in a time series sechedule"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "228",
+  "severidad": "40",
+  "texto": "Overlapping period for Payment Event in a time series sechedule."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "229",
+  "severidad": "30",
+  "texto": "Record already exists in the system."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "230",
+  "severidad": "50",
+  "texto": "Entity /%ParentTable%/ failed to process."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "231",
+  "severidad": "40",
+  "texto": "Overlapping period for /%Tablename%/ in a time series schedule"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "232",
+  "severidad": "40",
+  "texto": "Field(s) is/are not set."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "233",
+  "severidad": "40",
+  "texto": "An overlap was detected in the Timeseries data for /%Tablename%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "234",
+  "severidad": "30",
+  "texto": "Model /%ModelDesc%/ has an empty occurrence /%ModelOccur%/ defined with level"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "235",
+  "severidad": "10",
+  "texto": "Completeness Level of the Security is Incomplete."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "236",
+  "severidad": "30",
+  "texto": "Model not Changed as Lock exists"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "237",
+  "severidad": "30",
+  "texto": "The model /%modelid%/ assigned is end dated."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "238",
+  "severidad": "20",
+  "texto": "Attribute lock (/%LockType%/) expired."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "239",
+  "severidad": "30",
+  "texto": "Completenes Status is Overridden"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "240",
+  "severidad": "10",
+  "texto": "Field Level VSH does not contain all Record Level Sources"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "241",
+  "severidad": "30",
+  "texto": "Cannot delete record due to attribute lock"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "242",
+  "severidad": "40",
+  "texto": "Model not found in database."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "243",
+  "severidad": "40",
+  "texto": "Model identifier elements not available in incoming message."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "244",
+  "severidad": "30",
+  "texto": "Processing of parent occurrence /%Occurid%/ has failed"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "245",
+  "severidad": "40",
+  "texto": "Error occurred while quering database"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "246",
+  "severidad": "40",
+  "texto": "Could not get segment Id for beloop: /%Beloop%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "247",
+  "severidad": "40",
+  "texto": "Processing of occurrence /%Occurid%/ failed"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "248",
+  "severidad": "40",
+  "texto": "Error while adding nested segment"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "249",
+  "severidad": "20",
+  "texto": "An overlap error detected in the Timeseries data was overridden for /%Tblnme%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "250",
+  "severidad": "40",
+  "texto": "No matching VSH configuration found"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "256",
+  "severidad": "40",
+  "texto": "Record already exists in the system."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "257",
+  "severidad": "40",
+  "texto": "Multiple Rows Found in the table during Time Series Processing."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "258",
+  "severidad": "30",
+  "texto": "Cannot process further for all the related occurrences as Record level exist."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "259",
+  "severidad": "50",
+  "texto": "Cannot perform entity merge as lock types on data field are different."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "260",
+  "severidad": "50",
+  "texto": "Locked data field on both entities has same locktype with different values."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "261",
+  "severidad": "30",
+  "texto": "Error in Translation because data not found in the External Domain table."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "262",
+  "severidad": "30",
+  "texto": "Error in Translation. The data not found in the Internal Domain table."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "263",
+  "severidad": "30",
+  "texto": "Applying Override"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "264",
+  "severidad": "30",
+  "texto": "Core Attribute Lock"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "265",
+  "severidad": "30",
+  "texto": "Removing Override."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "266",
+  "severidad": "30",
+  "texto": "Attribute lock (/%LockType%/) expired."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "267",
+  "severidad": "40",
+  "texto": "Model /%ModelId%/ used for calculating completeness is not correct or does not exist."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "268",
+  "severidad": "40",
+  "texto": "Exception while running Conditional Completeness Activity."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "269",
+  "severidad": "40",
+  "texto": "Invalid update for the transaction."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "270",
+  "severidad": "30",
+  "texto": "Perpetual Attribute Lock"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "271",
+  "severidad": "40",
+  "texto": "Update for segment /%SegPrefix%/ is rejected."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "272",
+  "severidad": "50",
+  "texto": "Segment has an error in Get Override Processor."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "273",
+  "severidad": "10",
+  "texto": "Delete from lower ranked vendor rejected for segment /%SegPrefix%/"
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "274",
+  "severidad": "30",
+  "texto": "Record already exists in the system."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "275",
+  "severidad": "40",
+  "texto": "Failed to process the time series since record is locked."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "3000",
+  "severidad": "30",
+  "texto": "Exception while processing merge instructions."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRDATA",
+  "id": "3001",
+  "severidad": "30",
+  "texto": "Exception while running VDDBCompare Workflow."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRMAP",
+  "id": "1101",
+  "severidad": "40",
+  "texto": "Delete Not Permitted."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRMPDB",
+  "id": "-803",
+  "severidad": "40",
+  "texto": "The record already exist in the table."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRMPDB",
+  "id": "-407",
+  "severidad": "40",
+  "texto": "A required field is missing from this segment."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRMPDB",
+  "id": "-311",
+  "severidad": "40",
+  "texto": "One of the values in this segment is too large."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRREFTO",
+  "id": "1001",
+  "severidad": "40",
+  "texto": "Technical error while processing SQL Statement: /%BusinessError%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRREFTO",
+  "id": "1002",
+  "severidad": "40",
+  "texto": "Data Look up Error."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRREFTO",
+  "id": "1003",
+  "severidad": "50",
+  "texto": "Tablespace cannot be extended."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRREFTO",
+  "id": "1004",
+  "severidad": "40",
+  "texto": "Technical error while processing SQL Statement: /%BusinessError%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "STRREFTO",
+  "id": "1005",
+  "severidad": "40",
+  "texto": "Technical error while processing SQL Statement: /%BusinessError%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "TOCRT",
+  "id": "43",
+  "severidad": "40",
+  "texto": "No tables are associated with the segment /%SegName%/."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "TOCRT",
+  "id": "53",
+  "severidad": "10",
+  "texto": "Synonym table is ignored."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "TOCRT",
+  "id": "64",
+  "severidad": "40",
+  "texto": "The parent table /%ParentTable%/ was not found."
+ },
+ {
+  "aplicacion": "STRDATA",
+  "parte": "TOCRT",
+  "id": "113",
+  "severidad": "40",
+  "texto": "Failed To Load Table Object."
+ }
+]

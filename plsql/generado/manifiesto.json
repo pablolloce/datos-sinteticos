@@ -1,6 +1,6 @@
 {
   "paquete": "PKG_SINT",
-  "lineas_cuerpo": 1103,
+  "lineas_cuerpo": 1109,
   "tablas_gestionadas": [
     "FT_T_FINS",
     "FT_T_FIST",
@@ -44,7 +44,241 @@
       "unidad": "FINS",
       "mensaje": "mensajes_entrada/Ejemplo_Alta_Contrapartida_Global.xml",
       "filas_por_entidad": 10,
-      "avisos": []
+      "avisos": [],
+      "motor": [
+        {
+          "regla": "CGSCRealignALIDAfterMerge",
+          "tipo": "NATIVA",
+          "segmento": "Initial",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": ""
+        },
+        {
+          "regla": "CGSCIssuerDerivation",
+          "tipo": "NATIVA",
+          "segmento": "Initial",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": "INITIAL / CUSIP-3,CINS-3 / CUSIP,CINS / MarkitREDEntity,SPGISFEntityIdentifiers / ISIDPLUS,CRSSWALK"
+        },
+        {
+          "regla": "CGSCModelForcedReevaluation",
+          "tipo": "NATIVA",
+          "segmento": "Initial",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": ""
+        },
+        {
+          "regla": "CFTIUniqueCheckAndIDLookup",
+          "tipo": "NATIVA",
+          "segmento": "Initial",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": ""
+        },
+        {
+          "regla": "CGSCCheckForIdenitifersInMessage",
+          "tipo": "NATIVA",
+          "segmento": "Initial",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": "InteractiveDataDescriptive / ISIN,CUSIP"
+        },
+        {
+          "regla": "CFTIConstrIssueActionID",
+          "tipo": "NATIVA",
+          "segmento": "Initial",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": "NULLVALUEMATCH=Y / PROPRIETARY_IDENTIFIERS=CEDELULLXXX-CRPACTID=NM;CITIHKHXXXX-CRPACTID=NM;DEUTHKHHXXX-CRPACTID=NM;DEUTKRSEXXX-CRPACTID=NM;DEUTTWTPXXX-CRPACTID=NM;IRVTBEBBXXX-CRPACTID=NM;MOCAUI-CRPACTID=NM;NSCVE-CRPACTID=NM;NSCVN-CRPACTID=NM;PARBFRPPXXX-CRPACTID=NM;PARBGB2LXXX-CRPACTID=NM;BCMRMXMMSEC-CRPACTID=NM;IBRCESMMXXX-CRPACTID=NM;SOGEFRPPGSS-CRPACTID=NM;ADPGUS33XXX-CRPACTID=NM"
+        },
+        {
+          "regla": "CFTIModelDefault",
+          "tipo": "NATIVA",
+          "segmento": "Initial",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": ""
+        },
+        {
+          "regla": "CGSCCheckPrimaryMktIdentifier",
+          "tipo": "NATIVA",
+          "segmento": "Initial",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": "TELEKURS,BB,REUTERS / INITIAL / EQSHR,OPTIONS,COMMON,CVTPFD,FUND,FUTURES,INDEXOP,PFD,RECEIPTS,RIGHTS,UNIT,UNITTRST,WARRANTS,HYBRID,MISC"
+        },
+        {
+          "regla": "CGSCEquateListing",
+          "tipo": "NATIVA",
+          "segmento": "Initial",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": "EQSHR,OPTIONS,COMMON,CVTPFD,FUND,FUTURES,INDEXOP,PFD,RECEIPTS,RIGHTS,UNIT,UNITTRST,WARRANTS,MISC,HYBRID,STRATRAD,BOND,CASHSEC,COML PPR,FIXDBOND,GOVTBOND,IRG,LOAN,MONEYMAR,REPO,TBILL,TBOND,TNOTE,VAR BOND,ZERO CPN,CALL OPT,PUT OPT,COMODITY,CVTBOND,INDEX,REALESTA,LTDPART,ETF,ETN,ETP / BBCMPSEC,BBUNIQUE,BBCPTICK,LISTSYMB,PREFSYMB,TELEKURS,TICKER,RIC,TRDGSYMB,CPBBUNIQ,CPTICKER,EQFUNDTK,BBGLOBAL / Y / SEDOL,CPSEDOL"
+        },
+        {
+          "regla": "setDifusion",
+          "tipo": "JAVA",
+          "segmento": "Initial",
+          "fase": "B",
+          "estado": "REPLICADA",
+          "detalle": "sin cambios en este mensaje (no replicado: ramas de UPDATE/DELETE (el generador sólo hace altas, D-005))"
+        },
+        {
+          "regla": "Uniqueness",
+          "tipo": "JAVA",
+          "segmento": "Initial",
+          "fase": "B",
+          "estado": "PENDIENTE_BBDD",
+          "detalle": "validaciones de unicidad contra BBDD (9001/9002/9003)"
+        },
+        {
+          "regla": "CheckUpdateStatusASTYPUEMIR",
+          "tipo": "JAVA",
+          "segmento": "Initial",
+          "fase": "B",
+          "estado": "PENDIENTE",
+          "detalle": "EMIR: activa/inactiva ASTYPUEMIR según MANPARTY=06 (UPDATE FINS_REGULATION_ATTR)."
+        },
+        {
+          "regla": "ValidateCountryRegion",
+          "tipo": "JAVA",
+          "segmento": "Initial",
+          "fase": "B",
+          "estado": "REPLICADA",
+          "detalle": "sin cambios en este mensaje (no replicado: no inactiva las regiones ya existentes en BBDD (sólo FINSX con entidad existente))"
+        },
+        {
+          "regla": "CGSCEndDateIdentifiers",
+          "tipo": "NATIVA",
+          "segmento": "FinancialInstitution",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": ""
+        },
+        {
+          "regla": "CFTIConstrSTDFOID",
+          "tipo": "NATIVA",
+          "segmento": "FinancialInstitutionStatistic",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": "Y"
+        },
+        {
+          "regla": "CGSCHandleCompositeKey",
+          "tipo": "NATIVA",
+          "segmento": "FinancialInstitutionGeoUnitPrt",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": "GUNT"
+        },
+        {
+          "regla": "FLG_Uniqueness",
+          "tipo": "JAVA",
+          "segmento": "FINSFinancialLegalNames",
+          "fase": "B",
+          "estado": "REPLICADA",
+          "detalle": "sin cambios en este mensaje (no replicado: unicidad del nombre legal (9001) y búsqueda de GUNT_OID: PENDIENTE_BBDD)"
+        },
+        {
+          "regla": "CGSCHandleCompositeKey",
+          "tipo": "NATIVA",
+          "segmento": "FinsRoleClassification",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": "INCL"
+        },
+        {
+          "regla": "CFTIInternalIdentifierCreator",
+          "tipo": "NATIVA",
+          "segmento": "FinancialInstitution",
+          "fase": "F",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": "FINSID"
+        },
+        {
+          "regla": "CFTIValIssueIdentifiers",
+          "tipo": "NATIVA",
+          "segmento": "Final",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": "INTERNAL_IDENTIFIERS=INTERNAL,COMMON"
+        },
+        {
+          "regla": "CFTIConstrPrefId",
+          "tipo": "NATIVA",
+          "segmento": "Final",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": "Issue / PREF_ID_CTXT_TYP / PREF_ISS_ID / ISIN,CUSIP,CINS,SEDOL,MEX_ISIN / Y"
+        },
+        {
+          "regla": "CGSCEndDateMIXR",
+          "tipo": "NATIVA",
+          "segmento": "Final",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": "BBCMPSEC,BBUNIQUE,BBCPTICK,LISTSYMB,PREFSYMB,TELEKURS,TICKER,RIC,TRDGSYMB,CPBBUNIQ,CPTICKER,EQFUNDTK,BBGLOBAL / SEDOL"
+        },
+        {
+          "regla": "CGSCCheckPrimaryMktIdentifier",
+          "tipo": "NATIVA",
+          "segmento": "Final",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": "TELEKURS,BB,REUTERS / FINAL / EQSHR,OPTIONS,COMMON,CVTPFD,FUND,FUTURES,INDEXOP,PFD,RECEIPTS,RIGHTS,UNIT,UNITTRST,WARRANTS,HYBRID,MISC"
+        },
+        {
+          "regla": "CGSCConsolidationStat",
+          "tipo": "NATIVA",
+          "segmento": "Final",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": ""
+        },
+        {
+          "regla": "CGSCSwapIssueActionID",
+          "tipo": "NATIVA",
+          "segmento": "Final",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": ""
+        },
+        {
+          "regla": "CGSCValidateDPICConfig",
+          "tipo": "NATIVA",
+          "segmento": "Final",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": ""
+        },
+        {
+          "regla": "CGSCEndDateFinsFinsRole",
+          "tipo": "NATIVA",
+          "segmento": "Final",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": ""
+        },
+        {
+          "regla": "CGSCEndDateMultiEntityHierarchy",
+          "tipo": "NATIVA",
+          "segmento": "Final",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": "FINS,CUST,FRCP,FINSRL_TYP=CREDHIER / CUST,ACCT,CACR,RL_TYP=CREDHIER"
+        },
+        {
+          "regla": "CGSCHandleOrphanEntity",
+          "tipo": "NATIVA",
+          "segmento": "Final",
+          "fase": "B",
+          "estado": "PENDIENTE_HUELLA",
+          "detalle": ""
+        }
+      ]
     }
   ]
 }

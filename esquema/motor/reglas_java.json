@@ -1,0 +1,1791 @@
+{
+ "_fuente": "Generado a partir del código descompilado de rdrrules/rdrRules.jar (CFR). modelos/segmentos/acciones = literales que aparecen en la clase (heurístico: indica candidatos, no la condición exacta; ver docs de la regla).",
+ "reglas": {
+  "AckNackReceived": {
+   "descripcion": "Control ACK/NACK de MGC en FT_T_UTD1; difusión pendiente <1 min -> 9008.",
+   "modelos": [
+    "FINSO",
+    "FINSTP"
+   ],
+   "segmentos": [
+    "FINRSubdivisionFinancialInstitutionRole",
+    "FinancialInstitution",
+    "UITemporalData"
+   ],
+   "acciones": [
+    "INSERT",
+    "OPTIMISTICUPDATE",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_ENFR",
+    "FT_T_FIID",
+    "FT_T_FIRL",
+    "FT_T_FIST",
+    "FT_T_SUBD",
+    "FT_T_SUCL",
+    "FT_T_SUFR",
+    "FT_T_UTD1"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": [
+    9008
+   ]
+  },
+  "AddLAGRLAIDId": {
+   "descripcion": "Alt id Generic de LegalAgreement: LEGAL_AGRMNT_ID = LAAN_ID_SEQ.nextval.",
+   "modelos": [
+    "LAGRCOPY"
+   ],
+   "segmentos": [
+    "LegalAgreement",
+    "LegalAgreementAltIdentifier"
+   ],
+   "acciones": [
+    "INSERT"
+   ],
+   "tablas": [],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "BookValidation": {
+   "descripcion": "Account INSERT: ACCT_NME/ACCT_ID duplicado en SECURITY ACCOUNT -> 9011.",
+   "modelos": [],
+   "segmentos": [
+    "Account"
+   ],
+   "acciones": [
+    "INSERT"
+   ],
+   "tablas": [
+    "FT_T_ACCT"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": false,
+   "notificaciones": [
+    9011
+   ]
+  },
+  "BorradoClientela": {
+   "descripcion": "FINS_H: cambio de jerarquía de CPARTY -> RegisterLogTable (RLT1) PENDING.",
+   "modelos": [
+    "FINS_H"
+   ],
+   "segmentos": [
+    "FINRFinsFinsRoleRelationship",
+    "RegisterLogTable"
+   ],
+   "acciones": [
+    "INSERT"
+   ],
+   "tablas": [
+    "FT_T_FIID",
+    "FT_T_FIRL"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "CCValidationSSIS": {
+   "descripcion": "SSIS/SSISCOPY: dígito de control CCC española -> 9006; BENEF añade STT_OFFC.",
+   "modelos": [
+    "SSIS",
+    "SSISCOPY"
+   ],
+   "segmentos": [
+    "SSIRStandardSettlementAccount",
+    "SSISStandardSettlementInstitutionRole",
+    "StandardSettlementInstructions",
+    "settPartAtId"
+   ],
+   "acciones": [
+    "INSERT"
+   ],
+   "tablas": [],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": [
+    9006
+   ]
+  },
+  "CJavaRDRSetCai1AltID": {
+   "descripcion": "ContactAltId INSERT RDR: ALT_ID = max(alt_id)+1 de FT_T_CAI1 CONTACTID.",
+   "modelos": [],
+   "segmentos": [
+    "ContactAltId"
+   ],
+   "acciones": [
+    "INSERT"
+   ],
+   "tablas": [
+    "FT_T_CAI1"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "CargaFechasCtpdas": {
+   "descripcion": "FinancialEndOp: USR_END_TMS = APP_END_TMS +1 mes / +18 meses / igual (STAR).",
+   "modelos": [],
+   "segmentos": [
+    "FinancialEndOp"
+   ],
+   "acciones": [],
+   "tablas": [
+    "FT_T_FINS",
+    "FT_T_FIRL"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "CheckCLANCpty": {
+   "descripcion": "Inactivar FIID DELTAID -> inactiva FRID CLIPID de CPARTY (UPDATE directo).",
+   "modelos": [
+    "FINSO",
+    "FINSX"
+   ],
+   "segmentos": [
+    "FinancialInstitution",
+    "FinancialInstitutionIdentifier",
+    "FinsRoleIdentifier"
+   ],
+   "acciones": [
+    "INSERT",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_FIID",
+    "FT_T_FRID"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": false,
+   "notificaciones": []
+  },
+  "CheckUpdateStatusASTYPUEMIR": {
+   "descripcion": "EMIR: activa/inactiva ASTYPUEMIR según MANPARTY=06 (UPDATE FINS_REGULATION_ATTR).",
+   "modelos": [
+    "FINSX",
+    "RDRFINSG"
+   ],
+   "segmentos": [
+    "FinancialInstitution",
+    "FinsRegAttr"
+   ],
+   "acciones": [
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_INCL"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": false,
+   "notificaciones": []
+  },
+  "ControlBaskets": {
+   "descripcion": "Inactivar emisión de cesta: Excel por SMTP (FT_T_ALR1/ALM1) e inactiva FT_T_RISS.",
+   "modelos": [],
+   "segmentos": [
+    "Issue",
+    "IssueIdentifier"
+   ],
+   "acciones": [
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_ALM1",
+    "FT_T_ALR1",
+    "FT_T_ISGP",
+    "FT_T_ISGR",
+    "FT_T_ISID",
+    "FT_T_ISSU",
+    "FT_T_RIDF",
+    "FT_T_RISS"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": false,
+   "notificaciones": []
+  },
+  "CorporateEvents": {
+   "descripcion": "RDR_CORP: reordena/deduplica hijos IADC CEMX; auditoría en relation_issue.",
+   "modelos": [
+    "RDR_CORP"
+   ],
+   "segmentos": [
+    "IADCIssueActionClassification",
+    "IssueActionDeclaration",
+    "IssueActionIdentifier",
+    "IssueActionStatistic"
+   ],
+   "acciones": [
+    "IGNORE",
+    "INSERT",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_IADC"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "CorporateRelationship": {
+   "descripcion": "Deriva CORPREL (SUC/CMA/CVR) y REG1 EMIR. NO configurada en el message set.",
+   "modelos": [
+    "FINSO",
+    "FINSTP",
+    "FINSX"
+   ],
+   "segmentos": [
+    "FinancialInstitution",
+    "FinsRegAttr"
+   ],
+   "acciones": [
+    "INSERT",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_FINS",
+    "FT_T_FRA1",
+    "FT_T_INCL",
+    "FT_T_REG1"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "CreateCopyCNTC": {
+   "descripcion": "CNTCCOPY: clona un contacto (CNTC, CAI1 max+1, CNTA, COT1, CCRF, MADR, EADR, ADTP).",
+   "modelos": [
+    "CNTCCOPY"
+   ],
+   "segmentos": [
+    "CNTCCentralCrossReference",
+    "CNTCContactAssignment",
+    "Contact",
+    "ContactAltId",
+    "ContactAttributeId",
+    "EADRAddressType",
+    "ElectronicAddress",
+    "MADRAddressType",
+    "MailingAddress",
+    "SubDivision"
+   ],
+   "acciones": [
+    "IGNORE",
+    "INSERT",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_ADTP",
+    "FT_T_CAI1",
+    "FT_T_CCRF",
+    "FT_T_CNTA",
+    "FT_T_CNTC",
+    "FT_T_COT1",
+    "FT_T_EADR",
+    "FT_T_MADR"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "CreateCopyISSUMex": {
+   "descripcion": "ISSUCOPY: clona emisión con nuevo RDR_ID (NEW_RDR_ISSUE_ID).",
+   "modelos": [
+    "ISSUCOPY"
+   ],
+   "segmentos": [
+    "Issue",
+    "IssueClassification",
+    "IssueIdentifier",
+    "IssueStatistic",
+    "MarketIssueCharacteristics"
+   ],
+   "acciones": [
+    "DELETE",
+    "IGNORE",
+    "INSERT",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_ISCL",
+    "FT_T_ISID",
+    "FT_T_ISST",
+    "FT_T_ISSU",
+    "FT_T_MKIS",
+    "FT_T_MRKT"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "CreateCopyLAGR": {
+   "descripcion": "LAGRCOPY: clona acuerdo completo con OIDs nuevos y LAAN_ID_SEQ; duplicado -> 9037.",
+   "modelos": [
+    "LAGRCOPY"
+   ],
+   "segmentos": [
+    "FinancialInstOrAgreementRole",
+    "LAANStatistic",
+    "LAGRLegalAgreementRestriction",
+    "LegAgrmtAttrib",
+    "LegalAgrAnnexPartThreshold",
+    "LegalAgrCollateralDetails",
+    "LegalAgreement",
+    "LegalAgreementAltIdentifier",
+    "LegalAgreementAnnexPart",
+    "LegalAgreementAnnexure",
+    "LegalAgreementFunds",
+    "LegalAgreementInvolvedParty",
+    "LegalAgreementRestriction",
+    "LegalAgreementRestrictionTrades",
+    "LegalWarrantyDetails",
+    "RelationsLegalAgreements",
+    "WarrantorAssociatedDetails"
+   ],
+   "acciones": [
+    "DELETE",
+    "IGNORE",
+    "INSERT",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_FIID",
+    "FT_T_FINR",
+    "FT_T_FINS",
+    "FT_T_FIRL",
+    "FT_T_FLAR",
+    "FT_T_FRID",
+    "FT_T_LAAN",
+    "FT_T_LAAP",
+    "FT_T_LAAT",
+    "FT_T_LACD",
+    "FT_T_LAGR",
+    "FT_T_LAID",
+    "FT_T_LAIP",
+    "FT_T_LARS",
+    "FT_T_PAR1"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": true,
+   "notificaciones": [
+    9037
+   ]
+  },
+  "CuentasGestionadas": {
+   "descripcion": "Mandated accounts: mueve FRRL MANDTACC y encola RLT1; cambio de LEI -> 9036.",
+   "modelos": [
+    "FINSO",
+    "FINSX"
+   ],
+   "segmentos": [
+    "FinancialInstitution",
+    "FinancialInstitutionIdentifier",
+    "FinsRoleFinsRoleRelationship"
+   ],
+   "acciones": [
+    "INSERT",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_FIID",
+    "FT_T_FINR",
+    "FT_T_FIRL",
+    "FT_T_FRRL",
+    "FT_T_RLT1"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "DeleteNew": {
+   "descripcion": "SSISDENE delete-new / SSISCOPY copia / SSIS asigna SSI_ID (SSIS_ID_SEQ); 9001, 9007.",
+   "modelos": [
+    "SSIS",
+    "SSISCOPY",
+    "SSISDENE",
+    "SSISDERE"
+   ],
+   "segmentos": [
+    "SSIRStandardSettlementAccount",
+    "SSISStandardSettlementInstitutionRole",
+    "StandSettAltId",
+    "StandardSettlementAssignment",
+    "StandardSettlementInstructions",
+    "settPartAtId",
+    "settlementAtId"
+   ],
+   "acciones": [
+    "IGNORE",
+    "INSERT",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_SAI1",
+    "FT_T_SAP1",
+    "FT_T_SAT1",
+    "FT_T_SSAC",
+    "FT_T_SSIA",
+    "FT_T_SSIR",
+    "FT_T_SSIS"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": [
+    9001,
+    9007
+   ]
+  },
+  "DerivativesMainIdValidation": {
+   "descripcion": "OPTIONS/FUTURES: PREF_ISS_ID = ISIN > BBGLOBAL > QUOTE_PERM_ID (UPDATE directo).",
+   "modelos": [
+    "ISSU_MEX"
+   ],
+   "segmentos": [
+    "Issue"
+   ],
+   "acciones": [],
+   "tablas": [
+    "FT_T_ISID",
+    "FT_T_ISSU"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "DuplicarAnexe_LA": {
+   "descripcion": "LAGR org 0182: valida scope estándar (9014, 9025, 9026) y genera LAAP/Collateral.",
+   "modelos": [
+    "LAGRCOPY"
+   ],
+   "segmentos": [
+    "FinancialInstOrAgreementRole",
+    "LAANStatistic",
+    "LAGRLegalAgreementRestriction",
+    "LegAgrmtAttrib",
+    "LegalAgrAnnexPartThreshold",
+    "LegalAgrCollateralDetails",
+    "LegalAgreement",
+    "LegalAgreementAnnexPart",
+    "LegalAgreementAnnexure",
+    "LegalAgreementRestriction",
+    "LegalAgreementRestrictionTrades"
+   ],
+   "acciones": [
+    "DELETE",
+    "IGNORE",
+    "INSERT",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_FLAR",
+    "FT_T_LAAN",
+    "FT_T_LAGR",
+    "FT_T_LARS",
+    "FT_T_LAT1",
+    "FT_T_LAX1",
+    "FT_T_LRT1",
+    "FT_T_RTVL"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": [
+    9014,
+    9025,
+    9026
+   ]
+  },
+  "DuplicidadesCalypsoID": {
+   "descripcion": "Unicidad CALYCOLL en FT_T_LAX1 (90003, 90004); versionado del ID.",
+   "modelos": [
+    "LAGR",
+    "LAGRBANC"
+   ],
+   "segmentos": [
+    "LAANStatistic",
+    "LegalAgreement"
+   ],
+   "acciones": [
+    "IGNORE",
+    "INSERT",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_LAAN",
+    "FT_T_LAID",
+    "FT_T_LAX1"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": [
+    90003,
+    90004
+   ]
+  },
+  "DuplicidadesContactos": {
+   "descripcion": "Duplicidad de contacto 9015, formato email/fax 9016, INSTIT usado en SCIs 9017.",
+   "modelos": [
+    "RDRCNTC2"
+   ],
+   "segmentos": [
+    "CNTCContactAssignment",
+    "Contact",
+    "ContactAttributeId",
+    "EADRAddressType",
+    "ElectronicAddress"
+   ],
+   "acciones": [
+    "INSERT",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_ADTP",
+    "FT_T_CAI1",
+    "FT_T_CCRF",
+    "FT_T_CNTA",
+    "FT_T_CNTC",
+    "FT_T_COI1",
+    "FT_T_COT1",
+    "FT_T_EADR",
+    "FT_T_ENFR",
+    "FT_T_ENTR",
+    "FT_T_FIID",
+    "FT_T_FINS",
+    "FT_T_SCIS",
+    "FT_T_SCMO"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": false,
+   "notificaciones": []
+  },
+  "DuplicidadesSCIs": {
+   "descripcion": "SCI duplicada (9009/9013).",
+   "modelos": [
+    "SCIS",
+    "SCIS1",
+    "SCISDENE"
+   ],
+   "segmentos": [
+    "ConfirmationAtributtes",
+    "StandConfAssig",
+    "StandardConfirmationInstruction"
+   ],
+   "acciones": [
+    "IGNORE",
+    "INSERT",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_ACCT",
+    "FT_T_COA1",
+    "FT_T_COI1",
+    "FT_T_EDMV",
+    "FT_T_FINS",
+    "FT_T_IDMV",
+    "FT_T_ISTY",
+    "FT_T_SCA1",
+    "FT_T_SCIS"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": false,
+   "notificaciones": [
+    9009,
+    9013
+   ]
+  },
+  "DuplicidadesSDIs": {
+   "descripcion": "SSI duplicada por contraparte, tipo, dirección, productos... (9009/9013).",
+   "modelos": [
+    "SSIS",
+    "SSISCOPY",
+    "SSISDENE"
+   ],
+   "segmentos": [
+    "SSIRStandardSettlementAccount",
+    "SSISStandardSettlementInstitutionRole",
+    "StandardConfirmationInstruction",
+    "StandardSettlementAssignment",
+    "StandardSettlementInstructions",
+    "settPartAtId",
+    "settlementAtId"
+   ],
+   "acciones": [
+    "INSERT",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_ACCT",
+    "FT_T_EDMV",
+    "FT_T_FRID",
+    "FT_T_IDMV",
+    "FT_T_INCL",
+    "FT_T_ISTY",
+    "FT_T_SAI1",
+    "FT_T_SAP1",
+    "FT_T_SAT1",
+    "FT_T_SSAC",
+    "FT_T_SSIA",
+    "FT_T_SSIR",
+    "FT_T_SSIS"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": false,
+   "notificaciones": [
+    9009,
+    9013
+   ]
+  },
+  "FLG_Uniqueness": {
+   "descripcion": "Unicidad FLG_LEGAL_NME (9001); FINSX propaga nombre a FINS; RDRFINSG/FINSL/FINSO: FIGU MEX->MX y GUNT_OID.",
+   "modelos": [
+    "ENTRE",
+    "FINSL",
+    "FINSO",
+    "FINSTP",
+    "FINSX",
+    "FLG1",
+    "RDRFINSG"
+   ],
+   "segmentos": [
+    "FINSFinancialLegalNames",
+    "FinancialInstitution",
+    "FinancialInstitutionGeoUnitPrt",
+    "FinancialLegalNames"
+   ],
+   "acciones": [
+    "INSERT",
+    "OPTIMISTICUPDATE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_FIRL",
+    "FT_T_FIST",
+    "FT_T_FLG1",
+    "FT_T_GUNT"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": [
+    9001
+   ]
+  },
+  "FinancialInstitutionRatingOIDs": {
+   "descripcion": "Deduplica ratings; vacíos -> END_TMS.",
+   "modelos": [
+    "FINSO",
+    "FINSX"
+   ],
+   "segmentos": [
+    "FinancialInstitution",
+    "FinancialInstitutionRating"
+   ],
+   "acciones": [
+    "IGNORE",
+    "UPDATE"
+   ],
+   "tablas": [],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "GenerateBasketId": {
+   "descripcion": "ISS_TYP BASKETS: PREF_ISS_ID/ISS_ID = NEW_RDR_ISSUE_ID.",
+   "modelos": [],
+   "segmentos": [
+    "Issue",
+    "IssueIdentifier"
+   ],
+   "acciones": [],
+   "tablas": [],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "GenerateSSISId": {
+   "descripcion": "No hace nada (sólo log).",
+   "modelos": [],
+   "segmentos": [],
+   "acciones": [],
+   "tablas": [],
+   "dml_directo": false,
+   "modifica_mensaje": false,
+   "notificaciones": []
+  },
+  "GetSectorAssetAllocation": {
+   "descripcion": "Deriva SAASECT/SAASUBS de SAACCT (FT_T_SAA1); BBGSGR=Y -> DATA_SRC_ID Manual.",
+   "modelos": [
+    "FINSO",
+    "FINSX"
+   ],
+   "segmentos": [
+    "FINSFinancialInstitutionRole",
+    "FinancialInstitution",
+    "FinsRoleClassification",
+    "Issuer",
+    "Issuer10",
+    "IssuerClassification",
+    "IssuerStatistics"
+   ],
+   "acciones": [
+    "INSERT",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_FIID",
+    "FT_T_FRCL",
+    "FT_T_INCL",
+    "FT_T_IRCL",
+    "FT_T_IRST",
+    "FT_T_ISSR",
+    "FT_T_SAA1"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "InactivateAnnexesForInactiveLegalAgreement": {
+   "descripcion": "Acuerdo/anexo INACTIVE -> inactiva LAAN y CALYCOLL (UPDATE directo).",
+   "modelos": [
+    "LAGR",
+    "LAGRBANC",
+    "LAGR_BSI"
+   ],
+   "segmentos": [
+    "LegalAgreement",
+    "LegalAgreementAnnexure"
+   ],
+   "acciones": [
+    "DELETE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_LAAN",
+    "FT_T_LAX1"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": false,
+   "notificaciones": []
+  },
+  "InactivateReactivateBDI": {
+   "descripcion": "Cambio BDLOCAL I<->N/X/O: inactiva/reactiva datos BDI y PREF_FINS_ID.",
+   "modelos": [
+    "FINSO",
+    "FINSX"
+   ],
+   "segmentos": [
+    "FINSAddressTypeUsage",
+    "FinancialInstitution",
+    "FinancialInstitutionGeoUnitPrt",
+    "FinsRoleClassification",
+    "MailingAddress"
+   ],
+   "acciones": [
+    "IGNORE",
+    "INSERT",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_ADTP",
+    "FT_T_DLER",
+    "FT_T_FIGU",
+    "FT_T_FIID",
+    "FT_T_FINS",
+    "FT_T_FRCL",
+    "FT_T_FRID"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "InactiveCalypso": {
+   "descripcion": "LAANStatistic CSA: CALYCOLL activo/duplicado (90003, 90004); reactiva LAX1.",
+   "modelos": [
+    "LAGR"
+   ],
+   "segmentos": [
+    "LAANStatistic"
+   ],
+   "acciones": [
+    "DELETE",
+    "INSERT",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_LAAN",
+    "FT_T_LAID",
+    "FT_T_LAX1"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": false,
+   "notificaciones": [
+    90003,
+    90004
+   ]
+  },
+  "InactiveClearing": {
+   "descripcion": "Rol CLRNGBRK/CLRNGHS INACTIVE -> inactiva FRID y ENFR.",
+   "modelos": [
+    "FINSX"
+   ],
+   "segmentos": [
+    "FINSFinancialInstitutionRole"
+   ],
+   "acciones": [
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_ENFR",
+    "FT_T_FINR",
+    "FT_T_FRID"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": false,
+   "notificaciones": []
+  },
+  "InactiveFundMIFID": {
+   "descripcion": "CPARTY HEREDAR INACTIVE -> CL_VALUE=0. En la práctica NO actúa (campo '.DATA_STAT_TYP ' con espacio).",
+   "modelos": [
+    "FINSX"
+   ],
+   "segmentos": [
+    "FinsRoleClassification"
+   ],
+   "acciones": [],
+   "tablas": [
+    "FT_T_FRCL"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "InactiveInternalParticipant": {
+   "descripcion": "INTPARTI en acuerdo NAFMII activo no se puede inactivar -> 9032.",
+   "modelos": [
+    "FINSO",
+    "FINSX"
+   ],
+   "segmentos": [
+    "FINSFinancialInstitutionRole",
+    "FinancialInstitution"
+   ],
+   "acciones": [
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_FINR",
+    "FT_T_FLAR",
+    "FT_T_LAGR",
+    "FT_T_LAIP"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": false,
+   "notificaciones": []
+  },
+  "InactiveIssuerIds": {
+   "descripcion": "Rol ISSUER inactivo -> inactiva FRID/ENFR; coherencia MUREXID (9030, 9031).",
+   "modelos": [
+    "FINSO",
+    "FINSTP",
+    "FINSX"
+   ],
+   "segmentos": [
+    "FINSFinancialInstitutionRole",
+    "FinsRoleIdentifier"
+   ],
+   "acciones": [
+    "INSERT",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_FINR",
+    "FT_T_FRID",
+    "FT_T_IDMV"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": false,
+   "notificaciones": [
+    9030,
+    9031
+   ]
+  },
+  "IssueMexico": {
+   "descripcion": "Emisión mexicana duplicada 9038, ISIN 9040, MUREXID 9041, ISIN!=MEX_ISIN 9042.",
+   "modelos": [
+    "ISSU_MEX",
+    "RDR_ISSU"
+   ],
+   "segmentos": [
+    "Issue",
+    "IssueClassification",
+    "IssueIdentifier",
+    "IssueStatistic",
+    "MarketIssueCharacteristics"
+   ],
+   "acciones": [
+    "INSERT",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_INCL",
+    "FT_T_INCS",
+    "FT_T_ISCL",
+    "FT_T_ISID",
+    "FT_T_ISST",
+    "FT_T_ISSU"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": true,
+   "notificaciones": [
+    9038,
+    9040,
+    9041,
+    9042
+   ]
+  },
+  "IssuerDataSourceChange": {
+   "descripcion": "SOURCE=Refinitiv -> inactiva IRST/IRCL Bloomberg del emisor.",
+   "modelos": [
+    "FINSX"
+   ],
+   "segmentos": [
+    "IssuerStatistics"
+   ],
+   "acciones": [],
+   "tablas": [
+    "FT_T_IRCL",
+    "FT_T_IRST"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": false,
+   "notificaciones": []
+  },
+  "IssuesDuplis": {
+   "descripcion": "Mismas comprobaciones que IssueMexico (9038, 9040, 9041): notificaciones duplicadas.",
+   "modelos": [
+    "ISID",
+    "ISSUCOPY",
+    "ISSU_MEX",
+    "RDR_ISSU"
+   ],
+   "segmentos": [
+    "Issue",
+    "IssueClassification",
+    "IssueIdentifier",
+    "IssueStatistic"
+   ],
+   "acciones": [
+    "INSERT",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_ISCL",
+    "FT_T_ISID",
+    "FT_T_ISST",
+    "FT_T_ISSU"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": false,
+   "notificaciones": [
+    9038,
+    9040,
+    9041
+   ]
+  },
+  "LAGRdates": {
+   "descripcion": "Fechas STTLMNTCCY del acuerdo (9027, 9028, 9029).",
+   "modelos": [],
+   "segmentos": [
+    "LegAgrmtAttrib",
+    "LegalAgreement"
+   ],
+   "acciones": [
+    "INSERT",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_LAT1"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": false,
+   "notificaciones": []
+  },
+  "LAGRduplis": {
+   "descripcion": "Acuerdo duplicado (9012).",
+   "modelos": [
+    "LAGRCOPY"
+   ],
+   "segmentos": [
+    "FinancialInstOrAgreementRole",
+    "LAANStatistic",
+    "LAGRLegalAgreementRestriction",
+    "LegAgrmtAttrib",
+    "LegalAgreement",
+    "LegalAgreementAnnexure",
+    "LegalAgreementInvolvedParty",
+    "LegalAgreementRestriction",
+    "LegalAgreementRestrictionTrades"
+   ],
+   "acciones": [
+    "INSERT",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_FLAR",
+    "FT_T_LAAN",
+    "FT_T_LAGR",
+    "FT_T_LAID",
+    "FT_T_LAIP",
+    "FT_T_LARS",
+    "FT_T_LAT1",
+    "FT_T_LAX1",
+    "FT_T_LRT1"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": false,
+   "notificaciones": [
+    9012
+   ]
+  },
+  "LegalOpinion": {
+   "descripcion": "Calcula LOEFFECT/PRODUCTS; UPDATE directo LAT1, LAX1, FND1.",
+   "modelos": [
+    "LAGRCOPY"
+   ],
+   "segmentos": [
+    "FinancialInstOrAgreementRole",
+    "LAANStatistic",
+    "LAGRLegalAgreementRestriction",
+    "LegAgrmtAttrib",
+    "LegalAgreement",
+    "LegalAgreementAnnexure",
+    "LegalAgreementFunds",
+    "LegalAgreementRestriction"
+   ],
+   "acciones": [
+    "INSERT",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_EIST",
+    "FT_T_FIGU",
+    "FT_T_FIRL",
+    "FT_T_FLAR",
+    "FT_T_FND1",
+    "FT_T_INCL",
+    "FT_T_ISCD",
+    "FT_T_ISTY",
+    "FT_T_LAAN",
+    "FT_T_LAGR",
+    "FT_T_LAL1",
+    "FT_T_LARS",
+    "FT_T_LAT1",
+    "FT_T_LAX1",
+    "FT_T_LLD1"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "LegalOpinionCreateCopy": {
+   "descripcion": "Igual que LegalOpinion para LAGRCOPY.",
+   "modelos": [
+    "LAGRCOPY"
+   ],
+   "segmentos": [
+    "FinancialInstOrAgreementRole",
+    "LAGRLegalAgreementRestriction",
+    "LegAgrmtAttrib",
+    "LegalAgreement",
+    "LegalAgreementFunds"
+   ],
+   "acciones": [
+    "INSERT",
+    "REFERENCE"
+   ],
+   "tablas": [
+    "FT_T_EIST",
+    "FT_T_FIGU",
+    "FT_T_FIRL",
+    "FT_T_FLAR",
+    "FT_T_FND1",
+    "FT_T_INCL",
+    "FT_T_ISCD",
+    "FT_T_ISTY",
+    "FT_T_LAGR",
+    "FT_T_LAL1",
+    "FT_T_LAT1",
+    "FT_T_LLD1"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "RDRConfirmationsCoi1AltID": {
+   "descripcion": "SCIS: ALT_ID ConfirmationId max+1; SCIS1 copia; SCISDENE delete-new.",
+   "modelos": [
+    "SCIS",
+    "SCIS1",
+    "SCISDENE"
+   ],
+   "segmentos": [
+    "ConfirmationAtributtes",
+    "ConfirmationId",
+    "StandConfAssig",
+    "StandardConfirmationInstruction",
+    "StandardConfirmationMediaOption"
+   ],
+   "acciones": [
+    "IGNORE",
+    "INSERT",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_COA1",
+    "FT_T_COI1",
+    "FT_T_SCA1",
+    "FT_T_SCIS",
+    "FT_T_SCMO"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "RDRInactivations": {
+   "descripcion": "Acuerdo INACTIVE -> inactiva LAID 'Onboarding Digital' (ORG_ID 1145).",
+   "modelos": [],
+   "segmentos": [
+    "LegalAgreement"
+   ],
+   "acciones": [
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_LAID"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": false,
+   "notificaciones": []
+  },
+  "RegulationSecurityLabelBaskets": {
+   "descripcion": "Nuevo MUREXID/SECFICLAB -> reapunta RISS, ISGP, ISGR de cestas.",
+   "modelos": [
+    "RDR_ISSU"
+   ],
+   "segmentos": [
+    "IssueIdentifier"
+   ],
+   "acciones": [
+    "INSERT"
+   ],
+   "tablas": [
+    "FT_T_ISGP",
+    "FT_T_ISGR",
+    "FT_T_ISID",
+    "FT_T_MKIS",
+    "FT_T_RISS"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": false,
+   "notificaciones": []
+  },
+  "RuleCalypso": {
+   "descripcion": "Recalcula listas de Calypso IDs en LAID y COI1; activa/inactiva EXI1.",
+   "modelos": [
+    "LAGRCOPY"
+   ],
+   "segmentos": [
+    "ConfirmationId",
+    "ExternalIdentifier",
+    "LegalAgreement",
+    "LegalAgreementAltIdentifier",
+    "StandardConfirmationInstruction"
+   ],
+   "acciones": [
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_COI1",
+    "FT_T_EXI1",
+    "FT_T_LAGR",
+    "FT_T_LAID"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": false,
+   "notificaciones": []
+  },
+  "RulesCPTY": {
+   "descripcion": "STARID existente 9046; genera FRID ALIASID espejo de cada STARID.",
+   "modelos": [
+    "FINSO",
+    "FINSX"
+   ],
+   "segmentos": [
+    "FINSFinancialInstitutionRole",
+    "FinancialInstitution",
+    "FinsRoleIdentifier"
+   ],
+   "acciones": [
+    "INSERT",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_FINR",
+    "FT_T_FRID"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": true,
+   "notificaciones": [
+    9046
+   ]
+  },
+  "RulesISSU": {
+   "descripcion": "Calcula REGMKT Y/N según mercados activos.",
+   "modelos": [
+    "RDR_ISSU"
+   ],
+   "segmentos": [
+    "Issue",
+    "IssueStatistic",
+    "MarketIssueCharacteristics"
+   ],
+   "acciones": [
+    "INSERT",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_ISST",
+    "FT_T_MKIS"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "RulesLAGR": {
+   "descripcion": "Carbon Market (9043), Calypso duplicado entre fondos (9050), coverage y versión.",
+   "modelos": [
+    "LAGR",
+    "LAGR_BSI"
+   ],
+   "segmentos": [
+    "FINSFinancialInstitutionRole",
+    "LAANStatistic",
+    "LegAgrmtAttrib",
+    "LegalAgreement",
+    "LegalAgreementFunds"
+   ],
+   "acciones": [
+    "INSERT",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_FINR",
+    "FT_T_FLAR",
+    "FT_T_FND1",
+    "FT_T_LAAN",
+    "FT_T_LAGR",
+    "FT_T_LAT1",
+    "FT_T_LAX1"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": true,
+   "notificaciones": [
+    9043,
+    9050
+   ]
+  },
+  "SinglePortfolio": {
+   "descripcion": "Portfolio en un solo trading book (9033) y book=oficina (9034, 9035).",
+   "modelos": [
+    "RDR_ACGR",
+    "RDR_PORT"
+   ],
+   "segmentos": [
+    "Account",
+    "AccountGroup",
+    "AccountGroupParticipant",
+    "TradingBook"
+   ],
+   "acciones": [
+    "INSERT",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_ACCT",
+    "FT_T_ACGP",
+    "FT_T_ACGR",
+    "FT_T_BOOK",
+    "FT_T_SUBD",
+    "FT_T_SUFR",
+    "FT_T_TBC1"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": false,
+   "notificaciones": [
+    9033,
+    9034,
+    9035
+   ]
+  },
+  "SwapAgent": {
+   "descripcion": "ANNEXCOPY: sincroniza anexo SWPAGENT con VM. COMENTADA en el message set.",
+   "modelos": [
+    "ANNEXCOPY"
+   ],
+   "segmentos": [
+    "LAANStatistic",
+    "LegalAgrAnnexPartThreshold",
+    "LegalAgrCollateralDetails",
+    "LegalAgreement",
+    "LegalAgreementAnnexPart",
+    "LegalAgreementAnnexure"
+   ],
+   "acciones": [
+    "DELETE",
+    "INSERT",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_FLAR",
+    "FT_T_LAAN",
+    "FT_T_LAAP",
+    "FT_T_LAAT",
+    "FT_T_LACD",
+    "FT_T_LAGR",
+    "FT_T_LAX1",
+    "FT_T_LPX1",
+    "FT_T_LRT1"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": false,
+   "notificaciones": []
+  },
+  "SwiftCTPTA": {
+   "descripcion": "Asegura que SWIFTLIQ/SWIFTCON viajan con DIFUSION.",
+   "modelos": [
+    "FINSX"
+   ],
+   "segmentos": [
+    "FINSFinancialInstitutionRole",
+    "FinancialInstitution",
+    "FinsRoleIdentifier"
+   ],
+   "acciones": [
+    "INSERT",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_FINR",
+    "FT_T_FIST",
+    "FT_T_FRID"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "ThrdPartyCalypsoFilter": {
+   "descripcion": "Calypso Filter activo -> DATA_SRC_ID=SSISATT en clasificaciones.",
+   "modelos": [],
+   "segmentos": [
+    "INCSIndustryClassification",
+    "IndustryClassificationSet"
+   ],
+   "acciones": [],
+   "tablas": [],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "Uniqueness": {
+   "descripcion": "Unicidad de FRID/FIID/alias/cuentas/ISID (9001, 9002, 9003).",
+   "modelos": [
+    "ACCTFINS",
+    "FINSL",
+    "FINSO",
+    "FINSTP",
+    "FINSX",
+    "OFRONT1",
+    "RDRFINSG"
+   ],
+   "segmentos": [
+    "Account",
+    "AccountGroup",
+    "FINSCentralCrossReference",
+    "FINSFinancialInstitutionRole",
+    "FinancialInstitutionIdentifier",
+    "FinancialLegalNames",
+    "FinsRoleIdentifier",
+    "IssueIdentifier",
+    "RelationIdentifiers"
+   ],
+   "acciones": [
+    "INSERT",
+    "OPTIMISTICUPDATE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_ACCT",
+    "FT_T_ACGR",
+    "FT_T_CCRF",
+    "FT_T_FIID",
+    "FT_T_FINR",
+    "FT_T_FLG1",
+    "FT_T_FRID",
+    "FT_T_ISID",
+    "FT_T_REI1"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": false,
+   "notificaciones": [
+    9001,
+    9002,
+    9003
+   ]
+  },
+  "UniquenessSCIS": {
+   "descripcion": "SCI duplicada FINR x desc x branch x product (9004). En INSERT ineficaz (TRADE_TYP null).",
+   "modelos": [
+    "SCIS"
+   ],
+   "segmentos": [
+    "StandConfAssig",
+    "StandardConfirmationInstruction"
+   ],
+   "acciones": [
+    "INSERT",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_SCIS"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": false,
+   "notificaciones": []
+  },
+  "UpdateInactive": {
+   "descripcion": "Convierte DELETE en inactivación lógica (LAGR, FINSX, FINSO, ISSU_BSK).",
+   "modelos": [
+    "FINSO",
+    "FINSX",
+    "ISSU_BSK",
+    "LAGR",
+    "LAGRBANC"
+   ],
+   "segmentos": [
+    "Apptobroadcast",
+    "BasketComponentProperties",
+    "FINREnterpriseFinancialInstitutionRole",
+    "FinancialInstitution",
+    "FinancialInstitutionGeoUnitPrt",
+    "FinancialInstitutionStatistic",
+    "FinsRoleClassification",
+    "FinsRoleIdentifier",
+    "LAANStatistic",
+    "LegAgrmtAttrib"
+   ],
+   "acciones": [
+    "DELETE",
+    "INSERT",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_ATB1",
+    "FT_T_BCP1",
+    "FT_T_ENFR",
+    "FT_T_FIGU",
+    "FT_T_FIST",
+    "FT_T_FRCL",
+    "FT_T_FRID",
+    "FT_T_LAT1",
+    "FT_T_LAX1",
+    "FT_T_LPS1"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "UpdateUserInactiveDate": {
+   "descripcion": "FinancialEndOp: APP_END_TMS = USR_END_TMS - 18 meses.",
+   "modelos": [
+    "FINSX"
+   ],
+   "segmentos": [
+    "FinancialEndOp"
+   ],
+   "acciones": [
+    "DELETE"
+   ],
+   "tablas": [],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "ValidateCNPJ": {
+   "descripcion": "Sede/branch en Brasil (BR1) sin CNPJ -> 9047.",
+   "modelos": [
+    "FINSL",
+    "FINSO",
+    "FINSTP",
+    "FINSX"
+   ],
+   "segmentos": [
+    "FINREnterpriseFinancialInstitutionRole",
+    "FINRFinsFinsRoleRelationship",
+    "FinancialInstitution",
+    "FinancialInstitutionIdentifier"
+   ],
+   "acciones": [
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_ENFR",
+    "FT_T_FIID",
+    "FT_T_FINS",
+    "FT_T_FIRL"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": false,
+   "notificaciones": [
+    9047
+   ]
+  },
+  "ValidateCountryRegion": {
+   "descripcion": "FIGU STSMNTCT distinto de CA: STSMNTCR -> IGNORE y se inactivan las de BD.",
+   "modelos": [
+    "FINSX",
+    "RDRFINSG"
+   ],
+   "segmentos": [
+    "FinancialInstitutionGeoUnitPrt"
+   ],
+   "acciones": [
+    "IGNORE"
+   ],
+   "tablas": [
+    "FT_T_FIGU"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "ValidateLAGR": {
+   "descripcion": "Acuerdos portugueses: firmante P1 (9039), parte interna FINSID=2146 única (9045).",
+   "modelos": [],
+   "segmentos": [
+    "FinancialInstOrAgreementRole",
+    "LegalAgreement",
+    "LegalAgreementInvolvedParty"
+   ],
+   "acciones": [
+    "INSERT",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_ENFR",
+    "FT_T_FIID",
+    "FT_T_FLAR",
+    "FT_T_LAGR",
+    "FT_T_LAIP"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": false,
+   "notificaciones": []
+  },
+  "ValidateNFIESP": {
+   "descripcion": "Validación NFI España -> 10000.",
+   "modelos": [
+    "SSIS"
+   ],
+   "segmentos": [
+    "StandardSettlementAssignment",
+    "StandardSettlementInstructions"
+   ],
+   "acciones": [
+    "INSERT"
+   ],
+   "tablas": [
+    "FT_T_EERL",
+    "FT_T_EIST",
+    "FT_T_ENTR",
+    "FT_T_FIRL",
+    "FT_T_FIST",
+    "FT_T_FRCL",
+    "FT_T_ISCD"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": false,
+   "notificaciones": [
+    10000
+   ]
+  },
+  "ValidateStarCodeInactivation": {
+   "descripcion": "No inactivar el único STARID/MUREXID principal -> 9049.",
+   "modelos": [],
+   "segmentos": [
+    "FinsRoleIdentifier"
+   ],
+   "acciones": [
+    "INSERT",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_FIST",
+    "FT_T_FRID"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": false,
+   "notificaciones": [
+    9049
+   ]
+  },
+  "ValidateStarRoleDuplicate": {
+   "descripcion": "STAR* activo en otro rol -> 9048.",
+   "modelos": [],
+   "segmentos": [
+    "FinsRoleIdentifier"
+   ],
+   "acciones": [
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_FRID"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": false,
+   "notificaciones": [
+    9048
+   ]
+  },
+  "addOfficeAtt": {
+   "descripcion": "Alta de oficina: añade ACC_TYPE, BDE_CODE, RESIDENT, ACTVECOM (rdrUtils.getOffAtt).",
+   "modelos": [
+    "FINSO",
+    "FINSTP",
+    "FINSX"
+   ],
+   "segmentos": [
+    "FINRSubdivisionFinancialInstitutionRole",
+    "FINSFinancialInstitutionRole",
+    "FinancialInstitution",
+    "FinsSubdAttr"
+   ],
+   "acciones": [
+    "INSERT",
+    "REFERENCE"
+   ],
+   "tablas": [],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "generateLagrLaan": {
+   "descripcion": "Pone en IGNORE atributos vacíos de LAGR (SCOPESD, COVERFX, SPECTRAN...).",
+   "modelos": [
+    "LAGR",
+    "LAGR_BSI"
+   ],
+   "segmentos": [
+    "LegAgrmtAttrib"
+   ],
+   "acciones": [
+    "IGNORE",
+    "INSERT"
+   ],
+   "tablas": [],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "getRefSectorAllocation": {
+   "descripcion": "Sector/subsector Refinitiv (FT_T_SAA2) -> 9024.",
+   "modelos": [
+    "FINSO",
+    "FINSX"
+   ],
+   "segmentos": [
+    "FINSFinancialInstitutionRole",
+    "FinancialInstitution",
+    "FinsRoleClassification",
+    "Issuer",
+    "Issuer10",
+    "IssuerStatistics"
+   ],
+   "acciones": [
+    "IGNORE",
+    "INSERT",
+    "REFERENCE",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_FIID",
+    "FT_T_FINR",
+    "FT_T_FRCL",
+    "FT_T_INCL",
+    "FT_T_IRST",
+    "FT_T_ISSR",
+    "FT_T_SAA2"
+   ],
+   "dml_directo": false,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  },
+  "setDifusion": {
+   "descripcion": "Marca DIFUSION/REACTIVE en LAST_CHG_USR_ID o DATA_SRC_ID (FIID, FIST de una lista, ENFR OPE_BRANCH, FINR subdiv...); DELETE FIID -> UPDATE INACTIVE; DELETE LEI -> IGNORE.",
+   "modelos": [
+    "FINSL",
+    "FINSO",
+    "FINSTP",
+    "FINSX",
+    "RDRFINSG"
+   ],
+   "segmentos": [
+    "FINREnterpriseFinancialInstitutionRole",
+    "FINRSubdivisionFinancialInstitutionRole",
+    "FINSCentralCrossReference",
+    "FinancialInstitutionIdentifier",
+    "FinancialInstitutionStatistic",
+    "FinsRoleClassification",
+    "FinsRoleIdentifier",
+    "LegalEntityIdentifiers"
+   ],
+   "acciones": [
+    "DELETE",
+    "IGNORE",
+    "INSERT",
+    "UPDATE"
+   ],
+   "tablas": [
+    "FT_T_CCRF",
+    "FT_T_FIID",
+    "FT_T_FIST",
+    "FT_T_FRCL",
+    "FT_T_FRID"
+   ],
+   "dml_directo": true,
+   "modifica_mensaje": true,
+   "notificaciones": []
+  }
+ }
+}

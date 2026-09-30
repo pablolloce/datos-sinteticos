@@ -1,0 +1,302 @@
+{
+ "CFTIADTPProcessing": {
+  "descripcion_inferida": "Tipos de dirección (ADTP): resuelve/crea la fila de tipo asociada a la dirección postal o electrónica.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "MEDIO: puede crear filas FT_T_ADTP no presentes en el mensaje"
+ },
+ "CFTIAddressProcessing": {
+  "descripcion_inferida": "Direcciones (MADR/EADR): enlaza la dirección con su segmento de tipo (param 2) y resuelve claves.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "MEDIO"
+ },
+ "CFTICCRFProcessing": {
+  "descripcion_inferida": "Referencias cruzadas centrales (CCRF): resuelve/crea CNTL_CROSS_REF_OID y enlaza la entidad (se ejecuta B, A y F).",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "ALTO: OIDs y filas FT_T_CCRF"
+ },
+ "CFTICheckPrimaryIDToBeUpdated": {
+  "descripcion_inferida": "Impide/controla cambiar el identificador primario de una emisión (notif. RULEPRC 165 'Trying to change Primary Identifier').",
+  "confianza": "ALTA",
+  "impacto_en_datos_sinteticos": "BAJO en altas"
+ },
+ "CFTIConstFINS": {
+  "descripcion_inferida": "Resuelve la institución financiera (INST_MNEM) a partir de identificadores del segmento (param N = no crear si no existe).",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "MEDIO: rellena INST_MNEM"
+ },
+ "CFTIConstrCurrency": {
+  "descripcion_inferida": "Resuelve divisa de pago (.PAY_CURR_CDE) y su instrumento (.EV_INSTR_ID).",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CFTIConstrIssueActionID": {
+  "descripcion_inferida": "Construye el identificador de evento corporativo (Issue Action ID),  NULLVALUEMATCH e identificadores propietarios por BIC.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "ALTO en eventos corporativos"
+ },
+ "CFTIConstrLKforTimeSeries": {
+  "descripcion_inferida": "Construye la clave lógica de series temporales (benchmarks).",
+  "confianza": "BAJA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CFTIConstrMKTOID": {
+  "descripcion_inferida": "Resuelve MKT_OID (mercado) a partir de MIC/código de mercado.",
+  "confianza": "ALTA",
+  "impacto_en_datos_sinteticos": "MEDIO: rellena MKT_OID"
+ },
+ "CFTIConstrOFFERNUM": {
+  "descripcion_inferida": "Genera número de oferta (underwriter).",
+  "confianza": "BAJA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CFTIConstrPrefId": {
+  "descripcion_inferida": "Fija el identificador preferente de la entidad (PREF_ISS_ID / PREF_FINS_ID y su contexto) según la prioridad de contextos del parámetro 4 (notif. RULEPRC 390/528).",
+  "confianza": "ALTA",
+  "impacto_en_datos_sinteticos": "ALTO: actualiza FT_T_ISSU / FT_T_FINS"
+ },
+ "CFTIConstrSTDFOID": {
+  "descripcion_inferida": "Resuelve STAT_DEF_ID / definición de estadística.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CFTIConstrSourceFINS": {
+  "descripcion_inferida": "Resuelve la institución fuente (FINS) de índices/mercados.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CFTIConstructClassification": {
+  "descripcion_inferida": "Resuelve CLSF_OID a partir de INDUS_CL_SET_ID + valor de clasificación.",
+  "confianza": "ALTA",
+  "impacto_en_datos_sinteticos": "MEDIO: rellena CLSF_OID"
+ },
+ "CFTIConstructGeoUnit": {
+  "descripcion_inferida": "Resuelve GUNT_OID a partir de GU_TYP/GU_ID/GU_CNT.",
+  "confianza": "ALTA",
+  "impacto_en_datos_sinteticos": "MEDIO: rellena GUNT_OID (el frontal ya lo envía)"
+ },
+ "CFTIConstructIssueRating": {
+  "descripcion_inferida": "Resuelve RTNG_OID/valor de rating a partir de agencia + símbolo.",
+  "confianza": "ALTA",
+  "impacto_en_datos_sinteticos": "MEDIO"
+ },
+ "CFTICopyFieldFromStorage": {
+  "descripcion_inferida": "Copia un campo (param 1) desde otro segmento ya procesado (param 2).",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "MEDIO"
+ },
+ "CFTIFKLookupRule": {
+  "descripcion_inferida": "Busca claves ajenas (FK) por la tabla del parámetro 1 y rellena la columna,  MATCH= indica la match key.",
+  "confianza": "ALTA",
+  "impacto_en_datos_sinteticos": "MEDIO"
+ },
+ "CFTIGenerateCrossRefId": {
+  "descripcion_inferida": "Genera CROSS_REF_ID para clasificaciones de industria.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "MEDIO: columna generada"
+ },
+ "CFTIGetEntityDetailsForCCRF": {
+  "descripcion_inferida": "Obtiene los datos de la entidad para la referencia cruzada central.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "MEDIO"
+ },
+ "CFTIInternalCustomerIdentifier": {
+  "descripcion_inferida": "(COMENTADA) Crearía el identificador interno de cliente CUSTID.",
+  "confianza": "ALTA",
+  "impacto_en_datos_sinteticos": "NINGUNO (no activa)"
+ },
+ "CFTIInternalIdentifierCreator": {
+  "descripcion_inferida": "Crea el identificador interno de la institución financiera: fila FT_T_FIID con contexto FINSID (param 1) si la entidad no lo tiene,  se ejecuta en fase F.",
+  "confianza": "ALTA (nombre+parámetro+uso de FINSID en ValidateLAGR)",
+  "impacto_en_datos_sinteticos": "ALTO: el mensaje del frontal NO trae FIID FINSID y GoldenSource sí lo crea"
+ },
+ "CFTILoadLogicalKey": {
+  "descripcion_inferida": "Carga la clave lógica del segmento desde BD (fase A).",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CFTIModelDefault": {
+  "descripcion_inferida": "Aplica valores por defecto del modelo (MODLID) a los campos no informados.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "ALTO: valores por defecto definidos en tablas de modelo"
+ },
+ "CFTIRemoveIfUpdate": {
+  "descripcion_inferida": "Elimina un campo (param 1) del segmento cuando la acción resultante es UPDATE (no se sobrescribe CROSS_REF_ID ni START_TMS).",
+  "confianza": "ALTA",
+  "impacto_en_datos_sinteticos": "BAJO en altas"
+ },
+ "CFTIReplaceIncomeEventDef": {
+  "descripcion_inferida": "Reemplaza la definición de evento de renta.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CFTIReplacePrincipalEventDef": {
+  "descripcion_inferida": "Reemplaza la definición de evento de principal.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CFTISeqNumGenerator": {
+  "descripcion_inferida": "Genera un valor de secuencia Oracle (param 4) para la columna del param 1 (LegalAgreement CROSS_REF_ID con OID,  SubDivision SUBDIV_ID con SUBDIVISION_ID_SEQ).",
+  "confianza": "ALTA",
+  "impacto_en_datos_sinteticos": "ALTO: columnas generadas por secuencia"
+ },
+ "CFTISetMatchKey": {
+  "descripcion_inferida": "Selecciona la match key (FT_O_MKEY) con la que se busca si el registro ya existe.",
+  "confianza": "ALTA",
+  "impacto_en_datos_sinteticos": "MEDIO: decide INSERT vs UPDATE"
+ },
+ "CFTIUniqueCheckAndIDLookup": {
+  "descripcion_inferida": "Identificación de la entidad por sus identificadores (unicidad + búsqueda),  decide si el mensaje es alta o modificación., ALTA",
+  "confianza": "ALTO en cargas de proveedor",
+  "impacto_en_datos_sinteticos": " BAJO en altas del frontal"
+ },
+ "CFTIValInFuture": {
+  "descripcion_inferida": "(Benchmark) valida fechas futuras.",
+  "confianza": "BAJA",
+  "impacto_en_datos_sinteticos": "NINGUNO"
+ },
+ "CFTIValIssueIdentifiers": {
+  "descripcion_inferida": "Valida identificadores de emisión (check digit, contextos internos INTERNAL,COMMON).",
+  "confianza": "ALTA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CFTIValIssueOverride": {
+  "descripcion_inferida": "Valida overrides de emisión.",
+  "confianza": "BAJA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CGSCCheckForIdenitifersInMessage": {
+  "descripcion_inferida": "Exige identificadores (ISIN,CUSIP) en mensajes de InteractiveData.",
+  "confianza": "ALTA",
+  "impacto_en_datos_sinteticos": "NINGUNO fuera de ese proveedor"
+ },
+ "CGSCCheckPrimaryMktIdentifier": {
+  "descripcion_inferida": "Controla el identificador primario de mercado (TELEKURS,BB,REUTERS) para los tipos de emisión listados.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CGSCConsolidationStat": {
+  "descripcion_inferida": "Estado de consolidación de la entidad.",
+  "confianza": "BAJA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CGSCCreateListing": {
+  "descripcion_inferida": "Crea el listado (MKIS) a partir de la emisión.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "MEDIO en emisiones"
+ },
+ "CGSCCreateMIXR": {
+  "descripcion_inferida": "Crea referencias cruzadas de mercado (FT_T_MIXR).",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "MEDIO en emisiones"
+ },
+ "CGSCCreateUnderlyingLink": {
+  "descripcion_inferida": "Enlaza la emisión con su subyacente.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "MEDIO en derivados"
+ },
+ "CGSCDeriveEffectiveTms": {
+  "descripcion_inferida": "Deriva la fecha efectiva del rating.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CGSCDerivePartSeqNumForDGDP": {
+  "descripcion_inferida": "Calcula el nº de secuencia de participante de grupo de datos.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CGSCEndDateFinsFinsRole": {
+  "descripcion_inferida": "Cierra (END_TMS) relaciones FINS-FINS-rol que dejan de venir.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "BAJO en altas"
+ },
+ "CGSCEndDateIdentifiers": {
+  "descripcion_inferida": "Cierra (END_TMS) identificadores sustituidos.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "BAJO en altas"
+ },
+ "CGSCEndDateMIXR": {
+  "descripcion_inferida": "Cierra referencias cruzadas de mercado sustituidas.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CGSCEndDateMultiEntityHierarchy": {
+  "descripcion_inferida": "Cierra jerarquías de crédito (CREDHIER) sustituidas.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CGSCEndDateSuspect": {
+  "descripcion_inferida": "Cierra registros marcados como sospechosos de duplicado.",
+  "confianza": "BAJA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CGSCEquateListing": {
+  "descripcion_inferida": "Equipara listados por identificadores de mercado.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CGSCHandleCompositeKey": {
+  "descripcion_inferida": "Resuelve claves compuestas de tablas genéricas (INCL, GUNT, RTVL, ACTP, LGER).",
+  "confianza": "ALTA",
+  "impacto_en_datos_sinteticos": "MEDIO: rellena OIDs de datos maestros"
+ },
+ "CGSCHandleOrphanEntity": {
+  "descripcion_inferida": "Trata entidades huérfanas (sin padre) al final del mensaje.",
+  "confianza": "BAJA",
+  "impacto_en_datos_sinteticos": "MEDIO"
+ },
+ "CGSCInvokeJavaRule": {
+  "descripcion_inferida": "Ejecuta la regla Java del parámetro 1 (rdrRules.jar). Ver analisis/reglas_java.json.",
+  "confianza": "ALTA",
+  "impacto_en_datos_sinteticos": "SEGÚN LA REGLA"
+ },
+ "CGSCIssuerDerivation": {
+  "descripcion_inferida": "Deriva el emisor de la emisión a partir de CUSIP/CINS y otros proveedores.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "BAJO fuera de cargas de proveedor"
+ },
+ "CGSCModelForcedReevaluation": {
+  "descripcion_inferida": "Fuerza la reevaluación del modelo (MODLID) del mensaje.",
+  "confianza": "BAJA",
+  "impacto_en_datos_sinteticos": "MEDIO"
+ },
+ "CGSCPricingFXRT": {
+  "descripcion_inferida": "Precios/tipos de cambio para ReutersEquityPricing y TKPRD.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "NINGUNO fuera de esos tipos"
+ },
+ "CGSCRealignALIDAfterMerge": {
+  "descripcion_inferida": "Realinea FT_T_ALID tras fusión de entidades.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CGSCRejectDeletionIfRelatedDataExist": {
+  "descripcion_inferida": "Rechaza borrar definiciones de campos con datos relacionados.",
+  "confianza": "ALTA",
+  "impacto_en_datos_sinteticos": "NINGUNO en altas"
+ },
+ "CGSCSetGlobalIdentifierIndicator": {
+  "descripcion_inferida": "Marca el indicador de identificador global (fases A y D).",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CGSCSwapIssueActionID": {
+  "descripcion_inferida": "Intercambia identificadores de evento corporativo.",
+  "confianza": "BAJA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CGSCTrackRecordInTransaction": {
+  "descripcion_inferida": "Registra el registro en la transacción (Account, AccountGroup y participantes).",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CGSCUpdateMissingUnderlyingInfo": {
+  "descripcion_inferida": "Completa datos del subyacente que faltan.",
+  "confianza": "MEDIA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ },
+ "CGSCValidateDPICConfig": {
+  "descripcion_inferida": "Valida la configuración DPIC.",
+  "confianza": "BAJA",
+  "impacto_en_datos_sinteticos": "BAJO"
+ }
+}

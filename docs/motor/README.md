@@ -14,8 +14,10 @@ GoldenSource crearía de verdad.
 ## Conexión con el repositorio `fileloading`
 
 El material del motor **no se copia aquí**: está en el repositorio
-[`pablolloce/fileloading`](https://github.com/pablolloce/fileloading), y las herramientas
-lo leen del clon local.
+[`pablolloce/fileloading`](https://github.com/pablolloce/fileloading) (rama `main`).
+`herramientas/motor/sincronizar_fileloading.py` lee el clon local y escribe en `esquema/motor/`
+los derivados que usan el generador y las herramientas (D-029); `esquema/motor/origen.json`
+indica de qué commit salen.
 
 | Qué | Dónde (en fileloading) |
 |---|---|
@@ -28,15 +30,19 @@ lo leen del clon local.
 | Workflows, feeds, mapeos, notificaciones | `extracciones/01..13-*.csv` |
 | Consultas de extracción | `extracciones/extracciones.sql` |
 
-Clonar ambos repositorios en la misma carpeta:
+Para re-sincronizar (sólo cuando cambie `fileloading`), clonar ambos repositorios en la misma carpeta:
 
 ```bash
 git clone https://github.com/pablolloce/fileloading
 git clone https://github.com/pablolloce/datos-sinteticos
-# u, otra ubicación:  export FILELOADING_REPO=/ruta/a/fileloading
+cd datos-sinteticos && python3 herramientas/motor/sincronizar_fileloading.py
+# u, otra ubicación:  FILELOADING_REPO=/ruta/a/fileloading python3 herramientas/motor/sincronizar_fileloading.py
 ```
 
 ## Herramientas
+
+El generador (`generar_plsql.py`) aplica las reglas replicadas (`herramientas/motor/reglas_replicadas.py`,
+D-031) antes de traducir cada mensaje; sus pruebas: `python3 herramientas/motor/probar_reglas.py`.
 
 ```bash
 # Reglas que el motor ejecutaría con un mensaje (orden del motor, qué se sabe de cada una)

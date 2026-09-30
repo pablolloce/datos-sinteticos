@@ -619,6 +619,12 @@ AS
 
    -- ==========================================================================
    -- CONTRAPARTIDA_GLOBAL — mensaje mensajes_entrada/Ejemplo_Alta_Contrapartida_Global.xml
+   -- Motor GoldenSource (D-031), reglas en el orden del message set STREETREF:
+   --   Replicadas, sin efecto en este mensaje: setDifusion, ValidateCountryRegion, FLG_Uniqueness
+   --   Pendientes (consultan la BBDD): Uniqueness
+   --   Pendientes (Java sin replicar): CheckUpdateStatusASTYPUEMIR
+   --   Pendientes de huella (nativas del segmento): CGSCEndDateIdentifiers [FinancialInstitution B], CFTIConstrSTDFOID [FinancialInstitutionStatistic B], CGSCHandleCompositeKey [FinancialInstitutionGeoUnitPrt B], CGSCHandleCompositeKey [FinsRoleClassification B], CFTIInternalIdentifierCreator [FinancialInstitution F]
+   --   Nativas de Initial/Final pendientes de huella: 19 (ver docs/motor/reglas/)
    -- ==========================================================================
    PROCEDURE crear_contrapartida_global (
       p_cantidad IN PLS_INTEGER DEFAULT 1)
