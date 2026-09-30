@@ -95,5 +95,11 @@ modelos (`MODLID`), secuencias, datos de dominio y el catálogo de notificacione
 5. **Inferencia por nombre y parámetros.** Es lo que recoge hoy `analisis/reglas_nativas.csv`,
    con un nivel de confianza por regla. Sirve para priorizar, no para implementar.
 
+> **Rendimiento de `capturar_huella.sql`:** por defecto (`modo = 'MODIFICADAS'`) sólo lee las tablas
+> que Oracle registra como modificadas desde el inicio de la ventana (`USER_TAB_MODIFICATIONS`); para
+> que la vista esté al día necesita `DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO` (permiso `ANALYZE ANY`).
+> Sin él avisa, y hay que repetir la captura más tarde. `modo = 'TODAS'` lee todas las tablas (horas).
+> Con `transacciones = 'N'` se omiten `FT_T_TRID`/`NTEL`/`MSGP` si son muy grandes.
+
 > **Estado de `capturar_huella.sql`:** escrito y revisado, pero **sin probar** (el entorno
 > donde se preparó no tiene Oracle local). Probar primero en un entorno de pruebas.

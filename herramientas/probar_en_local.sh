@@ -184,7 +184,9 @@ SELECT COUNT(*) AS sinteticas_restantes FROM ft_t_fins WHERE last_chg_usr_id = '
 EOF
 echo "=============== plsql/motor/capturar_huella.sql (ventana de la última hora) ==============="
 DESDE="$(date -u -d '-1 hour' '+%Y-%m-%d %H:%M:%S')"; HASTA="$(date -u -d '+1 hour' '+%Y-%m-%d %H:%M:%S')"
+# En local se usa el modo TODAS: el usuario de pruebas no puede volcar USER_TAB_MODIFICATIONS.
 sed -e "s/^DEFINE desde .*/DEFINE desde   = '$DESDE'/" -e "s/^DEFINE hasta .*/DEFINE hasta   = '$HASTA'/" \
+    -e "s/^DEFINE modo .*/DEFINE modo    = 'TODAS'/" \
     "$RAIZ/plsql/motor/capturar_huella.sql" > /tmp/capturar_huella_local.sql
 docker cp /tmp/capturar_huella_local.sql "$CONTENEDOR:/tmp/plsql/capturar_huella_local.sql"
 sqlplus <<'EOF' | grep -E "ORA-|SP2-|Tablas revisadas|CON_FILAS|^ *[0-9]+ *$" || true

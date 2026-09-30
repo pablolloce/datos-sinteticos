@@ -19,8 +19,14 @@
 --   3. Exportar el resultado de la última consulta (SINT_HUELLA) a CSV
 --      (clic derecho > Exportar > csv) y dejarlo en huellas/<Mensaje>.csv.
 --
--- Rendimiento: recorre las tablas que casan con &tablas (sin índice por
--- LAST_CHG_TMS, lectura completa). Acotar con &tablas si el esquema es grande.
+-- Rendimiento (LAST_CHG_TMS no tiene índice: cada tabla revisada es una lectura completa):
+--   &modo = 'MODIFICADAS' (por defecto): sólo se leen las tablas que Oracle ha registrado
+--     como modificadas desde el inicio de la ventana (USER_TAB_MODIFICATIONS, tras
+--     DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO). Pasa de ~2.300 tablas a unas pocas.
+--     Si el usuario no tiene permiso para el FLUSH (ANALYZE ANY), la vista sólo se actualiza
+--     periódicamente: el script lo avisa y conviene repetir la captura pasado un rato.
+--   &modo = 'TODAS': todas las tablas con LAST_CHG_TMS (lento: puede tardar horas).
+--   Progreso desde otra sesión: SELECT module, action FROM v$session WHERE module = 'capturar_huella';
 --
 -- Crea (si no existe) la tabla SINT_HUELLA, que sólo contiene la última captura.
 -- Para eliminarla: DROP TABLE sint_huella PURGE;
@@ -31,6 +37,11 @@ SET VERIFY OFF
 -- Ventana de tiempo (formato AAAA-MM-DD HH24:MI:SS). Holgura de unos segundos.
 DEFINE desde   = '2026-09-30 10:00:00'
 DEFINE hasta   = '2026-09-30 10:05:00'
+-- MODIFICADAS (rápido, recomendado) o TODAS (lento).
+DEFINE modo    = 'MODIFICADAS'
+-- S = capturar también la transacción del motor (FT_T_TRID, FT_T_NTEL, FT_T_MSGP); N = omitirla
+-- (usar N si esas tablas son muy grandes y la captura sigue tardando).
+DEFINE transacciones = 'S'
 -- Patrón LIKE de tablas a revisar ('%' = todas las que tienen LAST_CHG_TMS).
 DEFINE tablas  = '%'
 -- Patrón LIKE de LAST_CHG_USR_ID. Dejar '%': las reglas escriben con otros usuarios
@@ -68,6 +79,10 @@ DECLARE
   l_ctx    DBMS_XMLGEN.ctxHandle;
   l_xml    CLOB;
   l_tablas PLS_INTEGER := 0;
+  l_flush  BOOLEAN := TRUE;
+  l_modo   VARCHAR2(20) := UPPER('&modo');
+  l_ini    NUMBER;
+  l_lentas VARCHAR2(4000);
 
   -- Inserta en SINT_HUELLA el XML (ROWSET/ROW) de una consulta.
   PROCEDURE guardar(p_tabla VARCHAR2, p_consulta VARCHAR2, p_filas NUMBER) IS
@@ -84,6 +99,20 @@ DECLARE
   END guardar;
 BEGIN
   DELETE FROM sint_huella;
+  DBMS_APPLICATION_INFO.set_module('capturar_huella', 'inicio');
+
+  IF l_modo = 'MODIFICADAS' THEN
+    -- Vuelca a USER_TAB_MODIFICATIONS los contadores de DML que Oracle guarda en memoria.
+    BEGIN
+      DBMS_STATS.flush_database_monitoring_info;
+    EXCEPTION
+      WHEN OTHERS THEN
+        l_flush := FALSE;
+        DBMS_OUTPUT.put_line('AVISO: no se ha podido ejecutar DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO ('
+                             || SQLERRM || '). USER_TAB_MODIFICATIONS puede no incluir aún los cambios '
+                             || 'más recientes: repetir la captura más tarde o pedir ANALYZE ANY al DBA.');
+    END;
+  END IF;
 
   -- 1. Filas de negocio modificadas en la ventana.
   FOR t IN (SELECT c.table_name
@@ -92,9 +121,16 @@ BEGIN
              WHERE c.column_name = 'LAST_CHG_TMS'
                AND c.table_name LIKE '&tablas'
                AND NOT REGEXP_LIKE(c.table_name, c_excluir)
+               AND (l_modo = 'TODAS'
+                    OR EXISTS (SELECT 1 FROM user_tab_modifications m
+                                WHERE m.table_name = c.table_name
+                                  AND m.timestamp >= l_desde - 1 / 1440
+                                  AND m.inserts + m.updates + m.deletes > 0))
              ORDER BY c.table_name)
   LOOP
     l_tablas := l_tablas + 1;
+    l_ini    := DBMS_UTILITY.get_time;
+    DBMS_APPLICATION_INFO.set_action(SUBSTR(l_tablas || ': ' || t.table_name, 1, 64));
     l_sql := 'SELECT COUNT(*) FROM "' || t.table_name || '" WHERE last_chg_tms BETWEEN :d AND :h'
           || CASE WHEN '&usuario' <> '%' THEN ' AND last_chg_usr_id LIKE ''&usuario''' END;
     BEGIN
@@ -110,7 +146,12 @@ BEGIN
       WHEN OTHERS THEN
         DBMS_OUTPUT.put_line('Aviso: ' || t.table_name || ' no se ha podido leer: ' || SQLERRM);
     END;
+    IF DBMS_UTILITY.get_time - l_ini > 1000 AND NVL(LENGTH(l_lentas), 0) < 3800 THEN   -- > 10 s
+      l_lentas := l_lentas || ' ' || t.table_name || ' (' || ROUND((DBMS_UTILITY.get_time - l_ini) / 100) || ' s)';
+    END IF;
   END LOOP;
+  DBMS_APPLICATION_INFO.set_action('transacciones');
+  IF UPPER('&transacciones') = 'S' THEN
 
   -- 2. Transacciones del motor creadas en la ventana, sus notificaciones y el
   --    mensaje procesado (sin el BLOB; ver consulta final para exportarlo).
@@ -126,10 +167,17 @@ BEGIN
           || 'DBMS_LOB.getlength(p.proc_msg_bin) AS bytes FROM ft_t_msgp p WHERE p.trn_id IN '
           || '(SELECT trn_id FROM ft_t_trid WHERE created_tms BETWEEN '
           || 'TO_DATE(:D, ''YYYY-MM-DD HH24:MI:SS'') AND TO_DATE(:H, ''YYYY-MM-DD HH24:MI:SS''))', NULL);
+  END IF;
   COMMIT;
 
   SELECT COUNT(*) INTO l_n FROM sint_huella WHERE tabla NOT LIKE '#%';
-  DBMS_OUTPUT.put_line('Tablas revisadas: ' || l_tablas || ' · con cambios en la ventana: ' || l_n);
+  DBMS_OUTPUT.put_line('Modo ' || l_modo || CASE WHEN l_modo = 'MODIFICADAS' AND NOT l_flush
+                       THEN ' (sin FLUSH: puede faltar algo)' END
+                       || ' · tablas revisadas: ' || l_tablas || ' · con cambios en la ventana: ' || l_n);
+  IF l_lentas IS NOT NULL THEN
+    DBMS_OUTPUT.put_line('Tablas lentas (> 10 s):' || l_lentas);
+  END IF;
+  DBMS_APPLICATION_INFO.set_module(NULL, NULL);
 END;
 /
 
@@ -148,5 +196,6 @@ SELECT t.trn_id, s.sub_msg_bin, f.fmt_msg_bin, p.proc_msg_bin
   LEFT JOIN ft_t_msgs s ON s.trn_id = t.trn_id
   LEFT JOIN ft_t_msgf f ON f.trn_id = t.trn_id
   LEFT JOIN ft_t_msgp p ON p.trn_id = t.trn_id
- WHERE t.created_tms BETWEEN TO_DATE('&desde', 'YYYY-MM-DD HH24:MI:SS')
+ WHERE UPPER('&transacciones') = 'S'
+   AND t.created_tms BETWEEN TO_DATE('&desde', 'YYYY-MM-DD HH24:MI:SS')
                          AND TO_DATE('&hasta', 'YYYY-MM-DD HH24:MI:SS');
