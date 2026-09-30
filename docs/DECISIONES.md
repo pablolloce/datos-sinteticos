@@ -268,6 +268,22 @@ Plantilla:
   - `EXEC pkg_sint.limpiar_restos;`: ocasional y lento, para restos no registrados (p. ej.
     datos creados por versiones anteriores del generador).
 
+### D-026 — Borrado lento por FKs sin índice en tablas hijas
+- Fecha: 2026-09-30 · Estado: VIGENTE (pendiente de acción del DBA, P-012)
+- Contexto: `eliminar_bbdd` sigue siendo muy lento en KYTL_GC aunque borra por PK. Medido en
+  local: borrar 1 fila padre cuya tabla hija (3 M filas) tiene una FK activa SIN índice tarda
+  7,4 s; con índice, 0,01 s. Oracle comprueba la hija por CADA fila padre borrada (5 filas en
+  una sentencia ≈ 5 recorridos) y además la bloquea mientras dura. `FT_T_FINS` y `FT_T_FINR`
+  tienen 14 FKs activas desde otras tablas (FINS_REGULATION_ATTR con 2,1 M filas, ETPY, FIRR,
+  ATRN, PFIN, RMPS, RGAT, FLMR, FPPR).
+- Decisión: no se puede resolver desde el generador (no se deben desactivar constraints de
+  GoldenSource). Se genera `plsql/diagnostico_borrado.sql`, que lista las FKs activas hacia las
+  tablas gestionadas, si están indexadas, las filas de la hija y el `CREATE INDEX` propuesto.
+  La solución es que el DBA cree esos índices (práctica recomendada de Oracle: toda FK con
+  borrados en el padre debe estar indexada; también evita bloqueos de la tabla hija).
+- Consecuencias: el coste de `eliminar_bbdd` es ≈ nº de filas padre sintéticas × nº de FKs
+  sin índice × tamaño de las hijas, hasta que existan los índices.
+
 ---
 
 ## Preguntas abiertas
@@ -285,3 +301,4 @@ Plantilla:
 | P-009 | Volumen esperado. | RESUELTA: cientos de entidades (303 contrapartidas = 3.030 filas en ~0,05 s en local) |
 | P-010 | Firma exacta de `NEW_OID`. | RESUELTA: función sin parámetros que devuelve el OID de 10 caracteres, accesible desde `KYTL_GC` (D-008) |
 | P-011 | Variaciones y cantidades de la Contrapartida Global. | RESUELTA → D-014 (una entidad idéntica al mensaje; variaciones sólo por petición) |
+| P-012 | ¿Puede el DBA crear los índices que propone `plsql/diagnostico_borrado.sql` sobre las FKs sin índice (D-026)? ¿Edición Enterprise (para `CREATE INDEX ... ONLINE`)? | ABIERTA |

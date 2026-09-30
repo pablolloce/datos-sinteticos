@@ -29,7 +29,10 @@ En su lugar, cada inserción anota su PK en `SINT_REGISTRO`:
 - El borrado lee las claves de una tabla (`BULK COLLECT`) y lanza un `FORALL` de
   `DELETE ... WHERE pk = :clave`: cada fila se localiza por el índice único de la PK.
 - La verificación recorre el registro (pequeño) y comprueba cada clave con `EXISTS` sobre la PK.
-El coste es proporcional a las filas sintéticas (cientos), no al tamaño de las tablas (millones).
+El coste es proporcional a las filas sintéticas (cientos), no al tamaño de las tablas (millones),
+**siempre que las FKs de otras tablas hacia las tablas borradas estén indexadas** (D-026):
+si no, Oracle recorre cada tabla hija por cada fila padre borrada (medido: 7,4 s por fila con
+una hija de 3 M filas sin índice, 0,01 s con índice). `plsql/diagnostico_borrado.sql` las lista.
 
 ## SQL estático generado
 Cada entidad se traduce a INSERT estáticos. Frente a un motor genérico que construyera SQL

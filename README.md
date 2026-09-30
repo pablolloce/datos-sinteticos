@@ -28,6 +28,10 @@ EXEC pkg_sint.limpiar_restos;  -- ocasional y LENTO: borra restos no registrados
 `plsql/crear_bbdd_sintetica.sql` y `plsql/eliminar_bbdd_sintetica.sql` hacen lo mismo con F5.
 `plsql/desinstalar.sql` borra datos, paquete y tabla de registro.
 
+Si `eliminar_bbdd` es lento: `plsql/diagnostico_borrado.sql` (F5, sólo consulta) lista las
+claves ajenas activas de otras tablas hacia las tablas del generador que no tienen índice y
+propone el `CREATE INDEX` (a validar por el DBA). Ver D-026.
+
 ## Herramientas (desarrollo)
 
 ```bash

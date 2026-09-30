@@ -123,6 +123,7 @@ plsql/instalar.sql                 <- F5: desinstala versiones anteriores + SINT
 plsql/crear_bbdd_sintetica.sql     <- F5: EXEC pkg_sint.crear_bbdd (sólo inserts)
 plsql/eliminar_bbdd_sintetica.sql  <- F5: EXEC pkg_sint.eliminar_bbdd (sólo borrado por clave)
 plsql/desinstalar.sql              <- borra datos, PKG_SINT y SINT_REGISTRO
+plsql/diagnostico_borrado.sql      <- (generado) FKs activas hacia tablas gestionadas sin índice (D-026)
 plsql/fuente/nucleo_*.sql          <- núcleo escrito a mano (fragmentos que se insertan en PKG_SINT)
 plsql/generado/pkg_sint.pks/.pkb   <- (generado) EL paquete: núcleo + entidades por unidad + API
 plsql/generado/manifiesto.json     <- (generado) tablas, orden de purga, conteos, tamaño
