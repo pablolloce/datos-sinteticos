@@ -319,6 +319,9 @@ Plantilla:
   (`gc_min_filas_hija`; las pequeñas se recorren al instante). Después borra y elimina todos
   los `SINT_TMP_*`, también ante error. `instalar.sql` y `desinstalar.sql` limpian los que
   hubieran quedado. Un solo job a la vez (los índices son compartidos).
+- Medido en KYTL_GC (2026-09-30): 5 contrapartidas (50 filas) borradas en 1 min 27 s, frente a
+  ~4 min 50 s sin índices temporales (5 × 58,5 s); el tiempo es casi todo creación de índices
+  (p. ej. FT_T_ENFR 1,1 M filas 4,5 s; FT_T_SSIR 1 M filas 3,4 s; FT_T_ADTP 0,8 M filas 3,1 s).
 - Consecuencias: el borrado cuesta ≈ crear los índices una vez (independiente del nº de
   entidades) en lugar de una lectura completa de cada hija por fila padre. Con 1 sola fila
   padre no se crean (sería más lento). Mientras existen, los índices ocupan espacio (el de

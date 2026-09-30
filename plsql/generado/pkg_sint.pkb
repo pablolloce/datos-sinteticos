@@ -432,6 +432,34 @@ AS
       RETURN l_job;
    END lanzar_job_borrado;
 
+   /* Imprime, línea a línea, la salida completa de un job (BLOB en el juego de caracteres
+      de la BBDD). Se convierte a CLOB entero para no partir caracteres multibyte. */
+   PROCEDURE imprimir_salida (p_salida IN BLOB)
+   IS
+      l_texto   CLOB;
+      l_destino INTEGER := 1;
+      l_origen  INTEGER := 1;
+      l_ctx     INTEGER := DBMS_LOB.default_lang_ctx;
+      l_aviso   INTEGER;
+      l_pos     INTEGER := 1;
+      l_fin     INTEGER;
+      l_largo   INTEGER;
+   BEGIN
+      DBMS_LOB.createtemporary(l_texto, TRUE);
+      DBMS_LOB.converttoclob(l_texto, p_salida, DBMS_LOB.lobmaxsize, l_destino, l_origen,
+                             DBMS_LOB.default_csid, l_ctx, l_aviso);
+      l_largo := DBMS_LOB.getlength(l_texto);
+      WHILE l_pos <= l_largo LOOP
+         l_fin := DBMS_LOB.instr(l_texto, CHR(10), l_pos);
+         IF l_fin = 0 THEN
+            l_fin := l_largo + 1;
+         END IF;
+         DBMS_OUTPUT.put_line(DBMS_LOB.substr(l_texto, LEAST(l_fin - l_pos, 32000), l_pos));
+         l_pos := l_fin + 1;
+      END LOOP;
+      DBMS_LOB.freetemporary(l_texto);
+   END imprimir_salida;
+
    /* Estado del borrado en segundo plano: claves pendientes, jobs en curso y últimas
       ejecuciones (con su error, si lo hubo). */
    PROCEDURE informe_borrado
@@ -462,14 +490,20 @@ AS
                CASE WHEN r.status <> 'SUCCEEDED' THEN '  ' || SUBSTR(r.additional_info, 1, 300) END);
       END LOOP;
 
-      -- Salida (trazas) de la última ejecución: tiempos de índices y de cada tabla
+      -- Salida (trazas) de la última ejecución: tiempos de índices y de cada tabla.
+      -- OUTPUT sólo guarda 4.000 caracteres; la salida completa está en BINARY_OUTPUT.
       FOR r IN (SELECT * FROM (
-                   SELECT job_name, output FROM user_scheduler_job_run_details
-                    WHERE job_name LIKE gc_prefijo_job || '%' AND output IS NOT NULL
+                   SELECT job_name, binary_output, output FROM user_scheduler_job_run_details
+                    WHERE job_name LIKE gc_prefijo_job || '%'
+                      AND (binary_output IS NOT NULL OR output IS NOT NULL)
                     ORDER BY log_date DESC)
                  WHERE ROWNUM = 1) LOOP
          traza('Salida de ' || r.job_name || ':');
-         DBMS_OUTPUT.put_line(DBMS_LOB.substr(r.output, 30000, 1));
+         IF r.binary_output IS NOT NULL AND DBMS_LOB.getlength(r.binary_output) > 0 THEN
+            imprimir_salida(r.binary_output);
+         ELSE
+            DBMS_OUTPUT.put_line(r.output);
+         END IF;
       END LOOP;
 
       FOR r IN (SELECT index_name, table_name FROM user_indexes

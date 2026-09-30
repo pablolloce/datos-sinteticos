@@ -1,6 +1,6 @@
 {
   "paquete": "PKG_SINT",
-  "lineas_cuerpo": 1069,
+  "lineas_cuerpo": 1103,
   "tablas_gestionadas": [
     "FT_T_FINS",
     "FT_T_FIST",
