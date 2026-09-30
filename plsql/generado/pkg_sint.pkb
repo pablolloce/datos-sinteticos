@@ -22,9 +22,9 @@ AS
  *    2. ENTIDADES   un procedimiento crear_<entidad> por mensaje, agrupados por unidad
  *    3. API         crear_bbdd, eliminar_bbdd, estado_borrado, resumen, verificar, limpiar_restos
  *
- * Entidades: 1 · Variaciones: 0 · Tablas gestionadas: 8
+ * Entidades: 1 · Variaciones: 0 · Tablas gestionadas: 9
  *   Unidad Procedimiento                  Filas  Mensaje
- *   FINS   crear_contrapartida_global       10 filas  mensajes_entrada/Ejemplo_Alta_Contrapartida_Global.xml
+ *   FINS   crear_contrapartida_global       11 filas  mensajes_entrada/Ejemplo_Alta_Contrapartida_Global.xml
  ******************************************************************************/
 
    -- #########################################################################
@@ -80,7 +80,8 @@ AS
       'FT_T_FINR',
       'FT_T_FIRL',
       'FT_T_ENFR',
-      'FT_T_FRCL');
+      'FT_T_FRCL',
+      'REGISTER_LOG_TABLE');
 
    -- Filas sintéticas esperadas tras crear_bbdd, en el mismo orden que g_tablas.
    g_filas_esperadas CONSTANT t_lista_numeros := t_lista_numeros(
@@ -91,10 +92,12 @@ AS
       1,
       1,
       2,
+      1,
       1);
 
    -- Orden de borrado: hijas antes que padres (calculado a partir de las FKs).
    g_tablas_purga CONSTANT t_lista_tablas := t_lista_tablas(
+      'REGISTER_LOG_TABLE',
       'FT_T_FRCL',
       'FT_T_ENFR',
       'FT_T_FIRL',
@@ -637,7 +640,7 @@ AS
    --   Pendientes (consultan la BBDD): Uniqueness
    --   Pendientes (Java sin replicar): CheckUpdateStatusASTYPUEMIR
    --   Pendientes de huella (nativas del segmento): CGSCEndDateIdentifiers [FinancialInstitution B], CFTIConstrSTDFOID [FinancialInstitutionStatistic B], CGSCHandleCompositeKey [FinancialInstitutionGeoUnitPrt B], CGSCHandleCompositeKey [FinsRoleClassification B], CFTIInternalIdentifierCreator [FinancialInstitution F]
-   --   Fase 2 · CheckDatosRegulatorios: PENDIENTE — FT_T_RLT1 CONTROLDR (CALCULO=true, REL_TYP=GLOBAL): la tabla del segmento RegisterLogTable (REGISTER_LOG_TABLE, TBL_ID RLT1) está deducida por columnas: confirmarla en esquema/modelo/tablas_manual.csv (D-010)
+   --   Fase 2 · CheckDatosRegulatorios: REPLICADA — FT_T_RLT1 CONTROLDR (CALCULO=true, REL_TYP=GLOBAL)
    --   Fase 2 · AutoCodTesBDI, AuditMex, Sub_CallDifusion, Sub_PublishChanges, RDR_PUBLISH_CG: SIN_ESCRITURA — GLOBAL nueva sin LOCAL/OPERATIVE: no escriben datos de negocio ni de control (CreateShortname sólo deja FT_T_JBLG/FT_T_TRID, no replicadas)
    --   Nativas de Initial/Final pendientes de huella: 19 (ver docs/motor/reglas/)
    -- ==========================================================================
@@ -646,7 +649,7 @@ AS
    IS
       c_usuario           CONSTANT VARCHAR2(30) := gc_usuario_sintetico;
       c_entidad           CONSTANT VARCHAR2(30) := 'CONTRAPARTIDA_GLOBAL';
-      c_filas_por_entidad CONSTANT PLS_INTEGER  := 10;
+      c_filas_por_entidad CONSTANT PLS_INTEGER  := 11;
       l_ahora             CONSTANT DATE         := SYSDATE;   -- START_TMS y LAST_CHG_TMS (D-007)
 
       -- Claves internas de UNA entidad: una por cada OID del mensaje que se inserta
@@ -661,7 +664,8 @@ AS
          k_firl_oid          ft_t_firl.firl_oid%TYPE,                         -- FT_T_FIRL.FIRL_OID (no viene en el mensaje)
          k_enfr_oid          ft_t_enfr.enfr_oid%TYPE,                         -- FT_T_ENFR.ENFR_OID (mensaje: f-uDI7(qW1)
          k_enfr_oid_2        ft_t_enfr.enfr_oid%TYPE,                         -- FT_T_ENFR.ENFR_OID (mensaje: f-uEI7(qW1)
-         k_finr_clsf_oid     ft_t_frcl.finr_clsf_oid%TYPE                     -- FT_T_FRCL.FINR_CLSF_OID (no viene en el mensaje)
+         k_finr_clsf_oid     ft_t_frcl.finr_clsf_oid%TYPE,                    -- FT_T_FRCL.FINR_CLSF_OID (no viene en el mensaje)
+         k_rlt_oid           register_log_table.rlt_oid%TYPE                  -- REGISTER_LOG_TABLE.RLT_OID (no viene en el mensaje)
       );
       TYPE t_lista_claves IS TABLE OF t_claves INDEX BY PLS_INTEGER;
 
@@ -729,6 +733,7 @@ AS
          l_k(i).k_enfr_oid          := nuevo_oid;
          l_k(i).k_enfr_oid_2        := nuevo_oid;
          l_k(i).k_finr_clsf_oid     := nuevo_oid;
+         l_k(i).k_rlt_oid           := nuevo_oid;
       END LOOP;
 
       SAVEPOINT sp_contrapartida_global;
@@ -1031,6 +1036,44 @@ AS
       FORALL i IN 1 .. l_k.COUNT   -- clave en SINT_REGISTRO para el borrado rápido (D-024)
          INSERT INTO sint_registro (tabla, columna_pk, clave, entidad)
          VALUES ('FT_T_FRCL', 'FINR_CLSF_OID', l_k(i).k_finr_clsf_oid, c_entidad);
+
+      -- Segmento #14 RegisterLogTable (INSERT) -> REGISTER_LOG_TABLE
+      --   Motor: CheckDatosRegulatorios: fila añadida por el workflow CheckDatosRegulatorios (fase 2, D-034)
+      FORALL i IN 1 .. l_k.COUNT
+         INSERT INTO register_log_table (
+             rlt_oid,
+             record_seq_num,
+             message_rlt,
+             rlt_purp_typ,
+             data_src_app,
+             src_field,
+             src_value,
+             gs_field,
+             gs_value,
+             main_entity_nme,
+             main_entity_id,
+             start_tms,
+             last_chg_tms,
+             last_chg_usr_id)
+         VALUES (
+             l_k(i).k_rlt_oid,                          -- RLT_OID           <- clave nueva (NEW_OID)
+             1,                                         -- RECORD_SEQ_NUM    <- RECORDSEQNUM
+             'Control del calculo de datos regulatorios', -- MESSAGE_RLT       <- MESSAGERLT
+             'CONTROLDR',                               -- RLT_PURP_TYP      <- RLTPURPTYP
+             'CALCULODR',                               -- DATA_SRC_APP      <- DATASRCAPP
+             'CALCULO',                                 -- SRC_FIELD         <- SRCFIELD
+             'true',                                    -- SRC_VALUE         <- SRCVALUE
+             'REL_TYP',                                 -- GS_FIELD          <- GSFIELD
+             'GLOBAL',                                  -- GS_VALUE          <- GSVALUE
+             'FT_T_FIID.INST_MNEM',                     -- MAIN_ENTITY_NME   <- MAINENTITYNME
+             l_k(i).k_inst_mnem,                        -- MAIN_ENTITY_ID    <- MAINENTITYID = f-uBI7(qW1 (clave nueva)
+             l_ahora,                                   -- START_TMS         <- técnico (no viene en el mensaje)
+             l_ahora,                                   -- LAST_CHG_TMS      <- técnico (no viene en el mensaje)
+             c_usuario                                  -- LAST_CHG_USR_ID   <- LASTCHGUSRID (marca sintética)
+         );
+      FORALL i IN 1 .. l_k.COUNT   -- clave en SINT_REGISTRO para el borrado rápido (D-024)
+         INSERT INTO sint_registro (tabla, columna_pk, clave, entidad)
+         VALUES ('REGISTER_LOG_TABLE', 'RLT_OID', l_k(i).k_rlt_oid, c_entidad);
 
       traza('CONTRAPARTIDA_GLOBAL: ' || p_cantidad || ' entidad(es), '
                             || p_cantidad * c_filas_por_entidad || ' filas');

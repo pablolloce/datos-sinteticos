@@ -17,8 +17,13 @@ Qué contiene ``modelo.json``:
 Resolución de tabla física de un segmento (TBL_ID = XSEG.SEGMENT_DESC):
     1. ``esquema/modelo/tablas_manual.csv`` (confirmado a mano)       -> origen "manual"
     2. Existe ``FT_T_<TBL_ID>``                                       -> origen "directa"
-    3. Una única tabla contiene todas las columnas XELM del segmento  -> origen "inferida"
-    4. Si no                                                         -> tabla = null
+    3. ``FT_T_<TBL_ID>`` es un sinónimo de una tabla de KYTL_GC
+       (``esquema/old/SINONIMOS_ADICIONALES.csv``)                   -> origen "sinonimo"
+    4. Una única tabla contiene todas las columnas XELM del segmento  -> origen "inferida"
+    5. Si no                                                         -> tabla = null
+
+Los ``*_ADICIONALES.csv`` de columnas y restricciones describen las mismas tablas con el nombre
+del sinónimo; no se cargan como tablas (la estructura es la de la tabla real de KYTL_GC).
 
 Uso:
     python3 herramientas/construir_modelo.py
@@ -45,14 +50,19 @@ csv.field_size_limit(sys.maxsize)
 
 
 def leer(nombre: str):
-    """Filas de esquema/old/<nombre> y, si existe, de su complemento *_ADICIONALES.csv
-    (tablas accedidas por sinónimo, esquema/extraer_tablas_adicionales.sql)."""
-    ficheros = [ORIGEN / nombre, ORIGEN / nombre.replace("_KYTL_GC.csv", "_ADICIONALES.csv")]
-    for ruta in dict.fromkeys(ficheros):
-        if ruta.exists():
-            with ruta.open(encoding="utf-8-sig", newline="") as f:
-                for fila in csv.DictReader(f):
-                    yield {k.strip().upper(): (v or "") for k, v in fila.items() if k is not None}
+    ruta = ORIGEN / nombre
+    if not ruta.exists():
+        return
+    with ruta.open(encoding="utf-8-sig", newline="") as f:
+        for fila in csv.DictReader(f):
+            yield {k.strip().upper(): (v or "") for k, v in fila.items() if k is not None}
+
+
+def cargar_sinonimos() -> dict:
+    """esquema/old/SINONIMOS_ADICIONALES.csv (esquema/extraer_tablas_adicionales.sql, consulta A):
+    nombre que usa la aplicación (p. ej. FT_T_RLT1) -> tabla real de KYTL_GC (REGISTER_LOG_TABLE)."""
+    return {r["NOMBRE"].strip(): r["TABLA_REAL"].strip() for r in leer("SINONIMOS_ADICIONALES.csv")
+            if r["TIPO"].startswith("SINONIMO") and r["OWNER_REAL"].strip() == "KYTL_GC"}
 
 
 def cargar_tablas() -> dict:
@@ -103,6 +113,7 @@ def cargar_manual() -> dict:
 def main() -> int:
     tablas = cargar_tablas()
     manual = cargar_manual()
+    sinonimos = cargar_sinonimos()
 
     xelm: dict = defaultdict(dict)
     for r in leer("XELM.csv"):
@@ -123,6 +134,8 @@ def main() -> int:
             return manual[tbl], "manual"
         if f"FT_T_{tbl}" in tablas:
             return f"FT_T_{tbl}", "directa"
+        if sinonimos.get(f"FT_T_{tbl}") in tablas:
+            return sinonimos[f"FT_T_{tbl}"], "sinonimo"
         significativas = columnas_xelm - COLUMNAS_COMUNES
         if significativas:
             candidatas = [t for t, cs in columnas_por_tabla.items()
@@ -148,11 +161,13 @@ def main() -> int:
         json.dump({"segmentos": segmentos, "tablas": tablas}, f, ensure_ascii=False,
                   separators=(",", ":"), sort_keys=True)
 
+    por_sinonimo = sorted({(s["tbl_id"], s["tabla"]) for s in segmentos.values() if s["origen_tabla"] == "sinonimo"})
     sin_tabla = sorted({s["tbl_id"] for s in segmentos.values() if not s["tabla"]})
     inferidas = sorted({(s["tbl_id"], s["tabla"]) for s in segmentos.values()
                         if s["origen_tabla"] == "inferida"})
     print(f"Modelo escrito en {DESTINO.relative_to(RAIZ)}: "
           f"{len(segmentos)} segmentos, {len(tablas)} tablas.")
+    print(f"TBL_ID resueltos por sinónimo ({len(por_sinonimo)}): " + ", ".join(f"{a}->{b}" for a, b in por_sinonimo))
     print(f"TBL_ID con tabla inferida por columnas ({len(inferidas)}): "
           + ", ".join(f"{a}->{b}" for a, b in inferidas))
     print(f"TBL_ID sin tabla física resuelta ({len(sin_tabla)}): {', '.join(sin_tabla)}")

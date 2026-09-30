@@ -92,7 +92,8 @@ Oracle 19c** sobre la BBDD relacional de GoldenSource (esquema **`KYTL_GC`**, ta
 ## 4. Traducción mensaje XML → INSERT (implementada en el generador)
 
 - `SEGMENT/@TYPE` = `XSEG.SEGMENT_NME`. Tabla: `FT_T_` || `XSEG.SEGMENT_DESC`, salvo tablas
-  custom declaradas en `esquema/modelo/tablas_manual.csv` (D-010).
+  custom declaradas en `esquema/modelo/tablas_manual.csv` o resueltas por sinónimo
+  (`esquema/old/SINONIMOS_ADICIONALES.csv`) (D-010).
 - Elemento `<TAG VALUE="..."/>` → columna vía XELM (heredado del segmento con el mismo
   `SEGMENT_DESC` si no tiene); si el tag no está en XELM, columna física de igual nombre sin
   guiones bajos (D-010). Elementos sin columna física: no se insertan (quedan comentados).
@@ -176,7 +177,7 @@ plsql/pruebas/local/               <- datos maestros mínimos para el Oracle loc
 
 | Entidad | Mensaje | Procedimiento | Unidad | Filas/entidad | Tablas | Estado |
 |---|---|---|---|---|---|---|
-| CONTRAPARTIDA_GLOBAL | `Ejemplo_Alta_Contrapartida_Global.xml` | `pkg_sint.crear_contrapartida_global` | FINS | 10 | FT_T_FINS, FT_T_FIST (x2), FT_T_FIGU, FINANCIAL_LEGAL_NAMES, FT_T_FINR, FT_T_FIRL, FT_T_ENFR (x2), FT_T_FRCL | Probada en local; pendiente de ejecutar en KYTL_GC |
+| CONTRAPARTIDA_GLOBAL | `Ejemplo_Alta_Contrapartida_Global.xml` | `pkg_sint.crear_contrapartida_global` | FINS | 11 | FT_T_FINS, FT_T_FIST (x2), FT_T_FIGU, FINANCIAL_LEGAL_NAMES, FT_T_FINR, FT_T_FIRL, FT_T_ENFR (x2), FT_T_FRCL, REGISTER_LOG_TABLE (fase 2, CONTROLDR) | Réplica del motor (D-031..D-037) pendiente de probar en local y en KYTL_GC; pendiente de huella (reglas nativas) |
 
 Variaciones solicitadas por chat: ninguna.
 

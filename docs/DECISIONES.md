@@ -107,6 +107,10 @@ Plantilla:
   2. Segmento sin XELM → hereda el XELM de otro segmento vigente con el mismo `SEGMENT_DESC`
      (`FINSFinancialLegalNames` hereda de `FinancialLegalNames`, SEGMENT_ID 3001690).
   3. Tag sin XELM → columna física con el mismo nombre sin guiones bajos.
+  4. (2026-09-30) Si `FT_T_<TBL_ID>` es un sinónimo de una tabla de KYTL_GC
+     (`esquema/old/SINONIMOS_ADICIONALES.csv`), esa tabla queda confirmada (origen "sinonimo"),
+     p. ej. `RLT1 → REGISTER_LOG_TABLE`, `FLG1 → FINANCIAL_LEGAL_NAMES`. Los `*_ADICIONALES.csv` de
+     columnas y restricciones no se cargan como tablas (son las mismas, con el nombre del sinónimo).
 
 ### D-011 — Estructura: núcleo + paquetes por unidad funcional
 - Fecha: 2026-09-29 · Estado: SUSTITUIDA POR D-017 (sustituía a D-004)
@@ -437,7 +441,7 @@ Plantilla:
 - Replicado: `Checks` (rama) y `CheckDatosRegulatorios` camino GLOBAL → fila de control `CONTROLDR`
   en `FT_T_RLT1`. Para una contrapartida GLOBAL nueva el resto de workflows no escribe datos de
   negocio ni de control (análisis en `docs/motor/FLUJO_WORKSTATION.md`, apartado 4).
-- Pendiente: la tabla física de `FT_T_RLT1` (P-021).
+- `FT_T_RLT1` = `REGISTER_LOG_TABLE` (sinónimo confirmado, P-021): la Contrapartida Global crea 11 filas.
 
 ---
 
@@ -464,5 +468,5 @@ Plantilla:
 | P-017 | Unicidades del motor: ¿fallar o generar valores únicos? | RESUELTA → D-035 (detectar, avisar por el chat y no actualizar el PL/SQL) |
 | P-018 | ¿Replicar las tablas de control de difusión y cachés? | RESUELTA → D-036 (sí) |
 | P-019 | Extraer W1–W6 (`fileloading/extracciones/extracciones_workstation.sql`). | RESUELTA: subidas a `fileloading/extracciones/` y decodificadas en `fileloading/extracciones/decodificado/` |
-| P-020 | `FLG_Uniqueness` consulta `FT_T_FLG1` y el generador inserta el nombre legal en `FINANCIAL_LEGAL_NAMES` (D-010). ¿`FT_T_FLG1` es un sinónimo o vista de `FINANCIAL_LEGAL_NAMES`? Si no, la validación en BBDD debe consultar `FT_T_FLG1`. | ABIERTA |
-| P-021 | Las tablas custom `FT_T_*1` (p. ej. `FT_T_RLT1`, `FT_T_FLG1`) no están en `ALL_TAB_COLUMNS` de KYTL_GC: el modelo las deduce por columnas (`FT_T_RLT1` → `REGISTER_LOG_TABLE`, coinciden sus 21 columnas). Ejecutar `esquema/extraer_tablas_adicionales.sql` (consulta A, sinónimos) para confirmarlas; con `RLT1,REGISTER_LOG_TABLE` en `esquema/modelo/tablas_manual.csv` se activa la fila CONTROLDR de la Contrapartida Global. Responde también P-020. | ABIERTA |
+| P-020 | ¿`FT_T_FLG1` es sinónimo de `FINANCIAL_LEGAL_NAMES`? | RESUELTA: sí (`SINONIMOS_ADICIONALES.csv`); la validación de D-035 es correcta |
+| P-021 | Tablas custom `FT_T_*1` accedidas por sinónimo. | RESUELTA → D-010 punto 4 (35 TBL_ID confirmados por sinónimo, todos en KYTL_GC) |

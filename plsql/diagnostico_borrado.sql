@@ -22,7 +22,7 @@ COLUMN propuesta   FORMAT A110
 
 WITH gestionadas AS (
    SELECT column_value AS tabla
-     FROM TABLE(sys.odcivarchar2list('FT_T_FINS', 'FT_T_FIST', 'FT_T_FIGU', 'FINANCIAL_LEGAL_NAMES', 'FT_T_FINR', 'FT_T_FIRL', 'FT_T_ENFR', 'FT_T_FRCL'))
+     FROM TABLE(sys.odcivarchar2list('FT_T_FINS', 'FT_T_FIST', 'FT_T_FIGU', 'FINANCIAL_LEGAL_NAMES', 'FT_T_FINR', 'FT_T_FIRL', 'FT_T_ENFR', 'FT_T_FRCL', 'REGISTER_LOG_TABLE'))
 ), fks AS (
    SELECT p.table_name AS padre, c.table_name AS hija, c.constraint_name AS fk
      FROM user_constraints c

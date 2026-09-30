@@ -1,6 +1,6 @@
 {
   "paquete": "PKG_SINT",
-  "lineas_cuerpo": 1136,
+  "lineas_cuerpo": 1179,
   "tablas_gestionadas": [
     "FT_T_FINS",
     "FT_T_FIST",
@@ -9,9 +9,11 @@
     "FT_T_FINR",
     "FT_T_FIRL",
     "FT_T_ENFR",
-    "FT_T_FRCL"
+    "FT_T_FRCL",
+    "REGISTER_LOG_TABLE"
   ],
   "orden_purga": [
+    "REGISTER_LOG_TABLE",
     "FT_T_FRCL",
     "FT_T_ENFR",
     "FT_T_FIRL",
@@ -29,7 +31,8 @@
     "FT_T_FINR": 1,
     "FT_T_FIRL": 1,
     "FT_T_ENFR": 2,
-    "FT_T_FRCL": 1
+    "FT_T_FRCL": 1,
+    "REGISTER_LOG_TABLE": 1
   },
   "tablas_referenciadas": [
     "FT_T_ENTR",
@@ -43,7 +46,7 @@
       "procedimiento": "crear_contrapartida_global",
       "unidad": "FINS",
       "mensaje": "mensajes_entrada/Ejemplo_Alta_Contrapartida_Global.xml",
-      "filas_por_entidad": 10,
+      "filas_por_entidad": 11,
       "avisos": [],
       "motor": [
         {
@@ -283,8 +286,8 @@
           "tipo": "WORKFLOW",
           "segmento": "fase 2",
           "fase": "-",
-          "estado": "PENDIENTE",
-          "detalle": "FT_T_RLT1 CONTROLDR (CALCULO=true, REL_TYP=GLOBAL): la tabla del segmento RegisterLogTable (REGISTER_LOG_TABLE, TBL_ID RLT1) está deducida por columnas: confirmarla en esquema/modelo/tablas_manual.csv (D-010)"
+          "estado": "REPLICADA",
+          "detalle": "FT_T_RLT1 CONTROLDR (CALCULO=true, REL_TYP=GLOBAL)"
         },
         {
           "regla": "AutoCodTesBDI, AuditMex, Sub_CallDifusion, Sub_PublishChanges, RDR_PUBLISH_CG",
