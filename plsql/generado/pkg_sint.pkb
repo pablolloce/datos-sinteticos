@@ -194,19 +194,29 @@ AS
    PROCEDURE borrar_registrados (p_orden  IN t_lista_tablas,
                                  p_commit IN BOOLEAN)
    IS
-      l_total PLS_INTEGER := 0;
-      l_filas PLS_INTEGER;
-      l_tabla VARCHAR2(128);
+      l_total  PLS_INTEGER := 0;
+      l_filas  PLS_INTEGER;
+      l_tabla  VARCHAR2(128);
+      l_inicio PLS_INTEGER;                 -- centésimas de segundo (DBMS_UTILITY.get_time)
+      l_global PLS_INTEGER := DBMS_UTILITY.get_time;
+
+      FUNCTION segundos (p_desde IN PLS_INTEGER) RETURN VARCHAR2 IS
+      BEGIN
+         RETURN TO_CHAR((DBMS_UTILITY.get_time - p_desde) / 100, 'FM99990D00') || ' s';
+      END segundos;
    BEGIN
       traza('Borrando datos sintéticos registrados en SINT_REGISTRO');
       SAVEPOINT sp_borrar;
 
+      -- Se mide cada tabla: si alguna tarda, es que otras tablas tienen FKs activas SIN
+      -- índice hacia ella y Oracle las recorre por cada fila borrada (D-026).
       FOR i IN 1 .. p_orden.COUNT LOOP
-         l_tabla := p_orden(i);
-         l_filas := borrar_tabla_registrada(l_tabla);
-         l_total := l_total + l_filas;
+         l_tabla  := p_orden(i);
+         l_inicio := DBMS_UTILITY.get_time;
+         l_filas  := borrar_tabla_registrada(l_tabla);
+         l_total  := l_total + l_filas;
          IF l_filas > 0 THEN
-            traza('   ' || RPAD(l_tabla, 30) || LPAD(l_filas, 10) || ' filas borradas');
+            traza('   ' || RPAD(l_tabla, 30) || LPAD(l_filas, 10) || ' filas borradas en ' || segundos(l_inicio));
          END IF;
       END LOOP;
 
@@ -220,7 +230,7 @@ AS
       IF p_commit THEN
          COMMIT;
       END IF;
-      traza('Borradas ' || l_total || ' filas sintéticas' ||
+      traza('Borradas ' || l_total || ' filas sintéticas en ' || segundos(l_global) ||
             CASE WHEN p_commit THEN ' (COMMIT)' ELSE ' (pendiente de COMMIT)' END);
    EXCEPTION
       WHEN e_hijos_existentes THEN
