@@ -125,7 +125,9 @@ antes de traducir el mensaje a INSERT. Documentación en [`docs/motor/`](docs/mo
 - Tras tocar una réplica: `python3 herramientas/motor/probar_reglas.py` (añadir un caso por regla).
 - Validaciones que rechazan el mensaje (D-035): `herramientas/motor/validaciones_motor.py`. Si
   `generar_plsql.py` falla con "GoldenSource rechazaría estos mensajes", **no se sube nada**: se
-  devuelve el mensaje de error al usuario por el chat, tal cual, y se espera su indicación.
+  devuelve el mensaje de error al usuario por el chat, tal cual, y **se le pide un valor nuevo para
+  el campo duplicado** que indica el error; nunca se inventa ni se añade un sufijo. Si el error llega
+  al ejecutar en la BBDD (-20006, el valor ya existe en KYTL_GC), se hace lo mismo.
 - Se replican también las tablas de control, difusión y cachés de los workflows posteriores al
   motor (D-036); no los envíos ESB/MQ/JMS, ficheros ni correos.
 - Fase 2 (D-037): `herramientas/motor/flujo_workstation.py` añade al mensaje un segmento por cada

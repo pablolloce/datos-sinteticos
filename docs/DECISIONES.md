@@ -415,6 +415,11 @@ Plantilla:
   2. **Al ejecutar**: cada `crear_<entidad>` comprueba antes de insertar, contra los datos que ya hay
      en la BBDD, lo mismo que el motor; si lo rechazaría, falla con `ge_rechazo_motor` (-20006) y el
      texto de la notificación, sin crear nada (`crear_bbdd` se deshace entera).
+- Si hay un duplicado **se pide que se cambie el valor** (indicación del usuario, 2026-09-30): los
+  mensajes de error, al generar y al ejecutar, dicen qué campo duplicado hay que cambiar
+  (`Segmento/ETIQUETA` del mensaje o parámetro `P_...`) y Claude pide al usuario por el chat el nuevo
+  valor; nunca se cambia por su cuenta (sin sufijos automáticos). El nuevo valor se aplica como
+  parámetro + variación (D-014) o editando el mensaje si el usuario lo indica.
 - Replicadas: `FLG_Uniqueness` (nombre legal). Pendiente: `Uniqueness` (identificadores).
 - Consecuencias: un mensaje cuyo nombre legal ya existe en `KYTL_GC` (p. ej. porque se guardó
   desde la Workstation para obtenerlo) no se puede crear tal cual: hay que parametrizar el nombre

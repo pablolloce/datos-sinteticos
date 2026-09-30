@@ -59,6 +59,14 @@ def _filas_nombre_legal(entidad) -> list:
     return filas
 
 
+def _campo(f, col) -> str:
+    """Dónde se cambia el valor: parámetro de la entidad o Segmento/etiqueta del mensaje."""
+    tag = col.origen.split(" ")[0]
+    if not col.expresion.startswith("'"):
+        return f"parámetro {col.expresion.upper()} ({f.segmento}/{tag})"
+    return f"{f.segmento}/{tag} del mensaje"
+
+
 def _valor(expresion: str, valores_param: dict) -> str:
     """Valor de una expresión del generador: literal '...' o parámetro p_x."""
     if expresion.startswith("'"):
@@ -96,12 +104,14 @@ def validar_generacion(entidades: list, variaciones: list, identificador) -> lis
         for f, col in _filas_nombre_legal(ll.entidad):
             nombre = _valor(col.expresion, ll.valores)
             msg = texto_notificacion("JAVARULE", 9001, {"IdTyp": "Legal Name", "Ident": nombre})
+            pedir = (f" → Indica otro nombre legal para {_campo(f, col)} "
+                     "(un valor distinto por cada entidad).")
             if ll.cantidad > 1:
                 errores.append(f"FLG_Uniqueness — {ll.origen}: se piden {ll.cantidad} entidades con el mismo "
-                               f"nombre legal '{nombre}'. GoldenSource rechazaría desde la 2ª: {msg}")
+                               f"nombre legal '{nombre}'. GoldenSource rechazaría desde la 2ª: {msg}{pedir}")
             if nombre in vistos:
                 errores.append(f"FLG_Uniqueness — {ll.origen}: el nombre legal '{nombre}' ya lo crea "
-                               f"{vistos[nombre]}. GoldenSource rechazaría el mensaje: {msg}")
+                               f"{vistos[nombre]}. GoldenSource rechazaría el mensaje: {msg}{pedir}")
             vistos.setdefault(nombre, ll.origen)
     return errores
 
@@ -115,12 +125,15 @@ def validaciones_bbdd(entidad) -> list[str]:
         texto = texto_notificacion("JAVARULE", 9001, {"IdTyp": "Legal Name", "Ident": "#N#"})
         antes, despues = texto.split("#N#")
         msg = f"'{antes.replace(chr(39), chr(39) * 2)}' || {expr} || '{despues.replace(chr(39), chr(39) * 2)}'"
+        texto_pedir = (f" Ya existe en la BBDD: pide por el chat que se cambie el nombre legal "
+                       f"({_campo(f, col)}) por uno que no exista.")
+        pedir = "'" + texto_pedir.replace("'", "''") + "'"
         bloques.append(f"""      -- FLG_Uniqueness (segmento #{f.numero} {f.segmento}): el nombre legal no puede estar ya ACTIVO.
       -- Varias entidades en una llamada tendrían el mismo nombre: GoldenSource rechazaría desde la 2ª.
       rechazar_si_existe(CASE WHEN p_cantidad > 1 THEN 1 ELSE 0 END, 'FLG_Uniqueness',
-                         {msg} || ' (se piden ' || p_cantidad || ' entidades con el mismo nombre legal)');
+                         {msg} || ' Se piden ' || p_cantidad || ' entidades con el mismo nombre legal: pide por el chat un nombre legal distinto para cada una.');
       SELECT COUNT(*) INTO l_existe FROM {f.tabla.lower()}
        WHERE flg_legal_nme = {expr}
          AND data_stat_typ = 'ACTIVE';
-      rechazar_si_existe(l_existe, 'FLG_Uniqueness', {msg});""")
+      rechazar_si_existe(l_existe, 'FLG_Uniqueness', {msg} || {pedir});""")
     return bloques

@@ -680,11 +680,11 @@ AS
       -- FLG_Uniqueness (segmento #6 FINSFinancialLegalNames): el nombre legal no puede estar ya ACTIVO.
       -- Varias entidades en una llamada tendrían el mismo nombre: GoldenSource rechazaría desde la 2ª.
       rechazar_si_existe(CASE WHEN p_cantidad > 1 THEN 1 ELSE 0 END, 'FLG_Uniqueness',
-                         'STRDATA/JAVARULE/9001 (ERROR): Legal Name: ' || 'PROBANDO' || ' already exist.' || ' (se piden ' || p_cantidad || ' entidades con el mismo nombre legal)');
+                         'STRDATA/JAVARULE/9001 (ERROR): Legal Name: ' || 'PROBANDO' || ' already exist.' || ' Se piden ' || p_cantidad || ' entidades con el mismo nombre legal: pide por el chat un nombre legal distinto para cada una.');
       SELECT COUNT(*) INTO l_existe FROM financial_legal_names
        WHERE flg_legal_nme = 'PROBANDO'
          AND data_stat_typ = 'ACTIVE';
-      rechazar_si_existe(l_existe, 'FLG_Uniqueness', 'STRDATA/JAVARULE/9001 (ERROR): Legal Name: ' || 'PROBANDO' || ' already exist.');
+      rechazar_si_existe(l_existe, 'FLG_Uniqueness', 'STRDATA/JAVARULE/9001 (ERROR): Legal Name: ' || 'PROBANDO' || ' already exist.' || ' Ya existe en la BBDD: pide por el chat que se cambie el nombre legal (FINSFinancialLegalNames/FLGLEGALNME del mensaje) por uno que no exista.');
 
       -------------------------------------------------------------------------
       -- 1. Datos maestros referenciados: deben existir (D-019)
