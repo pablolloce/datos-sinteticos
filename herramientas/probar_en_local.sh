@@ -173,6 +173,42 @@ DROP TABLE hija_sin_indice PURGE;
 DELETE ft_t_fins WHERE inst_mnem = 'REALFINS01';
 COMMIT;
 EOF
+echo "=============== P-008: registro NO sintético que cuelga de uno sintético (D-038) ==============="
+sqlplus <<'EOF'
+SET FEEDBACK OFF SERVEROUTPUT ON
+CREATE TABLE hija_de_prueba (id NUMBER PRIMARY KEY, inst_mnem CHAR(10) CONSTRAINT hija_de_prueba_fk REFERENCES ft_t_fins);
+EXEC pkg_sint.set_trazas(FALSE);
+@crear_bbdd_sintetica.sql
+EXEC pkg_sint.set_trazas(TRUE);
+-- Una "prueba" crea un registro propio (no sintético) colgando de la contrapartida sintética
+INSERT INTO hija_de_prueba SELECT 1, clave FROM sint_registro WHERE tabla = 'FT_T_FINS';
+COMMIT;
+PROMPT == eliminar: debe borrar todo menos FT_T_FINS (BLOQUEADA)
+EXEC pkg_sint.eliminar_bbdd(p_segundo_plano => FALSE);
+SELECT 'BLOQUEADAS=' || COUNT(*) || ' en ' || LISTAGG(DISTINCT tabla, ',') AS r FROM sint_registro WHERE estado = 'BLOQUEADO';
+EXEC pkg_sint.estado_borrado;
+PROMPT == crear de nuevo con la anterior bloqueada (debe poder)
+EXEC pkg_sint.set_trazas(FALSE);
+@crear_bbdd_sintetica.sql
+EXEC pkg_sint.set_trazas(TRUE);
+PROMPT == la prueba borra su registro: eliminar reintenta las BLOQUEADAS y borra todo
+DELETE hija_de_prueba;
+COMMIT;
+EXEC pkg_sint.eliminar_bbdd(p_segundo_plano => FALSE);
+SELECT 'REGISTRO_RESTANTE=' || COUNT(*) AS r FROM sint_registro;
+PROMPT == limpiar_restos con un registro colgando: borra el resto y deja la FINS
+@crear_bbdd_sintetica.sql
+INSERT INTO hija_de_prueba SELECT 2, clave FROM sint_registro WHERE tabla = 'FT_T_FINS';
+COMMIT;
+EXEC pkg_sint.limpiar_restos;
+SELECT 'TRAS_LIMPIAR: registro=' || COUNT(*) || ' ' || MAX(estado) AS r FROM sint_registro;
+SELECT 'SINTETICAS_EN_TABLAS=' || COUNT(*) AS r FROM ft_t_fins WHERE last_chg_usr_id = 'TESTING:RDR';
+DELETE hija_de_prueba;
+COMMIT;
+EXEC pkg_sint.eliminar_bbdd(p_segundo_plano => FALSE);
+DROP TABLE hija_de_prueba PURGE;
+SELECT 'FINAL_REGISTRO=' || COUNT(*) AS r FROM sint_registro;
+EOF
 echo "=============== crear + limpiar_restos (borra también lo no registrado) ==============="
 sqlplus <<'EOF'
 SET FEEDBACK OFF

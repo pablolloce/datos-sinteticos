@@ -56,6 +56,8 @@ AS
    -- Estados de una clave en SINT_REGISTRO (D-027).
    gc_activo   CONSTANT VARCHAR2(10) := 'ACTIVO';     -- fila creada y vigente
    gc_borrando CONSTANT VARCHAR2(10) := 'BORRANDO';   -- eliminación pedida; la borra el job
+   gc_bloqueado CONSTANT VARCHAR2(10) := 'BLOQUEADO'; -- no se pudo borrar: cuelgan de ella
+                                                     -- registros no sintéticos (P-008, D-038)
 
    -- Borrado en segundo plano (D-027).
    gc_prefijo_job    CONSTANT VARCHAR2(20) := 'SINT_ELIM_';   -- nombre de los jobs
@@ -69,6 +71,9 @@ AS
    -- ORA-02292: existen registros hijos que referencian la fila a borrar.
    e_hijos_existentes EXCEPTION;
    PRAGMA EXCEPTION_INIT(e_hijos_existentes, -2292);
+   -- ORA-24381: errores en un FORALL ... SAVE EXCEPTIONS (detalle en SQL%BULK_EXCEPTIONS).
+   e_errores_forall EXCEPTION;
+   PRAGMA EXCEPTION_INIT(e_errores_forall, -24381);
 
    -- ---- Datos generados (API) -------------------------------------------------
    -- Tablas gestionadas en orden de primera inserción (resumen y verificación).
@@ -234,17 +239,48 @@ AS
       RETURN l_tablas;
    END tablas_pendientes;
 
-   /* Paso 1 de la eliminación (inmediato): pasa todas las claves ACTIVAS a BORRANDO.
-      Devuelve cuántas. A partir de aquí crear_bbdd puede volver a ejecutarse. */
+   /* Paso 1 de la eliminación (inmediato): pasa todas las claves ACTIVAS a BORRANDO, y
+      también las BLOQUEADAS de eliminaciones anteriores (se reintentan: puede que ya no
+      cuelgue nada de ellas). Devuelve cuántas. A partir de aquí crear_bbdd puede volver
+      a ejecutarse. */
    FUNCTION marcar_para_borrar RETURN PLS_INTEGER
    IS
       l_n PLS_INTEGER;
    BEGIN
-      UPDATE sint_registro SET estado = gc_borrando WHERE estado = gc_activo;
+      UPDATE sint_registro SET estado = gc_borrando WHERE estado IN (gc_activo, gc_bloqueado);
       l_n := SQL%ROWCOUNT;
       COMMIT;
       RETURN l_n;
    END marcar_para_borrar;
+
+   /* Por qué no se puede borrar una fila BLOQUEADA de p_tabla (P-008, D-038): repite el
+      DELETE de una de ellas (falla y Oracle lo deshace, no borra nada) y devuelve la FK y la
+      tabla hija del error ORA-02292. Sólo se llama una vez por tabla con filas bloqueadas. */
+   FUNCTION motivo_bloqueo (p_tabla IN VARCHAR2, p_columna IN VARCHAR2) RETURN VARCHAR2
+   IS
+      l_clave sint_registro.clave%TYPE;
+      l_fk    VARCHAR2(261);
+      l_hija  VARCHAR2(128);
+   BEGIN
+      SELECT MIN(clave) INTO l_clave FROM sint_registro
+       WHERE tabla = p_tabla AND estado = gc_bloqueado;
+      EXECUTE IMMEDIATE
+         'DELETE FROM ' || DBMS_ASSERT.sql_object_name(nombre_seguro(p_tabla)) ||
+         ' WHERE ' || nombre_seguro(p_columna) || ' = :clave' USING l_clave;
+      ROLLBACK;                                 -- ya no estaba bloqueada: no se toca aquí
+      RETURN 'la clave ' || l_clave || ' ya se puede borrar (se hará en el próximo borrado)';
+   EXCEPTION
+      WHEN e_hijos_existentes THEN
+         -- ORA-02292: integrity constraint (ESQUEMA.NOMBRE_FK) violated - child record found
+         l_fk := REGEXP_SUBSTR(SQLERRM, '\(([^)]+)\)', 1, 1, NULL, 1);
+         BEGIN
+            SELECT table_name INTO l_hija FROM user_constraints
+             WHERE constraint_name = REGEXP_SUBSTR(l_fk, '[^.]+$');
+         EXCEPTION
+            WHEN NO_DATA_FOUND THEN l_hija := '?';
+         END;
+         RETURN 'cuelgan registros de ' || l_hija || ' (FK ' || l_fk || '; p. ej. de la clave ' || l_clave || ')';
+   END motivo_bloqueo;
 
    /* ÍNDICES AUXILIARES TEMPORALES (D-028)
       Al borrar una fila padre, Oracle comprueba cada FK activa de otras tablas hacia ella;
@@ -335,7 +371,11 @@ AS
         2. borra por PK, tabla a tabla en orden hijas -> padres, en bloques de
            gc_bloque_borrado claves con COMMIT por bloque (progreso visible y reanudable);
         3. borra los índices temporales, también si algo falla.
-      Repite mientras queden filas pendientes (recoge lo marcado durante la ejecución). */
+      Repite mientras queden filas pendientes (recoge lo marcado durante la ejecución).
+      Borra todo lo que se puede (P-008, D-038): una fila de la que cuelgan registros NO
+      sintéticos (p. ej. creados por las pruebas) no se puede borrar (ORA-02292); se salta,
+      queda en SINT_REGISTRO como BLOQUEADO y el borrado sigue con el resto. Sus padres
+      sintéticos quedan bloqueados igual (su hija sintética sigue existiendo). */
    PROCEDURE borrar_pendientes (p_orden IN t_lista_tablas)
    IS
       CURSOR c_claves (p_tabla IN VARCHAR2) IS
@@ -344,9 +384,15 @@ AS
       l_tabla   VARCHAR2(128);
       l_columna sint_registro.columna_pk%TYPE;
       l_claves  t_lista_claves;
+      l_borrar  t_lista_claves := t_lista_claves();   -- claves borradas del bloque
+      l_bloq    t_lista_claves := t_lista_claves();   -- claves bloqueadas del bloque
+      l_fallo   t_lista_numeros := t_lista_numeros(); -- 1 = la clave i no se ha podido borrar
+      l_sql     VARCHAR2(400);
       l_filas   PLS_INTEGER;
       l_tabla_n PLS_INTEGER;
+      l_tabla_b PLS_INTEGER;
       l_total   PLS_INTEGER := 0;
+      l_total_b PLS_INTEGER := 0;
       l_indices PLS_INTEGER;
       l_inicio  PLS_INTEGER;
       l_global  PLS_INTEGER := DBMS_UTILITY.get_time;
@@ -376,8 +422,11 @@ AS
          FOR i IN 1 .. l_tablas.COUNT LOOP
             l_tabla   := l_tablas(i);
             l_tabla_n := 0;
+            l_tabla_b := 0;
             l_inicio  := DBMS_UTILITY.get_time;
             SELECT MAX(columna_pk) INTO l_columna FROM sint_registro WHERE tabla = l_tabla;
+            l_sql := 'DELETE FROM ' || DBMS_ASSERT.sql_object_name(nombre_seguro(l_tabla)) ||
+                     ' WHERE ' || nombre_seguro(l_columna) || ' = :clave';
 
             OPEN c_claves(l_tabla);
             LOOP
@@ -385,39 +434,62 @@ AS
                EXIT WHEN l_claves.COUNT = 0;
 
                -- Un DELETE por clave, enviado en bloque (FORALL): acceso por el índice de la PK.
-               FORALL j IN 1 .. l_claves.COUNT
-                  EXECUTE IMMEDIATE
-                     'DELETE FROM ' || DBMS_ASSERT.sql_object_name(nombre_seguro(l_tabla)) ||
-                     ' WHERE ' || nombre_seguro(l_columna) || ' = :clave'
-                     USING l_claves(j);
-               l_filas := SQL%ROWCOUNT;
+               -- SAVE EXCEPTIONS: una clave que no se puede borrar no impide borrar las demás.
+               l_fallo.DELETE;
+               l_fallo.EXTEND(l_claves.COUNT);
+               BEGIN
+                  FORALL j IN 1 .. l_claves.COUNT SAVE EXCEPTIONS
+                     EXECUTE IMMEDIATE l_sql USING l_claves(j);
+               EXCEPTION
+                  WHEN e_errores_forall THEN
+                     FOR e IN 1 .. SQL%BULK_EXCEPTIONS.COUNT LOOP
+                        IF SQL%BULK_EXCEPTIONS(e).ERROR_CODE <> 2292 THEN
+                           RAISE_APPLICATION_ERROR(ge_purga_bloqueada, 'Error al borrar de ' || l_tabla ||
+                              ': ' || SQLERRM(-SQL%BULK_EXCEPTIONS(e).ERROR_CODE));
+                        END IF;
+                        l_fallo(SQL%BULK_EXCEPTIONS(e).ERROR_INDEX) := 1;
+                     END LOOP;
+               END;
 
-               FORALL j IN 1 .. l_claves.COUNT
-                  DELETE FROM sint_registro WHERE tabla = l_tabla AND clave = l_claves(j);
+               -- Registro: fuera las borradas; las que no se han podido borrar, BLOQUEADAS.
+               l_borrar.DELETE;
+               l_bloq.DELETE;
+               FOR j IN 1 .. l_claves.COUNT LOOP
+                  IF l_fallo(j) = 1 THEN
+                     l_bloq.EXTEND;
+                     l_bloq(l_bloq.LAST) := l_claves(j);
+                  ELSE
+                     l_borrar.EXTEND;
+                     l_borrar(l_borrar.LAST) := l_claves(j);
+                  END IF;
+               END LOOP;
+               FORALL j IN 1 .. l_borrar.COUNT
+                  DELETE FROM sint_registro WHERE tabla = l_tabla AND clave = l_borrar(j);
+               FORALL j IN 1 .. l_bloq.COUNT
+                  UPDATE sint_registro SET estado = gc_bloqueado WHERE tabla = l_tabla AND clave = l_bloq(j);
                COMMIT;                                     -- bloque terminado
 
-               l_tabla_n := l_tabla_n + l_filas;
-               l_total   := l_total + l_filas;
+               l_tabla_n := l_tabla_n + l_borrar.COUNT;
+               l_tabla_b := l_tabla_b + l_bloq.COUNT;
             END LOOP;
             CLOSE c_claves;
-            traza('   ' || RPAD(l_tabla, 30) || LPAD(l_tabla_n, 10) || ' filas borradas en ' || segundos(l_inicio));
+            l_total   := l_total + l_tabla_n;
+            l_total_b := l_total_b + l_tabla_b;
+            traza('   ' || RPAD(l_tabla, 30) || LPAD(l_tabla_n, 10) || ' filas borradas en ' || segundos(l_inicio) ||
+                  CASE WHEN l_tabla_b > 0 THEN
+                     ' · ' || l_tabla_b || ' BLOQUEADAS: ' || motivo_bloqueo(l_tabla, l_columna) END);
          END LOOP;
       END LOOP;
 
       -- 3. Índices temporales fuera: el esquema queda como estaba
       quitar_indices;
       traza('Borradas ' || l_total || ' filas sintéticas en ' || segundos(l_global) || ' (COMMIT)');
+      IF l_total_b > 0 THEN
+         traza('ATENCIÓN: ' || l_total_b || ' filas sintéticas BLOQUEADAS (de ellas cuelgan registros ' ||
+               'no sintéticos). Se reintentan en el próximo EXEC pkg_sint.eliminar_bbdd; ' ||
+               'detalle: EXEC pkg_sint.estado_borrado;');
+      END IF;
    EXCEPTION
-      WHEN e_hijos_existentes THEN
-         -- Registros NO sintéticos (p. ej. creados por las pruebas) cuelgan de un registro
-         -- sintético mediante una FK activa. Se deshace el bloque en curso; los bloques ya
-         -- confirmados quedan borrados y el resto sigue en BORRANDO.
-         ROLLBACK;
-         IF c_claves%ISOPEN THEN CLOSE c_claves; END IF;
-         BEGIN quitar_indices; EXCEPTION WHEN OTHERS THEN NULL; END;
-         RAISE_APPLICATION_ERROR(ge_purga_bloqueada,
-            'Borrado detenido: hay registros hijos no sintéticos que referencian filas de ' ||
-            l_tabla || '. Ver P-008. ' || SQLERRM);
       WHEN OTHERS THEN
          ROLLBACK;
          IF c_claves%ISOPEN THEN CLOSE c_claves; END IF;
@@ -481,6 +553,7 @@ AS
    PROCEDURE informe_borrado
    IS
       l_pendientes PLS_INTEGER;
+      l_bloqueadas PLS_INTEGER;
    BEGIN
       SELECT COUNT(*) INTO l_pendientes FROM sint_registro WHERE estado = gc_borrando;
       traza('Filas pendientes de borrado físico: ' || l_pendientes);
@@ -488,6 +561,19 @@ AS
                  WHERE estado = gc_borrando GROUP BY tabla ORDER BY tabla) LOOP
          traza('   ' || RPAD(r.tabla, 30) || LPAD(r.filas, 10));
       END LOOP;
+
+      -- Filas que no se han podido borrar porque de ellas cuelgan registros no sintéticos.
+      FOR r IN (SELECT tabla, MAX(columna_pk) AS columna_pk, COUNT(*) AS filas FROM sint_registro
+                 WHERE estado = gc_bloqueado GROUP BY tabla ORDER BY tabla) LOOP
+         traza('BLOQUEADAS ' || RPAD(r.tabla, 30) || LPAD(r.filas, 6) || ': ' ||
+               motivo_bloqueo(r.tabla, r.columna_pk));
+      END LOOP;
+      SELECT COUNT(*) INTO l_bloqueadas FROM sint_registro WHERE estado = gc_bloqueado;
+      IF l_bloqueadas > 0 THEN
+         traza('Las BLOQUEADAS se reintentan en el próximo EXEC pkg_sint.eliminar_bbdd; ' ||
+               '(antes hay que borrar los registros que cuelgan de ellas). Claves: ' ||
+               'SELECT * FROM sint_registro WHERE estado = ''' || gc_bloqueado || ''';');
+      END IF;
 
       FOR r IN (SELECT job_name, elapsed_time FROM user_scheduler_running_jobs
                  WHERE job_name LIKE gc_prefijo_job || '%' ORDER BY job_name) LOOP
@@ -541,7 +627,8 @@ AS
    IS
       l_total PLS_INTEGER := 0;
    BEGIN
-      traza('Filas sintéticas registradas (ACTIVO = creadas; BORRANDO = borrado en curso):');
+      traza('Filas sintéticas registradas (ACTIVO = creadas; BORRANDO = borrado en curso; ' ||
+            'BLOQUEADO = no se pudo borrar, ver estado_borrado):');
       FOR r IN (SELECT tabla, estado, COUNT(*) AS filas FROM sint_registro
                  GROUP BY tabla, estado ORDER BY estado, tabla) LOOP
          traza('   ' || RPAD(r.tabla, 30) || RPAD(r.estado, 10) || LPAD(r.filas, 10));
@@ -590,28 +677,69 @@ AS
 
    /* Borra TODAS las filas con LAST_CHG_USR_ID = gc_usuario_sintetico de las tablas
       de la lista (hijas antes que padres) y vacía el registro. Recorre las tablas
-      completas: sólo para restos de versiones anteriores o datos no registrados. */
+      completas: sólo para restos de versiones anteriores o datos no registrados.
+      Borra todo lo que se puede (P-008, D-038): si en una tabla hay filas de las que
+      cuelgan registros no sintéticos, esa tabla se borra fila a fila saltando esas; las
+      registradas quedan en SINT_REGISTRO como BLOQUEADAS. */
    PROCEDURE purgar_por_usuario (p_tablas IN t_lista_tablas,
                                  p_commit IN BOOLEAN)
    IS
-      l_total PLS_INTEGER := 0;
-      l_filas PLS_INTEGER;
-      l_tabla VARCHAR2(128);
+      TYPE t_lista_rowid IS TABLE OF ROWID;
+      l_rowids   t_lista_rowid;
+      l_total    PLS_INTEGER := 0;
+      l_filas    PLS_INTEGER;
+      l_saltadas PLS_INTEGER;
+      l_total_s  PLS_INTEGER := 0;
+      l_tabla    VARCHAR2(128);
+      l_objeto   VARCHAR2(261);
    BEGIN
       traza('Borrado COMPLETO por LAST_CHG_USR_ID = ' || gc_usuario_sintetico || ' (lento)');
       SAVEPOINT sp_purga;
 
       FOR i IN 1 .. p_tablas.COUNT LOOP
-         l_tabla := p_tablas(i);
-         EXECUTE IMMEDIATE
-            'DELETE FROM ' || DBMS_ASSERT.sql_object_name(nombre_seguro(l_tabla)) ||
-            ' WHERE last_chg_usr_id = :usr'
-            USING gc_usuario_sintetico;
-         l_filas := SQL%ROWCOUNT;
-         l_total := l_total + l_filas;
-         traza('   ' || RPAD(l_tabla, 30) || LPAD(l_filas, 10) || ' filas borradas');
+         l_tabla    := p_tablas(i);
+         l_objeto   := DBMS_ASSERT.sql_object_name(nombre_seguro(l_tabla));
+         l_saltadas := 0;
+         BEGIN
+            EXECUTE IMMEDIATE 'DELETE FROM ' || l_objeto || ' WHERE last_chg_usr_id = :usr'
+               USING gc_usuario_sintetico;
+            l_filas := SQL%ROWCOUNT;
+         EXCEPTION
+            WHEN e_hijos_existentes THEN
+               -- El DELETE de la tabla se ha deshecho entero: se repite fila a fila.
+               EXECUTE IMMEDIATE 'SELECT ROWID FROM ' || l_objeto || ' WHERE last_chg_usr_id = :usr'
+                  BULK COLLECT INTO l_rowids USING gc_usuario_sintetico;
+               l_filas := 0;
+               FOR j IN 1 .. l_rowids.COUNT LOOP
+                  BEGIN
+                     EXECUTE IMMEDIATE 'DELETE FROM ' || l_objeto || ' WHERE ROWID = :r' USING l_rowids(j);
+                     l_filas := l_filas + 1;
+                  EXCEPTION
+                     WHEN e_hijos_existentes THEN l_saltadas := l_saltadas + 1;
+                  END;
+               END LOOP;
+         END;
+         l_total   := l_total + l_filas;
+         l_total_s := l_total_s + l_saltadas;
+         traza('   ' || RPAD(l_tabla, 30) || LPAD(l_filas, 10) || ' filas borradas' ||
+               CASE WHEN l_saltadas > 0 THEN
+                  ' · ' || l_saltadas || ' NO (cuelgan de ellas registros no sintéticos)' END);
       END LOOP;
-      DELETE FROM sint_registro;
+
+      -- Registro: fuera lo borrado; lo registrado que sigue existiendo queda BLOQUEADO.
+      IF l_total_s = 0 THEN
+         DELETE FROM sint_registro;
+      ELSE
+         FOR r IN (SELECT DISTINCT tabla, columna_pk FROM sint_registro) LOOP
+            EXECUTE IMMEDIATE
+               'DELETE FROM sint_registro s WHERE s.tabla = :t AND NOT EXISTS (SELECT 1 FROM ' ||
+               DBMS_ASSERT.sql_object_name(nombre_seguro(r.tabla)) || ' x WHERE x.' ||
+               nombre_seguro(r.columna_pk) || ' = s.clave)' USING r.tabla;
+         END LOOP;
+         UPDATE sint_registro SET estado = gc_bloqueado;
+         traza('ATENCIÓN: ' || l_total_s || ' filas sintéticas no se han podido borrar ' ||
+               '(de ellas cuelgan registros no sintéticos).');
+      END IF;
 
       IF p_commit THEN
          COMMIT;
@@ -619,11 +747,6 @@ AS
       traza('Borradas ' || l_total || ' filas sintéticas' ||
             CASE WHEN p_commit THEN ' (COMMIT)' ELSE ' (pendiente de COMMIT)' END);
    EXCEPTION
-      WHEN e_hijos_existentes THEN
-         ROLLBACK TO SAVEPOINT sp_purga;
-         RAISE_APPLICATION_ERROR(ge_purga_bloqueada,
-            'Borrado deshecho: hay registros hijos no sintéticos que referencian filas de ' ||
-            l_tabla || '. Ver P-008. ' || SQLERRM);
       WHEN OTHERS THEN
          ROLLBACK TO SAVEPOINT sp_purga;
          RAISE;

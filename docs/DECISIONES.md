@@ -461,6 +461,23 @@ Plantilla:
   negocio ni de control (análisis en `docs/motor/FLUJO_WORKSTATION.md`, apartado 4).
 - `FT_T_RLT1` = `REGISTER_LOG_TABLE` (sinónimo confirmado, P-021): la Contrapartida Global crea 11 filas.
 
+### D-038 — Eliminar borra todo lo que se puede; lo que no, queda BLOQUEADO
+- Fecha: 2026-09-30 · Estado: VIGENTE (P-008, indicación del usuario: "debería borrarse todo lo que se pueda")
+- Contexto: si una prueba crea registros propios (no sintéticos) que cuelgan por FK de una fila
+  sintética, esa fila no se puede borrar (ORA-02292). Antes el borrado se detenía (ORA-20003).
+- Decisión:
+  1. `eliminar_bbdd` (job o síncrono) borra con `FORALL ... SAVE EXCEPTIONS`: las filas con hijos
+     no sintéticos se saltan y quedan en `SINT_REGISTRO` con estado **`BLOQUEADO`**; el resto se
+     borra. Sus padres sintéticos quedan también bloqueados (su hija sintética sigue existiendo).
+     Los registros de las pruebas **no se borran** (no son sintéticos: no se tocan datos ajenos).
+  2. `estado_borrado` lista las bloqueadas por tabla con la FK y la tabla hija que lo impiden.
+  3. El siguiente `eliminar_bbdd` reintenta las BLOQUEADAS (pasan a BORRANDO con las ACTIVAS).
+  4. `crear_bbdd` no cuenta las BLOQUEADAS (sólo impiden crear las ACTIVAS). Ojo: si una bloqueada
+     tiene un nombre legal ACTIVO, `FLG_Uniqueness` (D-035) rechazará crear otra con ese nombre.
+  5. `limpiar_restos` también borra todo lo que puede (fila a fila en las tablas con hijos ajenos).
+  6. `desinstalar.sql` se detiene (ORA-20003) si quedan BLOQUEADAS, para no perder su registro.
+- Probado en local con una tabla hija no sintética (`probar_en_local.sh`, apartado P-008).
+
 ---
 
 ## Preguntas abiertas
@@ -474,15 +491,15 @@ Plantilla:
 | P-005 | Datos de referencia. | RESUELTA → D-009 (deben existir en BBDD) |
 | P-006 | Triggers / auditoría / historial. | RESUELTA: no hay |
 | P-007 | Esquema y despliegue. | RESUELTA: `KYTL_GC` (D-011), SQL Developer (D-016) |
-| P-008 | Registros sintéticos modificados por las pruebas (cambia `LAST_CHG_USR_ID`) o registros de las pruebas que cuelgan de ellos. | PARCIAL → D-024: los modificados se borran por clave. Pendiente: qué hacer con registros de las pruebas que cuelgan de los sintéticos (hoy el borrado se deshace con ORA-20003) |
+| P-008 | Registros sintéticos modificados por las pruebas (cambia `LAST_CHG_USR_ID`) o registros de las pruebas que cuelgan de ellos. | RESUELTA → D-038: se borra todo lo que se puede; lo que tiene registros no sintéticos colgando queda BLOQUEADO y se reintenta |
 | P-009 | Volumen esperado. | RESUELTA: cientos de entidades (303 contrapartidas = 3.030 filas en ~0,05 s en local) |
 | P-010 | Firma exacta de `NEW_OID`. | RESUELTA: función sin parámetros que devuelve el OID de 10 caracteres, accesible desde `KYTL_GC` (D-008) |
 | P-011 | Variaciones y cantidades de la Contrapartida Global. | RESUELTA → D-014 (una entidad idéntica al mensaje; variaciones sólo por petición) |
-| P-012 | ¿Puede el DBA crear los índices que propone `plsql/diagnostico_borrado.sql` sobre las FKs sin índice (D-026)? ¿Edición Enterprise (para `CREATE INDEX ... ONLINE`)? | ABIERTA |
+| P-012 | ¿Puede el DBA crear los índices que propone `plsql/diagnostico_borrado.sql` sobre las FKs sin índice (D-026)? ¿Edición Enterprise (para `CREATE INDEX ... ONLINE`)? | RESUELTA: no hace falta (usuario): basta con poder crear índices temporales (D-028); sin Enterprise se crean sin ONLINE (ORA-00439 → reintento sin ONLINE) |
 | P-013 | ¿La BBDD sintética debe reproducir lo que haría el motor aunque difiera del mensaje? | RESUELTA → D-031 (sí, para mensajes de la Workstation) |
 | P-014 | ¿Dónde se validan los scripts y se capturan las huellas? | RESUELTA → D-032. Pendiente saber si los mensajes de la Workstation guardan el mensaje procesado (`FT_T_MSGP`): lo dirá la primera huella |
-| P-015 | ¿Se puede obtener de GoldenSource la referencia de reglas del Reference Engine (`CFTI*`/`CGSC*`) o las librerías `GenericRules`/`CamsRules` del servidor? | ABIERTA |
-| P-016 | ¿Recorta el motor los espacios del nombre de clase de `CGSCInvokeJavaRule` (`CreateCopyLAGR `, `RulesCPTY `, `RulesLAGR `)? Si no, esas reglas no se ejecutan en GoldenSource. Se confirma con una huella de un mensaje LAGR/FINSX (notificaciones 9037/9043/9046/9050). | ABIERTA |
+| P-015 | ¿Se puede obtener de GoldenSource la referencia de reglas del Reference Engine (`CFTI*`/`CGSC*`) o las librerías `GenericRules`/`CamsRules` del servidor? | PARCIAL: `fileloading/analisis/rdrRules.md` confirma que `CFTI*`/`CGSC*` son reglas nativas C++ del motor, sin código en ningún jar. Vías: huellas (D-030) o documentación del fabricante (soporte GoldenSource) |
+| P-016 | ¿Recorta el motor los espacios del nombre de clase de `CGSCInvokeJavaRule` (`CreateCopyLAGR `, `RulesCPTY `, `RulesLAGR `)? Si no, esas reglas no se ejecutan en GoldenSource. Se confirma con una huella de un mensaje LAGR/FINSX (notificaciones 9037/9043/9046/9050). | ABIERTA (se revisará más adelante, usuario 2026-09-30) |
 | P-017 | Unicidades del motor: ¿fallar o generar valores únicos? | RESUELTA → D-035 (detectar, avisar por el chat y no actualizar el PL/SQL) |
 | P-018 | ¿Replicar las tablas de control de difusión y cachés? | RESUELTA → D-036 (sí) |
 | P-019 | Extraer W1–W6 (`fileloading/extracciones/extracciones_workstation.sql`). | RESUELTA: subidas a `fileloading/extracciones/` y decodificadas en `fileloading/extracciones/decodificado/` |

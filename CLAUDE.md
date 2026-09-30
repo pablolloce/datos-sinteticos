@@ -204,7 +204,9 @@ Variaciones solicitadas por chat: ninguna.
   `SINT_ELIM_*` (uno a la vez) que crea índices temporales `SINT_TMP_*` sobre las FKs sin
   índice hacia tablas con ≥ 2 filas pendientes (hijas de ≥ 10.000 filas), borra por clave,
   hijas→padres, con COMMIT cada 20 claves, y quita los índices (D-027, D-028).
-  `SINT_REGISTRO.estado`: ACTIVO / BORRANDO.
+  `SINT_REGISTRO.estado`: ACTIVO / BORRANDO / BLOQUEADO. Se borra todo lo que se puede (D-038):
+  una fila de la que cuelgan registros no sintéticos queda BLOQUEADA (no se tocan datos ajenos),
+  `estado_borrado` dice qué FK lo impide y el siguiente `eliminar_bbdd` la reintenta.
 - `limpiar_restos`: borrado LENTO por `LAST_CHG_USR_ID`, sólo para restos no registrados.
 - Prefijos: `gc_` constantes, `g_` variables de paquete, `ge_` códigos de error, `p_` parámetros,
   `l_` variables locales, `c_` constantes locales, `t_` tipos, `k_` claves generadas.
