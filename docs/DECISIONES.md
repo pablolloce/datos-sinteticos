@@ -328,6 +328,26 @@ Plantilla:
   FT_T_ISID, ~350–400 MB) y ralentizan levemente las escrituras en esas hijas; al ser
   invisibles no cambian los planes de las consultas de la aplicación.
 
+### D-029 — Conocimiento del motor de GoldenSource enlazado desde `fileloading`
+- Fecha: 2026-09-30 · Estado: PROPUESTA
+- Contexto: para acercar la BBDD sintética a lo que crea GoldenSource hay que saber qué reglas
+  ejecuta el motor con cada mensaje. El EAR, `rdrRules.jar`, el message set y las extracciones
+  de configuración están en el repositorio `pablolloce/fileloading`.
+- Decisión: ese material **no se copia** a este repositorio. Las herramientas de
+  `herramientas/motor/` lo leen del clon de `fileloading` (`FILELOADING_REPO` o
+  `../fileloading`). Aquí sólo viven las herramientas, la documentación (`docs/motor/`) y los
+  informes generados.
+- Consecuencias: para usar `herramientas/motor/` hay que tener clonados los dos repositorios.
+  El generador (`generar_plsql.py`) no depende de `fileloading`.
+
+### D-030 — Comportamiento de reglas nativas: sólo lo observado
+- Fecha: 2026-09-30 · Estado: PROPUESTA
+- Contexto: las reglas `CFTI*`/`CGSC*` son C++ compilado y no tenemos su código.
+- Decisión: una regla nativa sólo se replica cuando su efecto está **confirmado** por una
+  captura de huella (`plsql/motor/capturar_huella.sql` + `herramientas/motor/comparar_huella.py`)
+  y anotado en `docs/motor/REGLAS_OBSERVADAS.md`. La inferencia por nombre
+  (`fileloading/analisis/reglas_nativas.csv`) sólo sirve para priorizar.
+
 ---
 
 ## Preguntas abiertas
@@ -346,3 +366,6 @@ Plantilla:
 | P-010 | Firma exacta de `NEW_OID`. | RESUELTA: función sin parámetros que devuelve el OID de 10 caracteres, accesible desde `KYTL_GC` (D-008) |
 | P-011 | Variaciones y cantidades de la Contrapartida Global. | RESUELTA → D-014 (una entidad idéntica al mensaje; variaciones sólo por petición) |
 | P-012 | ¿Puede el DBA crear los índices que propone `plsql/diagnostico_borrado.sql` sobre las FKs sin índice (D-026)? ¿Edición Enterprise (para `CREATE INDEX ... ONLINE`)? | ABIERTA |
+| P-013 | ¿La BBDD sintética debe reproducir lo que haría el motor (identificador FINSID, identificador preferente, `DATA_SRC_ID` de difusión, unicidades...) aunque difiera del mensaje, o seguir fiel al mensaje (D-014/D-015)? Ver `docs/motor/MOTOR_GOLDENSOURCE.md`. | ABIERTA |
+| P-014 | ¿Hay un entorno de pruebas donde guardar entidades desde la Workstation y ejecutar `plsql/motor/capturar_huella.sql`? ¿Guardan los tipos de mensaje de la Workstation el mensaje procesado (`FT_T_MSGP`)? | ABIERTA |
+| P-015 | ¿Se puede obtener de GoldenSource la referencia de reglas del Reference Engine (`CFTI*`/`CGSC*`) o las librerías `GenericRules`/`CamsRules` del servidor? | ABIERTA |

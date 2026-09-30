@@ -106,6 +106,20 @@ Oracle 19c** sobre la BBDD relacional de GoldenSource (esquema **`KYTL_GC`**, ta
   llamada (D-007). Fechas de negocio del mensaje (`MM-DD-YYYY HH:MI:SS AM`) → `TO_DATE` literal.
 - Se respeta lo que envía el frontal aunque parezca incoherente (D-015).
 
+## 4 bis. Motor de GoldenSource (D-029, D-030)
+
+El generador traduce el mensaje literalmente; el motor de GoldenSource además ejecuta reglas
+(message set `STREETREF` + `rdrRules.jar`) que añaden filas, rellenan columnas, cambian
+acciones o rechazan el mensaje. Documentación y herramientas en [`docs/motor/`](docs/motor/README.md).
+
+- Por cada mensaje nuevo, además del informe de mapeo:
+  `python3 herramientas/motor/reglas_aplicables.py mensajes_entrada/<Mensaje>.xml -o docs/motor/reglas/<Mensaje>.md`
+  y avisar al usuario de las reglas con impacto (P-013).
+- Las herramientas de `herramientas/motor/` necesitan el repositorio `fileloading`
+  (`FILELOADING_REPO` o `../fileloading`). El material de GoldenSource no se copia aquí.
+- Una regla nativa (`CFTI*`/`CGSC*`) sólo se replica si su efecto está confirmado por una
+  huella y anotado en `docs/motor/REGLAS_OBSERVADAS.md`.
+
 ## 5. Estructura del repositorio
 
 ```
@@ -123,6 +137,10 @@ herramientas/analizar_mensaje.py   <- informe de mapeo de un mensaje / segmento 
 herramientas/generar_plsql.py      <- mensajes + catálogo + núcleo -> plsql/generado/pkg_sint.*
 herramientas/generar_ddl_pruebas.py<- DDL de tablas para el Oracle local de pruebas
 herramientas/probar_en_local.sh    <- prueba de extremo a extremo en Oracle local (docker)
+herramientas/motor/                <- reglas del motor de GoldenSource (lee ../fileloading, D-029)
+docs/motor/                        <- funcionamiento del motor, reglas observadas e informes
+plsql/motor/capturar_huella.sql    <- captura lo que hizo GoldenSource con un mensaje (D-030)
+huellas/                           <- capturas exportadas a CSV (entrada de comparar_huella.py)
 plsql/instalar.sql                 <- F5: desinstala versiones anteriores + SINT_REGISTRO + compila PKG_SINT
 plsql/crear_bbdd_sintetica.sql     <- F5: EXEC pkg_sint.crear_bbdd (sólo inserts)
 plsql/eliminar_bbdd_sintetica.sql  <- F5: EXEC pkg_sint.eliminar_bbdd (sólo borrado por clave)
