@@ -305,6 +305,26 @@ Plantilla:
   el nº de filas padre sintéticas (con cientos de entidades, horas) y, mientras se comprueba
   cada fila padre, Oracle bloquea brevemente la tabla hija frente a escrituras de la aplicación.
 
+### D-028 — Índices auxiliares temporales durante el borrado
+- Fecha: 2026-09-30 · Estado: VIGENTE (confirmado por el usuario: `UNLIMITED TABLESPACE` y
+  `CREATE INDEX ... INVISIBLE ONLINE` funcionan en KYTL_GC)
+- Contexto: medido en KYTL_GC, borrar una Contrapartida Global tarda 58,5 s (FT_T_FINS 48 s,
+  FT_T_FINR 10 s) y el coste es lineal: 100 contrapartidas ≈ 1 h 40 min (D-027). En local, un
+  índice INVISIBLE sobre la FK de la hija lo usa Oracle en la comprobación de FK: borrar 20
+  filas padre con hija de 3 M filas pasa de 3,81 s a 0,00 s; crear el índice cuesta 5,65 s
+  (~1,5 lecturas de la hija), una sola vez por borrado.
+- Decisión: el job de borrado, antes de borrar, crea un índice `SINT_TMP_<hash>` INVISIBLE
+  ONLINE (sin ONLINE si la edición no lo permite) por cada FK activa sin índice que apunte a
+  una tabla con ≥ 2 filas pendientes (`gc_min_filas_padre`) y cuya hija tenga ≥ 10.000 filas
+  (`gc_min_filas_hija`; las pequeñas se recorren al instante). Después borra y elimina todos
+  los `SINT_TMP_*`, también ante error. `instalar.sql` y `desinstalar.sql` limpian los que
+  hubieran quedado. Un solo job a la vez (los índices son compartidos).
+- Consecuencias: el borrado cuesta ≈ crear los índices una vez (independiente del nº de
+  entidades) en lugar de una lectura completa de cada hija por fila padre. Con 1 sola fila
+  padre no se crean (sería más lento). Mientras existen, los índices ocupan espacio (el de
+  FT_T_ISID, ~350–400 MB) y ralentizan levemente las escrituras en esas hijas; al ser
+  invisibles no cambian los planes de las consultas de la aplicación.
+
 ---
 
 ## Preguntas abiertas

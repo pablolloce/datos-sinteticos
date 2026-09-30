@@ -42,6 +42,8 @@ AS
     *     verificar_registro -> operaciones RÁPIDAS (por índice)
     *   - eliminación en segundo plano (D-027): marcar_para_borrar (inmediato),
     *     lanzar_job_borrado, borrar_pendientes (lo ejecuta el job), informe_borrado
+    *   - índices auxiliares temporales para el borrado (D-028): crear_indices_temporales,
+    *     borrar_indices_temporales
     *   - purgar_por_usuario: borrado LENTO por LAST_CHG_USR_ID (sólo para restos)
     * ======================================================================== */
 
@@ -58,6 +60,11 @@ AS
    -- Borrado en segundo plano (D-027).
    gc_prefijo_job    CONSTANT VARCHAR2(20) := 'SINT_ELIM_';   -- nombre de los jobs
    gc_bloque_borrado CONSTANT PLS_INTEGER  := 20;             -- claves por COMMIT
+
+   -- Índices auxiliares temporales para el borrado (D-028).
+   gc_prefijo_indice   CONSTANT VARCHAR2(20) := 'SINT_TMP_';  -- nombre de los índices
+   gc_min_filas_padre  CONSTANT PLS_INTEGER  := 2;      -- con 1 fila padre, recorrer la hija es más barato
+   gc_min_filas_hija   CONSTANT PLS_INTEGER  := 10000;  -- hijas más pequeñas: recorrerlas es instantáneo
 
    -- ORA-02292: existen registros hijos que referencian la fila a borrar.
    e_hijos_existentes EXCEPTION;
@@ -223,11 +230,96 @@ AS
       RETURN l_n;
    END marcar_para_borrar;
 
-   /* Paso 2 de la eliminación (lento, lo ejecuta el job): borra FÍSICAMENTE, por PK, las
-      filas en estado BORRANDO, tabla a tabla en orden hijas -> padres y en bloques de
-      gc_bloque_borrado claves con COMMIT por bloque (progreso visible y reanudable).
-      Lo lento son las filas de tablas padre (FT_T_FINS, FT_T_FINR...): por cada una Oracle
-      recorre las tablas hijas cuya FK no tiene índice (D-026); no es evitable sin índices. */
+   /* ÍNDICES AUXILIARES TEMPORALES (D-028)
+      Al borrar una fila padre, Oracle comprueba cada FK activa de otras tablas hacia ella;
+      si la columna de la hija no tiene índice, recorre la hija entera POR CADA FILA (D-026).
+      Antes de borrar se crea, para cada FK así, un índice INVISIBLE (no cambia los planes de
+      la aplicación) y ONLINE (no bloquea sus escrituras): cuesta una lectura de la hija por
+      borrado, en lugar de una por fila padre. Al terminar se borran todos.
+      Devuelve el nº de índices creados. */
+   FUNCTION crear_indices_temporales (p_tablas IN t_lista_tablas) RETURN PLS_INTEGER
+   IS
+      l_pendientes PLS_INTEGER;
+      l_nombre     VARCHAR2(128);
+      l_existe     PLS_INTEGER;
+      l_creados    PLS_INTEGER := 0;
+      l_inicio     PLS_INTEGER;
+      l_sql        VARCHAR2(1000);
+      e_sin_online EXCEPTION;                       -- ORA-00439: ONLINE sólo en Enterprise
+      PRAGMA EXCEPTION_INIT(e_sin_online, -439);
+   BEGIN
+      FOR i IN 1 .. p_tablas.COUNT LOOP
+         SELECT COUNT(*) INTO l_pendientes FROM sint_registro
+          WHERE tabla = p_tablas(i) AND estado = gc_borrando;
+         CONTINUE WHEN l_pendientes < gc_min_filas_padre;
+
+         -- FKs activas hacia esta tabla cuyas columnas no encabezan ningún índice de la hija
+         FOR r IN (SELECT c.table_name AS hija, c.constraint_name AS fk,
+                          (SELECT LISTAGG(cc.column_name, ', ') WITHIN GROUP (ORDER BY cc.position)
+                             FROM user_cons_columns cc WHERE cc.constraint_name = c.constraint_name) AS columnas,
+                          (SELECT t.num_rows FROM user_tables t WHERE t.table_name = c.table_name) AS filas
+                     FROM user_constraints c
+                     JOIN user_constraints p ON p.owner = c.r_owner AND p.constraint_name = c.r_constraint_name
+                    WHERE c.constraint_type = 'R'
+                      AND c.status = 'ENABLED'
+                      AND p.table_name = p_tablas(i)
+                      AND NOT EXISTS (
+                          SELECT 1 FROM user_indexes x
+                           WHERE x.table_name = c.table_name
+                             AND NOT EXISTS (
+                                 SELECT 1 FROM user_cons_columns cc
+                                  WHERE cc.constraint_name = c.constraint_name
+                                    AND NOT EXISTS (
+                                        SELECT 1 FROM user_ind_columns ic
+                                         WHERE ic.index_name = x.index_name
+                                           AND ic.column_name = cc.column_name
+                                           AND ic.column_position = cc.position)))
+                    ORDER BY c.table_name, c.constraint_name)
+         LOOP
+            CONTINUE WHEN NVL(r.filas, gc_min_filas_hija) < gc_min_filas_hija;   -- sin estadísticas: se indexa
+
+            -- Nombre determinista por FK: si ya existe (otro job, resto anterior), se reutiliza.
+            l_nombre := gc_prefijo_indice || TO_CHAR(DBMS_UTILITY.get_hash_value(r.hija || '.' || r.fk, 1, 1073741823));
+            SELECT COUNT(*) INTO l_existe FROM user_indexes WHERE index_name = l_nombre;
+            CONTINUE WHEN l_existe > 0;
+
+            l_inicio := DBMS_UTILITY.get_time;
+            l_sql := 'CREATE INDEX ' || nombre_seguro(l_nombre) || ' ON ' ||
+                     DBMS_ASSERT.sql_object_name(nombre_seguro(r.hija)) || ' (' || r.columnas || ') INVISIBLE';
+            BEGIN
+               EXECUTE IMMEDIATE l_sql || ' ONLINE';
+            EXCEPTION
+               WHEN e_sin_online THEN
+                  EXECUTE IMMEDIATE l_sql;          -- sin ONLINE: bloquea escrituras en la hija mientras se crea
+            END;
+            l_creados := l_creados + 1;
+            traza('   índice temporal ' || RPAD(l_nombre, 22) || ' ' || RPAD(r.hija || '(' || r.columnas || ')', 45) ||
+                  LPAD(NVL(TO_CHAR(r.filas), '?'), 12) || ' filas  ' || segundos(l_inicio));
+         END LOOP;
+      END LOOP;
+      RETURN l_creados;
+   END crear_indices_temporales;
+
+   /* Borra TODOS los índices auxiliares temporales (SINT_TMP_*). Devuelve cuántos. */
+   FUNCTION borrar_indices_temporales RETURN PLS_INTEGER
+   IS
+      l_n PLS_INTEGER := 0;
+   BEGIN
+      FOR r IN (SELECT index_name FROM user_indexes
+                 WHERE index_name LIKE gc_prefijo_indice || '%') LOOP
+         EXECUTE IMMEDIATE 'DROP INDEX ' || nombre_seguro(r.index_name);
+         l_n := l_n + 1;
+      END LOOP;
+      RETURN l_n;
+   END borrar_indices_temporales;
+
+   /* Paso 2 de la eliminación (lo ejecuta el job): borra FÍSICAMENTE las filas en estado
+      BORRANDO:
+        1. crea los índices auxiliares temporales (D-028);
+        2. borra por PK, tabla a tabla en orden hijas -> padres, en bloques de
+           gc_bloque_borrado claves con COMMIT por bloque (progreso visible y reanudable);
+        3. borra los índices temporales, también si algo falla.
+      Repite mientras queden filas pendientes (recoge lo marcado durante la ejecución). */
    PROCEDURE borrar_pendientes (p_orden IN t_lista_tablas)
    IS
       CURSOR c_claves (p_tabla IN VARCHAR2) IS
@@ -239,42 +331,65 @@ AS
       l_filas   PLS_INTEGER;
       l_tabla_n PLS_INTEGER;
       l_total   PLS_INTEGER := 0;
+      l_indices PLS_INTEGER;
       l_inicio  PLS_INTEGER;
       l_global  PLS_INTEGER := DBMS_UTILITY.get_time;
+
+      PROCEDURE quitar_indices IS
+      BEGIN
+         l_inicio  := DBMS_UTILITY.get_time;
+         l_indices := borrar_indices_temporales;
+         IF l_indices > 0 THEN
+            traza('Borrados ' || l_indices || ' índices temporales en ' || segundos(l_inicio));
+         END IF;
+      END quitar_indices;
    BEGIN
       traza('Borrado físico de las claves en estado BORRANDO');
-      l_tablas := tablas_pendientes(p_orden);
+      LOOP
+         l_tablas := tablas_pendientes(p_orden);
+         EXIT WHEN l_tablas.COUNT = 0;
 
-      FOR i IN 1 .. l_tablas.COUNT LOOP
-         l_tabla   := l_tablas(i);
-         l_tabla_n := 0;
+         -- 1. Índices auxiliares temporales
          l_inicio  := DBMS_UTILITY.get_time;
-         SELECT MAX(columna_pk) INTO l_columna FROM sint_registro WHERE tabla = l_tabla;
+         l_indices := crear_indices_temporales(l_tablas);
+         IF l_indices > 0 THEN
+            traza('Creados ' || l_indices || ' índices temporales en ' || segundos(l_inicio));
+         END IF;
 
-         OPEN c_claves(l_tabla);
-         LOOP
-            FETCH c_claves BULK COLLECT INTO l_claves LIMIT gc_bloque_borrado;
-            EXIT WHEN l_claves.COUNT = 0;
+         -- 2. Borrado por PK, hijas -> padres
+         FOR i IN 1 .. l_tablas.COUNT LOOP
+            l_tabla   := l_tablas(i);
+            l_tabla_n := 0;
+            l_inicio  := DBMS_UTILITY.get_time;
+            SELECT MAX(columna_pk) INTO l_columna FROM sint_registro WHERE tabla = l_tabla;
 
-            -- Un DELETE por clave, enviado en bloque (FORALL): acceso por el índice de la PK.
-            FORALL j IN 1 .. l_claves.COUNT
-               EXECUTE IMMEDIATE
-                  'DELETE FROM ' || DBMS_ASSERT.sql_object_name(nombre_seguro(l_tabla)) ||
-                  ' WHERE ' || nombre_seguro(l_columna) || ' = :clave'
-                  USING l_claves(j);
-            l_filas := SQL%ROWCOUNT;
+            OPEN c_claves(l_tabla);
+            LOOP
+               FETCH c_claves BULK COLLECT INTO l_claves LIMIT gc_bloque_borrado;
+               EXIT WHEN l_claves.COUNT = 0;
 
-            FORALL j IN 1 .. l_claves.COUNT
-               DELETE FROM sint_registro WHERE tabla = l_tabla AND clave = l_claves(j);
-            COMMIT;                                     -- bloque terminado
+               -- Un DELETE por clave, enviado en bloque (FORALL): acceso por el índice de la PK.
+               FORALL j IN 1 .. l_claves.COUNT
+                  EXECUTE IMMEDIATE
+                     'DELETE FROM ' || DBMS_ASSERT.sql_object_name(nombre_seguro(l_tabla)) ||
+                     ' WHERE ' || nombre_seguro(l_columna) || ' = :clave'
+                     USING l_claves(j);
+               l_filas := SQL%ROWCOUNT;
 
-            l_tabla_n := l_tabla_n + l_filas;
-            l_total   := l_total + l_filas;
+               FORALL j IN 1 .. l_claves.COUNT
+                  DELETE FROM sint_registro WHERE tabla = l_tabla AND clave = l_claves(j);
+               COMMIT;                                     -- bloque terminado
+
+               l_tabla_n := l_tabla_n + l_filas;
+               l_total   := l_total + l_filas;
+            END LOOP;
+            CLOSE c_claves;
+            traza('   ' || RPAD(l_tabla, 30) || LPAD(l_tabla_n, 10) || ' filas borradas en ' || segundos(l_inicio));
          END LOOP;
-         CLOSE c_claves;
-         traza('   ' || RPAD(l_tabla, 30) || LPAD(l_tabla_n, 10) || ' filas borradas en ' || segundos(l_inicio));
       END LOOP;
 
+      -- 3. Índices temporales fuera: el esquema queda como estaba
+      quitar_indices;
       traza('Borradas ' || l_total || ' filas sintéticas en ' || segundos(l_global) || ' (COMMIT)');
    EXCEPTION
       WHEN e_hijos_existentes THEN
@@ -283,22 +398,30 @@ AS
          -- confirmados quedan borrados y el resto sigue en BORRANDO.
          ROLLBACK;
          IF c_claves%ISOPEN THEN CLOSE c_claves; END IF;
+         BEGIN quitar_indices; EXCEPTION WHEN OTHERS THEN NULL; END;
          RAISE_APPLICATION_ERROR(ge_purga_bloqueada,
             'Borrado detenido: hay registros hijos no sintéticos que referencian filas de ' ||
             l_tabla || '. Ver P-008. ' || SQLERRM);
       WHEN OTHERS THEN
          ROLLBACK;
          IF c_claves%ISOPEN THEN CLOSE c_claves; END IF;
+         BEGIN quitar_indices; EXCEPTION WHEN OTHERS THEN NULL; END;
          RAISE;
    END borrar_pendientes;
 
-   /* Lanza un job de DBMS_SCHEDULER que ejecuta pkg_sint.ejecutar_borrado_pendiente.
-      Cada llamada crea un job con nombre único; si coinciden dos, no hay problema: una
-      fila ya borrada por uno no la vuelve a borrar el otro (0 filas, sin comprobación de FKs). */
+   /* Lanza un job de DBMS_SCHEDULER que ejecuta pkg_sint.ejecutar_borrado_pendiente. */
    FUNCTION lanzar_job_borrado RETURN VARCHAR2
    IS
-      l_job VARCHAR2(128) := gc_prefijo_job || TO_CHAR(SYSTIMESTAMP, 'YYYYMMDD_HH24MISSFF3');
+      l_job     VARCHAR2(128) := gc_prefijo_job || TO_CHAR(SYSTIMESTAMP, 'YYYYMMDD_HH24MISSFF3');
+      l_en_curso VARCHAR2(128);
    BEGIN
+      -- Un solo job a la vez (los índices temporales son compartidos): si ya hay uno en
+      -- curso, él recoge lo recién marcado (repite mientras queden filas pendientes).
+      SELECT MAX(job_name) INTO l_en_curso FROM user_scheduler_running_jobs
+       WHERE job_name LIKE gc_prefijo_job || '%';
+      IF l_en_curso IS NOT NULL THEN
+         RETURN l_en_curso || ' (ya en curso)';
+      END IF;
       DBMS_SCHEDULER.create_job(
          job_name   => l_job,
          job_type   => 'PLSQL_BLOCK',
@@ -337,6 +460,21 @@ AS
          traza('   ' || r.job_name || '  ' || RPAD(r.status, 10) ||
                TO_CHAR(r.actual_start_date, 'DD/MM HH24:MI:SS') || '  duración ' || r.run_duration ||
                CASE WHEN r.status <> 'SUCCEEDED' THEN '  ' || SUBSTR(r.additional_info, 1, 300) END);
+      END LOOP;
+
+      -- Salida (trazas) de la última ejecución: tiempos de índices y de cada tabla
+      FOR r IN (SELECT * FROM (
+                   SELECT job_name, output FROM user_scheduler_job_run_details
+                    WHERE job_name LIKE gc_prefijo_job || '%' AND output IS NOT NULL
+                    ORDER BY log_date DESC)
+                 WHERE ROWNUM = 1) LOOP
+         traza('Salida de ' || r.job_name || ':');
+         DBMS_OUTPUT.put_line(DBMS_LOB.substr(r.output, 30000, 1));
+      END LOOP;
+
+      FOR r IN (SELECT index_name, table_name FROM user_indexes
+                 WHERE index_name LIKE gc_prefijo_indice || '%' ORDER BY table_name) LOOP
+         traza('Índice temporal existente: ' || r.index_name || ' en ' || r.table_name);
       END LOOP;
 
       IF l_pendientes > 0 THEN
@@ -884,6 +1022,7 @@ AS
    PROCEDURE ejecutar_borrado_pendiente
    IS
    BEGIN
+      DBMS_OUTPUT.enable(NULL);   -- la salida del job queda en USER_SCHEDULER_JOB_RUN_DETAILS.OUTPUT
       borrar_pendientes(g_tablas_purga);
    END ejecutar_borrado_pendiente;
 

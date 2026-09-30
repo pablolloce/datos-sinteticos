@@ -33,8 +33,9 @@ Oracle 19c** sobre la BBDD relacional de GoldenSource (esquema **`KYTL_GC`**, ta
     un job de Oracle hace el borrado físico en segundo plano (D-027). Progreso:
     `EXEC pkg_sint.estado_borrado;`
 - Las filas creadas se anotan en la tabla **`SINT_REGISTRO`** y se borran por clave primaria,
-  hijas antes que padres (D-024). El borrado físico de filas de tablas padre es lento por las
-  FKs sin índice de otras tablas (D-026): coste lineal con el nº de filas padre.
+  hijas antes que padres (D-024). Para que el borrado de filas padre no recorra por cada fila
+  las tablas hijas con FK sin índice (D-026), el job crea índices temporales `SINT_TMP_*`
+  (INVISIBLE, ONLINE), borra y los elimina, dejando el esquema como estaba (D-028).
 
 ## 2. Reglas de trabajo
 
@@ -159,7 +160,9 @@ Variaciones solicitadas por chat: ninguna.
   Ante error: `ROLLBACK TO SAVEPOINT`. Toda tabla gestionada debe tener PK de una columna (D-024).
 - `crear_bbdd`: sólo inserta (falla con ORA-20005 si hay claves ACTIVAS registradas), verifica
   por clave y COMMIT. `eliminar_bbdd`: marca las claves como BORRANDO (inmediato) y lanza un job
-  `SINT_ELIM_*` que borra por clave, hijas→padres, con COMMIT cada 20 claves (D-027).
+  `SINT_ELIM_*` (uno a la vez) que crea índices temporales `SINT_TMP_*` sobre las FKs sin
+  índice hacia tablas con ≥ 2 filas pendientes (hijas de ≥ 10.000 filas), borra por clave,
+  hijas→padres, con COMMIT cada 20 claves, y quita los índices (D-027, D-028).
   `SINT_REGISTRO.estado`: ACTIVO / BORRANDO.
 - `limpiar_restos`: borrado LENTO por `LAST_CHG_USR_ID`, sólo para restos no registrados.
 - Prefijos: `gc_` constantes, `g_` variables de paquete, `ge_` códigos de error, `p_` parámetros,

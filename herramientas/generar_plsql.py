@@ -700,6 +700,7 @@ AS
    PROCEDURE ejecutar_borrado_pendiente
    IS
    BEGIN
+      DBMS_OUTPUT.enable(NULL);   -- la salida del job queda en USER_SCHEDULER_JOB_RUN_DETAILS.OUTPUT
       borrar_pendientes(g_tablas_purga);
    END ejecutar_borrado_pendiente;
 

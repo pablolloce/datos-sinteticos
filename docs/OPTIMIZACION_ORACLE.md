@@ -5,6 +5,7 @@ Cada técnica que se incorpore al código se marca como **APLICADA** e indica d�
 
 | Técnica | Estado | Dónde |
 |---|---|---|
+| Índices temporales INVISIBLE ONLINE durante el borrado | APLICADA | job de borrado, `crear_indices_temporales` (D-028) |
 | Registro de claves (IOT) + borrado por PK | APLICADA | `SINT_REGISTRO`, `eliminar_bbdd`, `verificar` (D-024) |
 | SQL estático generado (no SQL dinámico por fila) | APLICADA | `PKG_SINT.crear_<entidad>` (D-017) |
 | `FORALL` por segmento sobre colección de claves | APLICADA | `crear_<entidad>` |
@@ -36,6 +37,15 @@ una hija de 3 M filas sin índice, 0,01 s con índice). `plsql/diagnostico_borra
 El coste es lineal con las filas padre (100 filas → 17 s por cada hija de 3 M filas) aunque se
 borren en una sola sentencia: por eso el borrado físico se hace en segundo plano (D-027), en
 bloques de 20 claves con COMMIT.
+
+## Índices temporales INVISIBLE ONLINE durante el borrado (D-028)
+Oracle usa también los índices **invisibles** para la comprobación de FK al borrar la fila
+padre (medido: 20 filas padre, hija de 3 M filas: 3,81 s sin índice → 0,00 s con índice
+invisible). El job crea uno por cada FK sin índice relevante, borra y los elimina:
+- INVISIBLE: el optimizador no lo usa para las consultas de la aplicación → sus planes no cambian.
+- ONLINE: la construcción no bloquea las escrituras de la aplicación en la tabla hija.
+- Coste: crear el índice ≈ 1,5 lecturas de la hija, **una vez por borrado**, en lugar de una
+  lectura completa por cada fila padre borrada.
 
 ## SQL estático generado
 Cada entidad se traduce a INSERT estáticos. Frente a un motor genérico que construyera SQL

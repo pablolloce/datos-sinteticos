@@ -128,6 +128,38 @@ PROMPT == eliminar síncrono (p_segundo_plano => FALSE)
 EXEC pkg_sint.eliminar_bbdd(p_segundo_plano => FALSE);
 SELECT COUNT(*) AS resto_sin_registrar FROM ft_t_fins WHERE last_chg_usr_id = 'TESTING:RDR';
 EOF
+echo "=============== índices temporales: hija de 300.000 filas SIN índice hacia FT_T_FINS ==============="
+sqlplus <<'EOF'
+SET FEEDBACK OFF SERVEROUTPUT ON
+INSERT INTO ft_t_fins (inst_mnem, inst_nme, start_tms, last_chg_tms, last_chg_usr_id)
+VALUES ('REALFINS01', 'REAL', SYSDATE, SYSDATE, 'REAL');
+CREATE TABLE hija_sin_indice (id NUMBER, inst_mnem CHAR(10) CONSTRAINT hija_sin_indice_fk REFERENCES ft_t_fins);
+INSERT /*+ APPEND */ INTO hija_sin_indice SELECT ROWNUM, 'REALFINS01' FROM dual CONNECT BY LEVEL <= 300000;
+COMMIT;
+EXEC DBMS_STATS.gather_table_stats(USER, 'HIJA_SIN_INDICE');
+EXEC pkg_sint.set_trazas(FALSE);
+EXEC pkg_sint.crear_contrapartida_global(p_cantidad => 4);
+COMMIT;
+EXEC pkg_sint.set_trazas(TRUE);
+EXEC pkg_sint.eliminar_bbdd;
+DECLARE
+   l_n PLS_INTEGER;
+BEGIN
+   FOR i IN 1 .. 120 LOOP
+      SELECT COUNT(*) INTO l_n FROM sint_registro WHERE estado = 'BORRANDO';
+      EXIT WHEN l_n = 0;
+      DBMS_SESSION.sleep(1);
+   END LOOP;
+END;
+/
+EXEC DBMS_SESSION.sleep(2);
+EXEC pkg_sint.estado_borrado;
+SELECT COUNT(*) AS indices_temporales_restantes FROM user_indexes WHERE index_name LIKE 'SINT\_TMP\_%' ESCAPE '\';
+SELECT COUNT(*) AS fins_sinteticas_restantes FROM ft_t_fins WHERE last_chg_usr_id = 'TESTING:RDR' AND inst_mnem <> 'RESTO00001';
+DROP TABLE hija_sin_indice PURGE;
+DELETE ft_t_fins WHERE inst_mnem = 'REALFINS01';
+COMMIT;
+EOF
 echo "=============== crear + limpiar_restos (borra también lo no registrado) ==============="
 sqlplus <<'EOF'
 SET FEEDBACK OFF

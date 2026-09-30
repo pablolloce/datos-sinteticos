@@ -6,6 +6,7 @@
 --
 --   1. Borra los paquetes de versiones anteriores del generador, si existen
 --      (PKG_SINT_NUCLEO, PKG_SINT_FINS, PKG_SINT_ENTIDADES, SINT_E_*...).
+--      y los índices temporales SINT_TMP_* de un borrado interrumpido (D-028).
 --   2. Crea la tabla SINT_REGISTRO si no existe (registro de claves creadas; se
 --      conserva entre instalaciones para poder borrar lo que ya se hubiera creado).
 --   3. Compila el paquete PKG_SINT (sustituye a la versión anterior).
@@ -30,6 +31,20 @@ BEGIN
       EXECUTE IMMEDIATE 'DROP PACKAGE ' || DBMS_ASSERT.enquote_name(r.object_name);
       DBMS_OUTPUT.put_line('Borrado paquete obsoleto: ' || r.object_name);
    END LOOP;
+END;
+/
+
+PROMPT == 1b. Índices temporales SINT_TMP_* que hubieran quedado de un borrado interrumpido
+DECLARE
+   l_jobs PLS_INTEGER;
+BEGIN
+   SELECT COUNT(*) INTO l_jobs FROM user_scheduler_running_jobs WHERE job_name LIKE 'SINT\_ELIM\_%' ESCAPE '\';
+   IF l_jobs = 0 THEN                         -- si hay un borrado en curso, sus índices se respetan
+      FOR r IN (SELECT index_name FROM user_indexes WHERE index_name LIKE 'SINT\_TMP\_%' ESCAPE '\') LOOP
+         EXECUTE IMMEDIATE 'DROP INDEX ' || DBMS_ASSERT.enquote_name(r.index_name);
+         DBMS_OUTPUT.put_line('Borrado índice temporal: ' || r.index_name);
+      END LOOP;
+   END IF;
 END;
 /
 
