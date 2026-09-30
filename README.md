@@ -12,22 +12,21 @@ los registros se marcan con
 
 ## Uso en la BBDD (SQL Developer, conectado como KYTL_GC)
 
-Abrir el script desde la carpeta `plsql/` y pulsar **F5** (ejecutar como script):
+**Instalar / actualizar** (cada vez que cambie el código): abrir `plsql/instalar.sql` desde
+la carpeta `plsql/` y pulsar **F5**. Desinstala la versión anterior e instala la nueva
+(paquete `PKG_SINT` y tabla de registro `SINT_REGISTRO`). No toca datos.
 
-| Script | Qué hace |
-|---|---|
-| `plsql/crear_bbdd_sintetica.sql` | Instala/actualiza el código y crea **toda** la BBDD sintética (borra antes lo sintético previo, verifica conteos, COMMIT) |
-| `plsql/eliminar_bbdd_sintetica.sql` | Borra **toda** la BBDD sintética (COMMIT) |
-| `plsql/instalar.sql` | Sólo instala/actualiza el código (y borra paquetes de versiones anteriores) |
-| `plsql/desinstalar.sql` | Borra los datos sintéticos y el código |
-
-Con el código ya instalado, basta una sentencia:
+**Ejecutar** (rápido, no recorre tablas):
 
 ```sql
-EXEC pkg_sint.crear_bbdd;      -- crea todo
-EXEC pkg_sint.eliminar_bbdd;   -- elimina todo
+EXEC pkg_sint.crear_bbdd;      -- SÓLO inserta toda la BBDD sintética
+EXEC pkg_sint.eliminar_bbdd;   -- SÓLO borra lo insertado
 EXEC pkg_sint.resumen;         -- filas sintéticas por tabla
+EXEC pkg_sint.limpiar_restos;  -- ocasional y LENTO: borra restos no registrados (versiones anteriores)
 ```
+
+`plsql/crear_bbdd_sintetica.sql` y `plsql/eliminar_bbdd_sintetica.sql` hacen lo mismo con F5.
+`plsql/desinstalar.sql` borra datos, paquete y tabla de registro.
 
 ## Herramientas (desarrollo)
 

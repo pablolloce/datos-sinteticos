@@ -15,6 +15,7 @@
    ge_referencia_no_existe CONSTANT PLS_INTEGER  := -20002;
    ge_purga_bloqueada      CONSTANT PLS_INTEGER  := -20003;
    ge_verificacion_fallida CONSTANT PLS_INTEGER  := -20004;
+   ge_bbdd_ya_creada       CONSTANT PLS_INTEGER  := -20005;
 
    /* Activa/desactiva las trazas por DBMS_OUTPUT (por defecto activadas). */
    PROCEDURE set_trazas (p_activas IN BOOLEAN);

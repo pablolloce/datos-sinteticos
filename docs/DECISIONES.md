@@ -206,7 +206,7 @@ Plantilla:
   hay que situarse en `plsql/`; en SQL Developer, abrir el script desde `plsql/`.
 
 ### D-021 — Una sentencia para crear y otra para eliminar; verificación automática
-- Fecha: 2026-09-29 · Estado: VIGENTE
+- Fecha: 2026-09-29 · Estado: SUSTITUIDA POR D-025 (crear ya no borra antes ni recorre tablas)
 - Decisión: `EXEC pkg_sint.crear_bbdd;` borra lo sintético previo, crea todas las entidades y
   variaciones, **verifica** que cada tabla tiene exactamente las filas esperadas (calculadas
   por el generador) y hace COMMIT; todo en una transacción (repetible sin duplicar).
@@ -237,6 +237,37 @@ Plantilla:
   el código generado.
 - Consecuencias: un cambio en cualquier entidad recompila el paquete entero (segundos hoy).
 
+### D-024 — Registro de claves SINT_REGISTRO: crear y eliminar sin recorrer tablas
+- Fecha: 2026-09-30 · Estado: VIGENTE
+- Contexto: crear y eliminar tardaban mucho en KYTL_GC: localizar lo sintético por
+  `LAST_CHG_USR_ID` (sin índice) obliga a recorrer tablas de 0,2–2,4 M filas (~10 M en total
+  con sólo la Contrapartida Global), y `crear_bbdd` lo hacía 3 veces (purga, verificación,
+  resumen).
+- Decisión: tabla `SINT_REGISTRO` (IOT, PK `(tabla, clave)`; columnas `columna_pk`, `entidad`,
+  `creado_tms`), creada por `instalar.sql` si no existe y conservada entre instalaciones.
+  Cada `FORALL` de inserción va seguido de un `FORALL` que anota la PK de las filas creadas.
+  `eliminar_bbdd` borra por PK (FORALL de DELETE por índice) en orden hijas→padres y después
+  las tablas que queden en el registro; `verificar` y `resumen` también van por el registro.
+  Toda tabla gestionada debe tener PK de una sola columna (si no, error de generación).
+- Medición local (4 tablas con 1 M filas): crear 0,04 s, eliminar 0,02 s; el borrado por
+  `LAST_CHG_USR_ID` (ahora `limpiar_restos`) recorre las tablas y escala con su tamaño.
+- Consecuencias: un objeto más en el esquema (la tabla). Resuelve la primera parte de P-008:
+  si las pruebas cambian el `LAST_CHG_USR_ID` de una fila sintética, se sigue borrando por su
+  clave. Si hay registros NO sintéticos colgando con FK activa, el borrado se deshace (ORA-20003).
+  Coste residual: al borrar filas de `FT_T_FINS`/`FT_T_FINR`, Oracle comprueba las FKs activas
+  de sus tablas hijas; si esas columnas no tienen índice, cada fila borrada recorre la hija.
+
+### D-025 — Instalación separada de la ejecución
+- Fecha: 2026-09-30 · Estado: VIGENTE (indicación del usuario; sustituye a D-021)
+- Decisión:
+  - `plsql/instalar.sql`: único comando de instalación/actualización. Desinstala los paquetes
+    de versiones anteriores, crea `SINT_REGISTRO` si no existe y compila `PKG_SINT`.
+  - `EXEC pkg_sint.crear_bbdd;` (o `crear_bbdd_sintetica.sql`): SÓLO inserts + verificación
+    por clave + COMMIT. Si ya hay BBDD registrada, ORA-20005 (no duplica, no borra).
+  - `EXEC pkg_sint.eliminar_bbdd;` (o `eliminar_bbdd_sintetica.sql`): SÓLO borra lo registrado.
+  - `EXEC pkg_sint.limpiar_restos;`: ocasional y lento, para restos no registrados (p. ej.
+    datos creados por versiones anteriores del generador).
+
 ---
 
 ## Preguntas abiertas
@@ -250,7 +281,7 @@ Plantilla:
 | P-005 | Datos de referencia. | RESUELTA → D-009 (deben existir en BBDD) |
 | P-006 | Triggers / auditoría / historial. | RESUELTA: no hay |
 | P-007 | Esquema y despliegue. | RESUELTA: `KYTL_GC` (D-011), SQL Developer (D-016) |
-| P-008 | Registros sintéticos modificados por las pruebas (cambia `LAST_CHG_USR_ID`) o registros de las pruebas que cuelgan de ellos: la purga por usuario no los cubre. | ABIERTA — riesgo aceptado; propuesta: tabla de control con las claves generadas. **Pendiente de definir** |
+| P-008 | Registros sintéticos modificados por las pruebas (cambia `LAST_CHG_USR_ID`) o registros de las pruebas que cuelgan de ellos. | PARCIAL → D-024: los modificados se borran por clave. Pendiente: qué hacer con registros de las pruebas que cuelgan de los sintéticos (hoy el borrado se deshace con ORA-20003) |
 | P-009 | Volumen esperado. | RESUELTA: cientos de entidades (303 contrapartidas = 3.030 filas en ~0,05 s en local) |
 | P-010 | Firma exacta de `NEW_OID`. | RESUELTA: función sin parámetros que devuelve el OID de 10 caracteres, accesible desde `KYTL_GC` (D-008) |
 | P-011 | Variaciones y cantidades de la Contrapartida Global. | RESUELTA → D-014 (una entidad idéntica al mensaje; variaciones sólo por petición) |

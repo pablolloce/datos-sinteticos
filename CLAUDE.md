@@ -26,9 +26,12 @@ Oracle 19c** sobre la BBDD relacional de GoldenSource (esquema **`KYTL_GC`**, ta
   Las variaciones **sólo** se crean cuando se piden por chat (D-014) y se declaran en
   [`mensajes_entrada/catalogo.json`](mensajes_entrada/catalogo.json).
 - **Todo registro sintético lleva `LAST_CHG_USR_ID = 'TESTING:RDR'`** (D-001).
-- **Una sentencia crea toda la BBDD sintética y otra la elimina** (D-021):
-  `EXEC pkg_sint.crear_bbdd;` / `EXEC pkg_sint.eliminar_bbdd;` (o los scripts
-  `plsql/crear_bbdd_sintetica.sql` / `plsql/eliminar_bbdd_sintetica.sql`, F5 en SQL Developer).
+- **Instalación y ejecución separadas** (D-025):
+  - Instalar/actualizar (desinstala lo anterior e instala lo nuevo): `plsql/instalar.sql` (F5).
+  - Crear (SÓLO inserts, rápido): `EXEC pkg_sint.crear_bbdd;`
+  - Eliminar (SÓLO borra lo insertado, rápido): `EXEC pkg_sint.eliminar_bbdd;`
+- Las filas creadas se anotan en la tabla **`SINT_REGISTRO`** y se borran por clave primaria:
+  crear y eliminar nunca recorren las tablas de GoldenSource (D-024).
 
 ## 2. Reglas de trabajo
 
@@ -116,10 +119,10 @@ herramientas/analizar_mensaje.py   <- informe de mapeo de un mensaje / segmento 
 herramientas/generar_plsql.py      <- mensajes + catálogo + núcleo -> plsql/generado/pkg_sint.*
 herramientas/generar_ddl_pruebas.py<- DDL de tablas para el Oracle local de pruebas
 herramientas/probar_en_local.sh    <- prueba de extremo a extremo en Oracle local (docker)
-plsql/crear_bbdd_sintetica.sql     <- F5: instala el código + crea toda la BBDD sintética
-plsql/eliminar_bbdd_sintetica.sql  <- F5: borra toda la BBDD sintética
-plsql/instalar.sql                 <- limpia paquetes de versiones anteriores + compila PKG_SINT
-plsql/desinstalar.sql              <- borra datos y PKG_SINT
+plsql/instalar.sql                 <- F5: desinstala versiones anteriores + SINT_REGISTRO + compila PKG_SINT
+plsql/crear_bbdd_sintetica.sql     <- F5: EXEC pkg_sint.crear_bbdd (sólo inserts)
+plsql/eliminar_bbdd_sintetica.sql  <- F5: EXEC pkg_sint.eliminar_bbdd (sólo borrado por clave)
+plsql/desinstalar.sql              <- borra datos, PKG_SINT y SINT_REGISTRO
 plsql/fuente/nucleo_*.sql          <- núcleo escrito a mano (fragmentos que se insertan en PKG_SINT)
 plsql/generado/pkg_sint.pks/.pkb   <- (generado) EL paquete: núcleo + entidades por unidad + API
 plsql/generado/manifiesto.json     <- (generado) tablas, orden de purga, conteos, tamaño
@@ -138,17 +141,21 @@ Variaciones solicitadas por chat: ninguna.
 
 - **Un único paquete `PKG_SINT`** (D-023), generado, con tres secciones:
   1. NÚCLEO (escrito a mano en `plsql/fuente/`, el generador lo inserta): constantes,
-     `nuevo_oid`, `traza`, `exigir_referencia`, `contar`, `resumen_tablas`, `purgar_tablas`.
+     `nuevo_oid`, `traza`, `exigir_referencia`, registro de claves (`hay_registro`,
+     `borrar_registrados`, `resumen_registro`, `verificar_registro`) y `purgar_por_usuario`.
   2. ENTIDADES: un procedimiento público `crear_<entidad>(p_cantidad [, parámetros])` por
      mensaje, agrupados por unidad funcional (`MAIN_ENTITY_TBL_TYP`).
-  3. API: `crear_bbdd`, `eliminar_bbdd`, `resumen`, `verificar` (listas de tablas, orden de
+  3. API: `crear_bbdd`, `eliminar_bbdd`, `resumen`, `verificar`, `limpiar_restos` (listas de tablas, orden de
      purga calculado por FKs y conteos esperados, declarados en la marca `<<DATOS_GENERADOS>>`
      del núcleo porque en PL/SQL las declaraciones van antes que los procedimientos).
 - Instalación en `KYTL_GC` con derechos del propietario. Scripts compatibles con SQL Developer
   (F5) y SQL*Plus (D-016); los `@@` con subcarpetas sólo en scripts de `plsql/` (D-020).
 - Patrón de `crear_<entidad>`: validar cantidad → validar referencias → claves nuevas en colección →
-  `SAVEPOINT` → un `FORALL` por segmento → sin COMMIT. Ante error: `ROLLBACK TO SAVEPOINT`.
-- `crear_bbdd`: una transacción; borra lo sintético previo, crea, **verifica conteos** y COMMIT.
+  `SAVEPOINT` → por segmento, un `FORALL` INSERT + un `FORALL` a `SINT_REGISTRO` → sin COMMIT.
+  Ante error: `ROLLBACK TO SAVEPOINT`. Toda tabla gestionada debe tener PK de una columna (D-024).
+- `crear_bbdd`: sólo inserta (falla con ORA-20005 si ya hay BBDD registrada), verifica por clave
+  y COMMIT. `eliminar_bbdd`: borra por clave lo registrado y COMMIT. Ninguno recorre tablas.
+- `limpiar_restos`: borrado LENTO por `LAST_CHG_USR_ID`, sólo para restos no registrados.
 - Prefijos: `gc_` constantes, `g_` variables de paquete, `ge_` códigos de error, `p_` parámetros,
   `l_` variables locales, `c_` constantes locales, `t_` tipos, `k_` claves generadas.
 - `'TESTING:RDR'` sólo en `gc_usuario_sintetico` (plsql/fuente/nucleo_especificacion.sql).

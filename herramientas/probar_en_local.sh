@@ -9,7 +9,8 @@
 #   3. Recrea las tablas gestionadas y referenciadas (plsql/generado/manifiesto.json)
 #      a partir de esquema/modelo/modelo.json + stub de NEW_OID.
 #   4. Carga datos de referencia mínimos (plsql/pruebas/local/referencias_minimas.sql).
-#   5. crear_bbdd_sintetica.sql (dos veces: debe ser repetible), eliminar y desinstalar.
+#   5. instalar.sql sobre una versión antigua, crear, crear de nuevo (debe negarse),
+#      eliminar, limpiar_restos y desinstalar.
 #
 # Uso:   herramientas/probar_en_local.sh
 # =============================================================================
@@ -75,22 +76,44 @@ CREATE PACKAGE sint_e_contrapartida_global AS x NUMBER; END;
 /
 EOF
 
-echo "=============== crear_bbdd_sintetica.sql (1ª vez) ==============="
+# Resto sintético de una versión anterior (NO registrado): sólo lo borra limpiar_restos
+sqlplus <<'EOF' >/dev/null
+INSERT INTO ft_t_fins (inst_mnem, inst_nme, start_tms, last_chg_tms, last_chg_usr_id)
+VALUES ('RESTO00001', 'RESTO VERSION ANTERIOR', SYSDATE, SYSDATE, 'TESTING:RDR');
+COMMIT;
+EOF
+
+echo "=============== instalar.sql (sobre una versión anterior) ==============="
 sqlplus <<'EOF'
+@instalar.sql
+SELECT object_name, object_type, status FROM user_objects
+ WHERE object_name LIKE '%SINT%' ORDER BY 1, 2;
+EOF
+echo "=============== crear_bbdd_sintetica.sql ==============="
+sqlplus <<'EOF'
+SET TIMING ON
 @crear_bbdd_sintetica.sql
 EOF
-echo "=============== Paquetes tras instalar (sólo debe quedar PKG_SINT) ==============="
-sqlplus <<'EOF'
-SELECT object_name, object_type, status FROM user_objects WHERE object_name LIKE '%SINT%' ORDER BY 1, 2;
-EOF
-echo "=============== crear_bbdd_sintetica.sql (2ª vez: debe reemplazar, no duplicar) ==============="
-sqlplus <<'EOF'
-SET FEEDBACK OFF
+echo "=============== crear otra vez: debe negarse (ORA-20005) sin tocar nada ==============="
+sqlplus <<'EOF' | grep -E "ORA-2000|TOTAL"
 @crear_bbdd_sintetica.sql
+EXEC pkg_sint.resumen;
 EOF
 echo "=============== eliminar_bbdd_sintetica.sql ==============="
 sqlplus <<'EOF'
+SET TIMING ON
 @eliminar_bbdd_sintetica.sql
+EXEC pkg_sint.resumen;
+SELECT COUNT(*) AS resto_sin_registrar FROM ft_t_fins WHERE last_chg_usr_id = 'TESTING:RDR';
+EOF
+echo "=============== crear + limpiar_restos (borra también lo no registrado) ==============="
+sqlplus <<'EOF'
+SET FEEDBACK OFF
+EXEC pkg_sint.set_trazas(FALSE);
+@crear_bbdd_sintetica.sql
+EXEC pkg_sint.set_trazas(TRUE);
+EXEC pkg_sint.limpiar_restos;
+SELECT COUNT(*) AS sinteticas_restantes FROM ft_t_fins WHERE last_chg_usr_id = 'TESTING:RDR';
 EOF
 echo "=============== desinstalar.sql ==============="
 sqlplus <<'EOF'

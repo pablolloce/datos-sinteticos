@@ -7,14 +7,18 @@ AS
  *
  * PKG_SINT — GENERADOR DE LA BBDD SINTÉTICA (único paquete, D-023)
  *
- *    EXEC pkg_sint.crear_bbdd;      -- borra lo sintético previo, crea todo, verifica y COMMIT
- *    EXEC pkg_sint.eliminar_bbdd;   -- borra todos los registros 'TESTING:RDR' y COMMIT
- *    EXEC pkg_sint.resumen;         -- filas sintéticas por tabla
+ *    EXEC pkg_sint.crear_bbdd;      -- SÓLO inserta toda la BBDD sintética y COMMIT (rápido)
+ *    EXEC pkg_sint.eliminar_bbdd;   -- SÓLO borra lo insertado, por clave, y COMMIT (rápido)
+ *    EXEC pkg_sint.resumen;         -- filas sintéticas registradas por tabla
+ *    EXEC pkg_sint.limpiar_restos;  -- (ocasional, LENTO) borra por LAST_CHG_USR_ID lo no registrado
+ *
+ * Cada fila creada se anota en la tabla SINT_REGISTRO (tabla, columna PK, clave), de modo
+ * que borrar y verificar van por clave primaria y no recorren tablas de millones de filas.
  *
  * Organización:
  *    1. NÚCLEO      utilidades comunes (plsql/fuente/)
  *    2. ENTIDADES   un procedimiento crear_<entidad> por mensaje, agrupados por unidad
- *    3. API         crear_bbdd, eliminar_bbdd, resumen, verificar
+ *    3. API         crear_bbdd, eliminar_bbdd, resumen, verificar, limpiar_restos
  *
  * Entidades: 1 · Variaciones: 0 · Tablas gestionadas: 8
  *   Unidad Procedimiento                  Filas  Mensaje
@@ -42,6 +46,7 @@ AS
    ge_referencia_no_existe CONSTANT PLS_INTEGER  := -20002;
    ge_purga_bloqueada      CONSTANT PLS_INTEGER  := -20003;
    ge_verificacion_fallida CONSTANT PLS_INTEGER  := -20004;
+   ge_bbdd_ya_creada       CONSTANT PLS_INTEGER  := -20005;
 
    /* Activa/desactiva las trazas por DBMS_OUTPUT (por defecto activadas). */
    PROCEDURE set_trazas (p_activas IN BOOLEAN);
@@ -79,20 +84,24 @@ AS
    -- 3. API
    -- #########################################################################
 
-   /* Crea la BBDD sintética completa en UNA transacción.
-      p_limpiar_antes: borra antes los registros sintéticos existentes (recomendado).
-      p_commit       : confirma al terminar. */
-   PROCEDURE crear_bbdd (p_limpiar_antes IN BOOLEAN DEFAULT TRUE,
-                         p_commit        IN BOOLEAN DEFAULT TRUE);
+   /* Inserta TODA la BBDD sintética (entidades de los mensajes + variaciones) en UNA
+      transacción, la verifica (por clave, rápido) y hace COMMIT. No borra nada: si ya
+      hay una BBDD sintética registrada, falla (ORA-20005) para no duplicarla. */
+   PROCEDURE crear_bbdd (p_commit IN BOOLEAN DEFAULT TRUE);
 
-   /* Borra TODOS los registros sintéticos de las tablas gestionadas. */
+   /* Borra, por clave primaria, todo lo insertado (SINT_REGISTRO) y hace COMMIT. */
    PROCEDURE eliminar_bbdd (p_commit IN BOOLEAN DEFAULT TRUE);
 
-   /* Filas sintéticas por tabla gestionada. */
+   /* Filas sintéticas registradas por tabla (sólo lee SINT_REGISTRO). */
    PROCEDURE resumen;
 
-   /* Compara las filas sintéticas con las esperadas; ORA-20004 si no cuadran. */
+   /* Comprueba que las filas registradas existen y cuadran con lo esperado (ORA-20004). */
    PROCEDURE verificar;
+
+   /* LENTO (recorre las tablas completas): borra toda fila con LAST_CHG_USR_ID =
+      'TESTING:RDR' de las tablas gestionadas, esté o no registrada, y vacía el registro.
+      Sólo para restos de versiones anteriores o datos no registrados. */
+   PROCEDURE limpiar_restos (p_commit IN BOOLEAN DEFAULT TRUE);
 
 END pkg_sint;
 /

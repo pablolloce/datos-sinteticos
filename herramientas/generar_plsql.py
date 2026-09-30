@@ -11,7 +11,7 @@ Salida (``plsql/generado/``, NO editar a mano):
     pkg_sint.pks/.pkb   ÚNICO paquete (D-023):
                           1. núcleo (fragmentos escritos a mano en plsql/fuente/)
                           2. un procedimiento crear_<entidad> por mensaje, agrupados por unidad
-                          3. API: crear_bbdd / eliminar_bbdd / resumen / verificar
+                          3. API: crear_bbdd / eliminar_bbdd / resumen / verificar / limpiar_restos
     manifiesto.json     tablas gestionadas, referencias y conteos (para pruebas)
 
 Reglas de traducción (ver CLAUDE.md §4 y docs/DECISIONES.md):
@@ -85,6 +85,8 @@ class Fila:
     tabla: str
     columnas: list = field(default_factory=list)
     omitidos: list = field(default_factory=list)   # tags sin columna física
+    pk: str = ""                                   # columna PK (una sola) -> SINT_REGISTRO
+    registro: str = ""                             # expresión del valor de la PK a registrar
 
 
 @dataclass
@@ -260,6 +262,11 @@ def construir_entidad(ruta: Path, config: dict, modelo: dict) -> Entidad:
     filas = []
     for n, tipo, accion, tabla, columnas, valores, omitidos, claves_fila in filas_crudas:
         fila = Fila(n, tipo, accion, tabla, omitidos=omitidos)
+        pk = modelo["tablas"][tabla]["pk"]
+        if len(pk) != 1:
+            raise ErrorGeneracion(f"{ruta.name} #{n} {tipo}: {tabla} tiene PK de {len(pk)} columnas; "
+                                  "SINT_REGISTRO sólo admite PK de una columna (D-024): consultar")
+        fila.pk = pk[0]
         exprs: dict = {}
         for col, var in claves_fila.items():
             exprs[col] = (f"l_k(i).{var}", "clave nueva (NEW_OID)")
@@ -299,6 +306,12 @@ def construir_entidad(ruta: Path, config: dict, modelo: dict) -> Entidad:
         for col in columnas:
             if col in exprs:
                 fila.columnas.append(Columna(col, *exprs[col]))
+        # Valor de la PK para SINT_REGISTRO: si es un literal sobre CHAR(n), con el relleno
+        # de blancos que Oracle aplica al guardarlo (el borrado compara por igualdad exacta).
+        expr_pk = exprs[fila.pk][0]
+        c_pk = columnas[fila.pk]
+        fila.registro = (f"RPAD({expr_pk}, {c_pk[2]})" if c_pk[1] == "CHAR" and expr_pk.startswith("'")
+                         else expr_pk)
         filas.append(fila)
 
         # Referencias: FKs cuyas columnas llevan literales o parámetros (no claves nuevas)
@@ -401,7 +414,10 @@ def emitir_procedimiento(e: Entidad) -> str:
 {cols})
          VALUES (
 {chr(10).join(vals)}
-         );""")
+         );
+      FORALL i IN 1 .. l_k.COUNT   -- clave en SINT_REGISTRO para el borrado rápido (D-024)
+         INSERT INTO sint_registro (tabla, columna_pk, clave, entidad)
+         VALUES ('{f.tabla}', '{f.pk}', {f.registro}, c_entidad);""")
 
     sp = f"sp_{e.nombre.lower()[:25]}"
     return f"""   -- ==========================================================================
@@ -410,6 +426,7 @@ def emitir_procedimiento(e: Entidad) -> str:
 {firma(e, con_defecto=False)}
    IS
       c_usuario           CONSTANT VARCHAR2(30) := gc_usuario_sintetico;
+      c_entidad           CONSTANT VARCHAR2(30) := '{e.nombre[:30]}';
       c_filas_por_entidad CONSTANT PLS_INTEGER  := {len(e.filas)};
       l_ahora             CONSTANT DATE         := SYSDATE;   -- START_TMS y LAST_CHG_TMS (D-007)
 
@@ -568,14 +585,18 @@ def emitir_paquete(entidades: list, variaciones: list, modelo: dict) -> tuple[st
  *
  * PKG_SINT — GENERADOR DE LA BBDD SINTÉTICA (único paquete, D-023)
  *
- *    EXEC pkg_sint.crear_bbdd;      -- borra lo sintético previo, crea todo, verifica y COMMIT
- *    EXEC pkg_sint.eliminar_bbdd;   -- borra todos los registros 'TESTING:RDR' y COMMIT
- *    EXEC pkg_sint.resumen;         -- filas sintéticas por tabla
+ *    EXEC pkg_sint.crear_bbdd;      -- SÓLO inserta toda la BBDD sintética y COMMIT (rápido)
+ *    EXEC pkg_sint.eliminar_bbdd;   -- SÓLO borra lo insertado, por clave, y COMMIT (rápido)
+ *    EXEC pkg_sint.resumen;         -- filas sintéticas registradas por tabla
+ *    EXEC pkg_sint.limpiar_restos;  -- (ocasional, LENTO) borra por LAST_CHG_USR_ID lo no registrado
+ *
+ * Cada fila creada se anota en la tabla SINT_REGISTRO (tabla, columna PK, clave), de modo
+ * que borrar y verificar van por clave primaria y no recorren tablas de millones de filas.
  *
  * Organización:
  *    1. NÚCLEO      utilidades comunes (plsql/fuente/)
  *    2. ENTIDADES   un procedimiento crear_<entidad> por mensaje, agrupados por unidad
- *    3. API         crear_bbdd, eliminar_bbdd, resumen, verificar
+ *    3. API         crear_bbdd, eliminar_bbdd, resumen, verificar, limpiar_restos
  *
  * Entidades: {len(entidades)} · Variaciones: {len(variaciones)} · Tablas gestionadas: {len(tablas)}
  *   Unidad Procedimiento                  Filas  Mensaje
@@ -592,20 +613,24 @@ AS
 {seccion("2. ENTIDADES")}
 {por_unidad(emitir_declaracion)}
 {seccion("3. API")}
-   /* Crea la BBDD sintética completa en UNA transacción.
-      p_limpiar_antes: borra antes los registros sintéticos existentes (recomendado).
-      p_commit       : confirma al terminar. */
-   PROCEDURE crear_bbdd (p_limpiar_antes IN BOOLEAN DEFAULT TRUE,
-                         p_commit        IN BOOLEAN DEFAULT TRUE);
+   /* Inserta TODA la BBDD sintética (entidades de los mensajes + variaciones) en UNA
+      transacción, la verifica (por clave, rápido) y hace COMMIT. No borra nada: si ya
+      hay una BBDD sintética registrada, falla (ORA-20005) para no duplicarla. */
+   PROCEDURE crear_bbdd (p_commit IN BOOLEAN DEFAULT TRUE);
 
-   /* Borra TODOS los registros sintéticos de las tablas gestionadas. */
+   /* Borra, por clave primaria, todo lo insertado (SINT_REGISTRO) y hace COMMIT. */
    PROCEDURE eliminar_bbdd (p_commit IN BOOLEAN DEFAULT TRUE);
 
-   /* Filas sintéticas por tabla gestionada. */
+   /* Filas sintéticas registradas por tabla (sólo lee SINT_REGISTRO). */
    PROCEDURE resumen;
 
-   /* Compara las filas sintéticas con las esperadas; ORA-20004 si no cuadran. */
+   /* Comprueba que las filas registradas existen y cuadran con lo esperado (ORA-20004). */
    PROCEDURE verificar;
+
+   /* LENTO (recorre las tablas completas): borra toda fila con LAST_CHG_USR_ID =
+      'TESTING:RDR' de las tablas gestionadas, esté o no registrada, y vacía el registro.
+      Sólo para restos de versiones anteriores o datos no registrados. */
+   PROCEDURE limpiar_restos (p_commit IN BOOLEAN DEFAULT TRUE);
 
 END pkg_sint;
 /
@@ -622,43 +647,36 @@ AS
    PROCEDURE resumen
    IS
    BEGIN
-      resumen_tablas(g_tablas);
+      resumen_registro;
    END resumen;
 
    PROCEDURE verificar
    IS
-      l_errores VARCHAR2(4000);
-      l_filas   PLS_INTEGER;
    BEGIN
-      FOR i IN 1 .. g_tablas.COUNT LOOP
-         l_filas := contar(g_tablas(i));
-         IF l_filas <> g_filas_esperadas(i) THEN
-            l_errores := SUBSTR(l_errores || ' ' || g_tablas(i) || '=' || l_filas
-                                || ' (esperadas ' || g_filas_esperadas(i) || ')', 1, 4000);
-         END IF;
-      END LOOP;
-      IF l_errores IS NOT NULL THEN
-         RAISE_APPLICATION_ERROR(ge_verificacion_fallida, 'Filas sintéticas inesperadas:' || l_errores);
-      END IF;
-      traza('Verificación correcta: todas las tablas tienen las filas esperadas');
+      verificar_registro(g_tablas, g_filas_esperadas);
    END verificar;
 
    PROCEDURE eliminar_bbdd (p_commit IN BOOLEAN DEFAULT TRUE)
    IS
    BEGIN
-      purgar_tablas(g_tablas_purga, p_commit);
+      borrar_registrados(g_tablas_purga, p_commit);
    END eliminar_bbdd;
 
-   PROCEDURE crear_bbdd (p_limpiar_antes IN BOOLEAN DEFAULT TRUE,
-                         p_commit        IN BOOLEAN DEFAULT TRUE)
+   PROCEDURE limpiar_restos (p_commit IN BOOLEAN DEFAULT TRUE)
+   IS
+   BEGIN
+      purgar_por_usuario(g_tablas_purga, p_commit);
+   END limpiar_restos;
+
+   PROCEDURE crear_bbdd (p_commit IN BOOLEAN DEFAULT TRUE)
    IS
    BEGIN
       traza('=== Creación de la BBDD sintética ===');
-      SAVEPOINT sp_crear_bbdd;
-
-      IF p_limpiar_antes THEN
-         purgar_tablas(g_tablas_purga, p_commit => FALSE);
+      IF hay_registro THEN
+         RAISE_APPLICATION_ERROR(ge_bbdd_ya_creada,
+            'Ya existe una BBDD sintética registrada: ejecute antes EXEC pkg_sint.eliminar_bbdd;');
       END IF;
+      SAVEPOINT sp_crear_bbdd;
 
       -------------------------------------------------------------------------
       -- 1. Entidades de los mensajes (una entidad idéntica a cada mensaje)
@@ -670,13 +688,10 @@ AS
       -------------------------------------------------------------------------
 {chr(10).join(llamadas_var) or '      NULL;  -- ninguna'}
 
-      IF p_limpiar_antes THEN
-         verificar;
-      END IF;
+      verificar;          -- por clave primaria: sólo lee las filas recién creadas
       IF p_commit THEN
          COMMIT;
       END IF;
-      resumen;
       traza('=== BBDD sintética creada' ||
             CASE WHEN p_commit THEN ' (COMMIT)' ELSE ' (pendiente de COMMIT)' END || ' ===');
    EXCEPTION

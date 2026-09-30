@@ -5,20 +5,31 @@ Cada técnica que se incorpore al código se marca como **APLICADA** e indica d�
 
 | Técnica | Estado | Dónde |
 |---|---|---|
+| Registro de claves (IOT) + borrado por PK | APLICADA | `SINT_REGISTRO`, `eliminar_bbdd`, `verificar` (D-024) |
 | SQL estático generado (no SQL dinámico por fila) | APLICADA | `PKG_SINT.crear_<entidad>` (D-017) |
 | `FORALL` por segmento sobre colección de claves | APLICADA | `crear_<entidad>` |
 | Claves generadas en memoria antes de insertar | APLICADA | `crear_<entidad>` (colección `t_lista_claves`) |
 | Referencias validadas una vez por llamada | APLICADA | `crear_<entidad>`, paso 1 |
 | Un único paquete, tamaño vigilado | APLICADA | D-023 |
-| Variables de enlace (bind) | APLICADA | `contar` / `purgar_tablas`; SQL estático en el resto |
+| Variables de enlace (bind) | APLICADA | `borrar_tabla_registrada`, `purgar_por_usuario`; SQL estático en el resto |
 | `%TYPE` en parámetros y comparaciones con CHAR | APLICADA | parámetros de variación, D-012 |
-| Transacción única + `SAVEPOINT` | APLICADA | `crear_bbdd`, `crear_<entidad>`, `purgar_tablas` |
+| Transacción única + `SAVEPOINT` | APLICADA | `crear_bbdd`, `crear_<entidad>`, `borrar_registrados` |
 | `DBMS_ASSERT` en SQL dinámico | APLICADA (seguridad) | `tabla_segura` |
 | Hint `APPEND` / `APPEND_VALUES` (direct-path) | DESCARTADA | ver abajo |
 
-Medición en Oracle local (contenedor, sin concurrencia): 303 contrapartidas globales
-(3.030 filas, 10 FORALL por llamada) en ~0,05 s. Para "cientos de entidades" el coste es
-despreciable; el tiempo de `crear_bbdd` lo dominará la purga previa (ver abajo).
+Medición en Oracle local (contenedor, sin concurrencia), con 4 tablas de 1 M filas:
+`crear_bbdd` 0,04 s y `eliminar_bbdd` 0,02 s; no dependen del tamaño de las tablas.
+
+## Registro de claves (SINT_REGISTRO) y borrado por PK (D-024)
+Localizar lo sintético por `LAST_CHG_USR_ID` (sin índice) obliga a un *full scan* de cada
+tabla: en KYTL_GC son ~10 M filas sólo para la Contrapartida Global, y crece con cada entidad.
+En su lugar, cada inserción anota su PK en `SINT_REGISTRO`:
+- Es una tabla **organizada por índice (IOT)** con PK `(tabla, clave)`: los datos viven en el
+  propio índice, sin tabla aparte, y las lecturas por tabla son un *range scan*.
+- El borrado lee las claves de una tabla (`BULK COLLECT`) y lanza un `FORALL` de
+  `DELETE ... WHERE pk = :clave`: cada fila se localiza por el índice único de la PK.
+- La verificación recorre el registro (pequeño) y comprueba cada clave con `EXISTS` sobre la PK.
+El coste es proporcional a las filas sintéticas (cientos), no al tamaño de las tablas (millones).
 
 ## SQL estático generado
 Cada entidad se traduce a INSERT estáticos. Frente a un motor genérico que construyera SQL
@@ -60,8 +71,6 @@ Reduce redo/undo, pero bloquea la tabla en exclusiva hasta el COMMIT, impide vol
 en la misma transacción (la verificación lo haría) y no aporta nada con cientos de filas. En
 tablas compartidas de GoldenSource sería contraproducente.
 
-## Purga
-`DELETE ... WHERE last_chg_usr_id = :usr` recorre cada tabla completa si no hay índice sobre
-`LAST_CHG_USR_ID`. En tablas grandes de producción (p. ej. `FT_T_FINS`) puede tardar
-segundos por tabla; si con muchas tablas fuera un problema: tabla de control con las claves
-generadas (P-008) para borrar por PK, o índice sobre `LAST_CHG_USR_ID` (a valorar con el DBA).
+## limpiar_restos (borrado por LAST_CHG_USR_ID)
+Se mantiene sólo para restos no registrados (p. ej. datos de versiones anteriores). Recorre
+cada tabla completa: es lento y debe usarse de forma ocasional.
