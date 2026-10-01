@@ -100,7 +100,7 @@ AS
       1,
       1);
 
-   -- Orden de borrado: hijas antes que padres (calculado a partir de las FKs).
+   -- Orden de borrado de las tablas gestionadas: hijas antes que padres (FKs). limpiar_restos.
    g_tablas_purga CONSTANT t_lista_tablas := t_lista_tablas(
       'REGISTER_LOG_TABLE',
       'FT_T_FRCL',
@@ -111,6 +111,575 @@ AS
       'FT_T_FIGU',
       'FT_T_FIST',
       'FT_T_FINS');
+
+   -- Borrado por entidad (D-039), en el orden de borrado (hijas antes que padres) de las tablas
+   -- gestionadas y de todas las tablas del modelo con la columna clave de una tabla principal.
+   -- g_barrido_columna(i) no nulo: en g_orden_borrado(i) se borran las filas cuya columna
+   -- g_barrido_columna(i) sea una clave sintética de g_barrido_principal(i) (sean o no nuestras).
+   g_orden_borrado CONSTANT t_lista_tablas := t_lista_tablas(
+      'PROD_CP_RELATION',
+      'LEGAL_AGR_FUNDS',
+      'LEGAL_AGREEMENT_ATTRIBUTES',
+      'FT_T_VDAN',
+      'FT_T_TRLM',
+      'FT_T_TREC',
+      'FT_T_TRCP',
+      'FT_T_SUFR',
+      'FT_T_STTL',
+      'FT_T_STPA',
+      'FT_T_SSIR',
+      'FT_T_SSIA',
+      'FT_T_SSIS',
+      'FT_T_STFD',
+      'FT_T_SLOC',
+      'FT_T_SLND',
+      'FT_T_SCIS',
+      'FT_T_RTOP',
+      'FT_T_RSGA',
+      'FT_T_RQPT',
+      'FT_T_RPIN',
+      'FT_T_RMPS',
+      'FT_T_RKVA',
+      'FT_T_RKSE',
+      'FT_T_RKPD',
+      'FT_T_RSME',
+      'FT_T_RKPS',
+      'FT_T_RKGJ',
+      'FT_T_RKCC',
+      'FT_T_RKCG',
+      'FT_T_RKSD',
+      'FT_T_RGSC',
+      'FT_T_PRTS',
+      'FT_T_PRSV',
+      'FT_T_PRRG',
+      'FT_T_RGTN',
+      'FT_T_PRID',
+      'FT_T_PPVL',
+      'FT_T_PFIN',
+      'FT_T_PCPF',
+      'FT_T_PCLS',
+      'FT_T_MTAH',
+      'FT_T_MTCN',
+      'FT_T_MRSP',
+      'FT_T_MNES',
+      'FT_T_MISR',
+      'FT_T_LEID',
+      'FT_T_LACV',
+      'FT_T_LAIP',
+      'FT_T_LAAP',
+      'FT_T_LAAN',
+      'FT_T_ISPC',
+      'FT_T_ISID_HIST_BCKP',
+      'FT_T_ISID_HIST',
+      'FT_T_IRAS',
+      'FT_T_INSN',
+      'FT_T_INRS',
+      'FT_T_INLM',
+      'FT_T_PRPU',
+      'FT_T_IATR',
+      'FT_T_IAPA',
+      'FT_T_IAFN',
+      'FT_T_IAAS',
+      'FT_T_HCUT',
+      'FT_T_FXRT',
+      'FT_T_FSTA',
+      'FT_T_FSRH',
+      'FT_T_FSRG',
+      'FT_T_FRST',
+      'FT_T_FRRT',
+      'FT_T_FRPR',
+      'FT_T_FRMK',
+      'FT_T_FRMI',
+      'FT_T_FRIP',
+      'FT_T_FRRL',
+      'FT_T_FRIA',
+      'FT_T_FRGU',
+      'FT_T_FRGP',
+      'FT_T_FRGC',
+      'FT_T_FRCP',
+      'FT_T_FRCA',
+      'FT_T_FRAP',
+      'FT_T_FPPR',
+      'FT_T_FNVD',
+      'FT_T_FNSR',
+      'FT_T_FNIR',
+      'FT_T_FLMR',
+      'FT_T_FLER',
+      'FT_T_LEDF',
+      'FT_T_FLAR',
+      'FT_T_FISP',
+      'FT_T_FISO',
+      'FT_T_SCRD',
+      'FT_T_FIRT',
+      'FT_T_FIRR',
+      'FT_T_FIRA',
+      'FT_T_RGAT',
+      'FT_T_FIID_GT155106',
+      'FT_T_FIGP',
+      'FT_T_FIEV',
+      'FT_T_FIDE',
+      'FT_T_FIID',
+      'FT_T_FIDC',
+      'FT_T_FICM',
+      'FT_T_FICL',
+      'FT_T_INCS',
+      'FT_T_FFRL',
+      'FT_T_FEMS',
+      'FT_T_FEMR',
+      'FT_T_FEMH',
+      'FT_T_FEXM',
+      'FT_T_EXAC',
+      'FT_T_ETRG',
+      'FT_T_ERVL',
+      'FT_T_RTNG',
+      'FT_T_EMRG',
+      'FT_T_EFIR',
+      'FT_T_FIGR',
+      'FT_T_DSRC',
+      'FT_T_DPRG',
+      'FT_T_FRFM',
+      'FT_T_FRID',
+      'FT_T_DLBR',
+      'FT_T_DITA',
+      'FT_T_DEOP',
+      'FT_T_DEFR',
+      'FT_T_DCEX',
+      'FT_T_DCAS',
+      'FT_T_DCDF',
+      'FT_T_CUIA',
+      'FT_T_CSTA',
+      'FT_T_CSEN',
+      'FT_T_CRPS',
+      'FT_T_COST',
+      'FT_T_COSP',
+      'FT_T_COSG',
+      'FT_T_COMT',
+      'FT_T_CNTA',
+      'FT_T_CNSM',
+      'FT_T_CNSA',
+      'FT_T_CMMC',
+      'FT_T_CLOT',
+      'FT_T_CLMN',
+      'FT_T_CNSS',
+      'FT_T_CIPD',
+      'FT_T_IAPR',
+      'FT_T_CDVL',
+      'FT_T_ISSR',
+      'FT_T_CDCI',
+      'FT_T_CDCO',
+      'FT_T_FRGR',
+      'FT_T_CCTA',
+      'FT_T_BORD',
+      'FT_T_BNPT',
+      'FT_T_ISID',
+      'FT_T_BNCH',
+      'FT_T_AUSR',
+      'FT_T_AUOR',
+      'FT_T_RFQQ',
+      'FT_T_ATRG',
+      'FT_T_AMXP',
+      'FT_T_AIAD',
+      'FT_T_TXDR',
+      'FT_T_INRE',
+      'FT_T_ADTP_BAK_20191213',
+      'FT_T_ADTP',
+      'FT_T_ACTI',
+      'FT_T_CUST',
+      'FT_T_DLER',
+      'FT_T_ACTA',
+      'FT_T_FPRO',
+      'FT_TMP_MRKT',
+      'FT_TMP_ISPC',
+      'FINS_REGULATION_ATTR',
+      'FINANCIAL_END_OP',
+      'FINANCIAL_ATTRIBUTES_BRANCH',
+      'APPLICATIONS_TO_BROADCAST',
+      'REGISTER_LOG_TABLE',
+      'FT_T_FRCL',
+      'FT_T_ENFR',
+      'FT_T_MRKT',
+      'FT_T_FIRL',
+      'FT_T_FINR',
+      'FINANCIAL_LEGAL_NAMES',
+      'FT_T_FIGU',
+      'FT_T_FIST',
+      'FT_T_FINS');
+   g_barrido_columna CONSTANT t_lista_tablas := t_lista_tablas(
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      NULL,
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      'INST_MNEM',
+      NULL);
+   g_barrido_principal CONSTANT t_lista_tablas := t_lista_tablas(
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      NULL,
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      'FT_T_FINS',
+      NULL);
    -- ---------------------------------------------------------------------------
    -- (El generador sustituye la línea anterior por las listas de tablas gestionadas,
    --  el orden de borrado y los conteos esperados: en PL/SQL las declaraciones deben
@@ -210,18 +779,48 @@ AS
       RETURN TO_CHAR((DBMS_UTILITY.get_time - p_desde) / 100, 'FM999990D00') || ' s';
    END segundos;
 
-   /* Tablas con claves en estado BORRANDO: primero las de p_orden (hijas antes que
-      padres) y después las que sólo estén en el registro (entidades retiradas del catálogo). */
+   /* TRUE si p_tabla tiene claves en estado BORRANDO. */
+   FUNCTION hay_borrando (p_tabla IN VARCHAR2) RETURN BOOLEAN
+   IS
+      l_n PLS_INTEGER;
+   BEGIN
+      SELECT COUNT(*) INTO l_n FROM sint_registro
+       WHERE tabla = p_tabla AND estado = gc_borrando AND ROWNUM = 1;
+      RETURN l_n > 0;
+   END hay_borrando;
+
+   /* Posición de p_tabla en g_orden_borrado (0 si no está): da su columna de barrido. */
+   FUNCTION posicion_borrado (p_tabla IN VARCHAR2) RETURN PLS_INTEGER
+   IS
+   BEGIN
+      FOR i IN 1 .. g_orden_borrado.COUNT LOOP
+         IF g_orden_borrado(i) = p_tabla THEN
+            RETURN i;
+         END IF;
+      END LOOP;
+      RETURN 0;
+   END posicion_borrado;
+
+   /* TRUE si en p_tabla hay que barrer filas de entidades sintéticas (D-039): tiene columna
+      de barrido y su tabla principal tiene claves en BORRANDO. */
+   FUNCTION hay_que_barrer (p_tabla IN VARCHAR2) RETURN BOOLEAN
+   IS
+      l_i PLS_INTEGER := posicion_borrado(p_tabla);
+   BEGIN
+      RETURN l_i > 0 AND g_barrido_columna(l_i) IS NOT NULL
+             AND hay_borrando(g_barrido_principal(l_i));
+   END hay_que_barrer;
+
+   /* Tablas con claves en estado BORRANDO o con filas de entidades sintéticas que barrer
+      (D-039): primero las de p_orden (hijas antes que padres) y después las que sólo estén
+      en el registro (entidades retiradas del catálogo). */
    FUNCTION tablas_pendientes (p_orden IN t_lista_tablas) RETURN t_lista_tablas
    IS
       l_tablas t_lista_tablas := t_lista_tablas();
-      l_n      PLS_INTEGER;
       l_esta   BOOLEAN;
    BEGIN
       FOR i IN 1 .. p_orden.COUNT LOOP
-         SELECT COUNT(*) INTO l_n FROM sint_registro
-          WHERE tabla = p_orden(i) AND estado = gc_borrando AND ROWNUM = 1;
-         IF l_n > 0 THEN
+         IF hay_borrando(p_orden(i)) OR hay_que_barrer(p_orden(i)) THEN
             l_tablas.EXTEND;
             l_tablas(l_tablas.LAST) := p_orden(i);
          END IF;
@@ -281,6 +880,54 @@ AS
          END;
          RETURN 'cuelgan registros de ' || l_hija || ' (FK ' || l_fk || '; p. ej. de la clave ' || l_clave || ')';
    END motivo_bloqueo;
+
+   /* BORRADO POR ENTIDAD (D-039). Borra de p_tabla todas las filas cuya p_columna sea una
+      clave en BORRANDO de p_principal (p. ej. de una tabla con INST_MNEM, las filas de las
+      contrapartidas sintéticas), las haya insertado o no el generador: así no quedan
+      registros huérfanos de las pruebas. Una sola sentencia (una lectura de la tabla). Si
+      alguna de esas filas tiene a su vez hijos (ORA-02292), se repite fila a fila y se saltan
+      las que no se pueden borrar. Devuelve las filas borradas; p_saltadas, las que no.
+      Las tablas del modelo que no existen como tabla en el esquema se ignoran (-1). */
+   FUNCTION barrer_entidad (p_tabla     IN  VARCHAR2,
+                            p_columna   IN  VARCHAR2,
+                            p_principal IN  VARCHAR2,
+                            p_saltadas  OUT PLS_INTEGER) RETURN PLS_INTEGER
+   IS
+      TYPE t_lista_rowid IS TABLE OF ROWID;
+      l_rowids t_lista_rowid;
+      l_existe PLS_INTEGER;
+      l_objeto VARCHAR2(261);
+      l_filtro VARCHAR2(400);
+      l_filas  PLS_INTEGER := 0;
+   BEGIN
+      p_saltadas := 0;
+      SELECT COUNT(*) INTO l_existe FROM user_tables WHERE table_name = p_tabla;
+      IF l_existe = 0 THEN
+         RETURN -1;
+      END IF;
+      l_objeto := DBMS_ASSERT.sql_object_name(nombre_seguro(p_tabla));
+      l_filtro := ' WHERE ' || nombre_seguro(p_columna) || ' IN (SELECT r.clave FROM sint_registro r' ||
+                  ' WHERE r.tabla = :principal AND r.estado = :estado)';
+      BEGIN
+         EXECUTE IMMEDIATE 'DELETE FROM ' || l_objeto || l_filtro USING p_principal, gc_borrando;
+         l_filas := SQL%ROWCOUNT;
+      EXCEPTION
+         WHEN e_hijos_existentes THEN
+            -- La sentencia se ha deshecho entera: se repite fila a fila.
+            EXECUTE IMMEDIATE 'SELECT ROWID FROM ' || l_objeto || l_filtro
+               BULK COLLECT INTO l_rowids USING p_principal, gc_borrando;
+            FOR j IN 1 .. l_rowids.COUNT LOOP
+               BEGIN
+                  EXECUTE IMMEDIATE 'DELETE FROM ' || l_objeto || ' WHERE ROWID = :r' USING l_rowids(j);
+                  l_filas := l_filas + 1;
+               EXCEPTION
+                  WHEN e_hijos_existentes THEN p_saltadas := p_saltadas + 1;
+               END;
+            END LOOP;
+      END;
+      COMMIT;
+      RETURN l_filas;
+   END barrer_entidad;
 
    /* ÍNDICES AUXILIARES TEMPORALES (D-028)
       Al borrar una fila padre, Oracle comprueba cada FK activa de otras tablas hacia ella;
@@ -393,6 +1040,10 @@ AS
       l_tabla_b PLS_INTEGER;
       l_total   PLS_INTEGER := 0;
       l_total_b PLS_INTEGER := 0;
+      l_pos     PLS_INTEGER;
+      l_barr    PLS_INTEGER;
+      l_saltad  PLS_INTEGER;
+      l_total_e PLS_INTEGER := 0;
       l_indices PLS_INTEGER;
       l_inicio  PLS_INTEGER;
       l_global  PLS_INTEGER := DBMS_UTILITY.get_time;
@@ -424,7 +1075,25 @@ AS
             l_tabla_n := 0;
             l_tabla_b := 0;
             l_inicio  := DBMS_UTILITY.get_time;
-            SELECT MAX(columna_pk) INTO l_columna FROM sint_registro WHERE tabla = l_tabla;
+
+            -- 2a. Por entidad (D-039): filas de las entidades sintéticas, sean o no nuestras.
+            IF hay_que_barrer(l_tabla) THEN
+               l_pos  := posicion_borrado(l_tabla);
+               l_barr := barrer_entidad(l_tabla, g_barrido_columna(l_pos), g_barrido_principal(l_pos), l_saltad);
+               IF l_barr > 0 OR l_saltad > 0 THEN
+                  l_total_e := l_total_e + l_barr;
+                  traza('   ' || RPAD(l_tabla, 30) || LPAD(l_barr, 10) || ' filas de la entidad (por ' ||
+                        g_barrido_columna(l_pos) || ') en ' || segundos(l_inicio) ||
+                        CASE WHEN l_saltad > 0 THEN ' · ' || l_saltad ||
+                           ' NO (de ellas cuelgan otros registros)' END);
+               END IF;
+               l_inicio := DBMS_UTILITY.get_time;
+            END IF;
+
+            -- 2b. Por clave registrada (lo que insertó el generador)
+            SELECT MAX(columna_pk) INTO l_columna FROM sint_registro
+             WHERE tabla = l_tabla AND estado = gc_borrando;
+            CONTINUE WHEN l_columna IS NULL;
             l_sql := 'DELETE FROM ' || DBMS_ASSERT.sql_object_name(nombre_seguro(l_tabla)) ||
                      ' WHERE ' || nombre_seguro(l_columna) || ' = :clave';
 
@@ -483,7 +1152,10 @@ AS
 
       -- 3. Índices temporales fuera: el esquema queda como estaba
       quitar_indices;
-      traza('Borradas ' || l_total || ' filas sintéticas en ' || segundos(l_global) || ' (COMMIT)');
+      traza('Borradas ' || l_total || ' filas sintéticas registradas' ||
+            CASE WHEN l_total_e > 0 THEN ' y ' || l_total_e || ' filas de las entidades por ' ||
+               'INST_MNEM (D-039; incluye las registradas de esas tablas)' END ||
+            ' en ' || segundos(l_global) || ' (COMMIT)');
       IF l_total_b > 0 THEN
          traza('ATENCIÓN: ' || l_total_b || ' filas sintéticas BLOQUEADAS (de ellas cuelgan registros ' ||
                'no sintéticos). Se reintentan en el próximo EXEC pkg_sint.eliminar_bbdd; ' ||
@@ -1247,7 +1919,7 @@ AS
          traza('Borrado físico lanzado en segundo plano (job ' || lanzar_job_borrado ||
                '). Progreso: EXEC pkg_sint.estado_borrado;');
       ELSE
-         borrar_pendientes(g_tablas_purga);
+         borrar_pendientes(g_orden_borrado);
       END IF;
    END eliminar_bbdd;
 
@@ -1261,7 +1933,7 @@ AS
    IS
    BEGIN
       DBMS_OUTPUT.enable(NULL);   -- la salida del job queda en USER_SCHEDULER_JOB_RUN_DETAILS.OUTPUT
-      borrar_pendientes(g_tablas_purga);
+      borrar_pendientes(g_orden_borrado);
    END ejecutar_borrado_pendiente;
 
    PROCEDURE limpiar_restos (p_commit IN BOOLEAN DEFAULT TRUE)

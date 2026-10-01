@@ -32,7 +32,7 @@ for t in m["tablas_referenciadas"] + m["tablas_gestionadas"]:
     if t not in vistas:
         vistas.append(t)
 # Tablas del motor que lee plsql/motor/capturar_huella.sql (transacción y notificaciones)
-for t in ["FT_T_JBLG", "FT_T_TRID", "FT_T_MSGS", "FT_T_MSGF", "FT_T_MSGP", "FT_T_NTEL"]:
+for t in ["FT_T_JBLG", "FT_T_TRID", "FT_T_MSGS", "FT_T_MSGF", "FT_T_MSGP", "FT_T_NTEL", "FT_T_FIID"]:
     if t not in vistas:
         vistas.append(t)
 print("\n".join(vistas))
@@ -182,10 +182,14 @@ EXEC pkg_sint.set_trazas(FALSE);
 EXEC pkg_sint.set_trazas(TRUE);
 -- Una "prueba" crea un registro propio (no sintético) colgando de la contrapartida sintética
 INSERT INTO hija_de_prueba SELECT 1, clave FROM sint_registro WHERE tabla = 'FT_T_FINS';
+-- ... y otro en una tabla del modelo con INST_MNEM: el borrado por entidad (D-039) lo borra
+INSERT INTO ft_t_fiid (fiid_oid, inst_mnem, fins_id_ctxt_typ, fins_id, start_tms, last_chg_tms, last_chg_usr_id, global_uniq_ind)
+SELECT 'PRUEBA0001', clave, 'FINSID', '999999', SYSDATE, SYSDATE, 'PRUEBAS', 'N' FROM sint_registro WHERE tabla = 'FT_T_FINS';
 COMMIT;
 PROMPT == eliminar: debe borrar todo menos FT_T_FINS (BLOQUEADA)
 EXEC pkg_sint.eliminar_bbdd(p_segundo_plano => FALSE);
 SELECT 'BLOQUEADAS=' || COUNT(*) || ' en ' || LISTAGG(DISTINCT tabla, ',') AS r FROM sint_registro WHERE estado = 'BLOQUEADO';
+SELECT 'FIID_DE_PRUEBAS_RESTANTES=' || COUNT(*) || ' (esperado 0: borrado por entidad, D-039)' AS r FROM ft_t_fiid WHERE fiid_oid = 'PRUEBA0001';
 EXEC pkg_sint.estado_borrado;
 PROMPT == crear de nuevo con la anterior bloqueada (debe poder)
 EXEC pkg_sint.set_trazas(FALSE);

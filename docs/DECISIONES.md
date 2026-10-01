@@ -477,6 +477,27 @@ Plantilla:
   5. `limpiar_restos` también borra todo lo que puede (fila a fila en las tablas con hijos ajenos).
   6. `desinstalar.sql` se detiene (ORA-20003) si quedan BLOQUEADAS, para no perder su registro.
 - Probado en local con una tabla hija no sintética (`probar_en_local.sh`, apartado P-008).
+- Ampliada por D-039: los registros de las pruebas que tienen la clave de la entidad (INST_MNEM)
+  SÍ se borran; sólo quedan BLOQUEADAS las filas de las que cuelgan registros por otras columnas.
+
+### D-039 — El borrado es por entidad: todas las tablas con INST_MNEM
+- Fecha: 2026-10-01 · Estado: VIGENTE (indicación del usuario: "lo mejor es borrar por entidades
+  [...] TODAS las tablas de contrapartidas tienen INST_MNEM, así aseguramos que registros que no
+  insertemos nosotros se borran también")
+- Contexto: en el modelo hay 185 tablas con `INST_MNEM` y sólo 2 FKs habilitadas `INST_MNEM` →
+  `FT_T_FINS`: al borrar la FINS, los registros que las pruebas o GoldenSource hubieran colgado de
+  ella (FIID FINSID, ISID...) quedarían huérfanos sin ningún error.
+- Decisión: tabla principal de cada unidad = `FT_T_<unidad>` (FINS), columna = su PK (`INST_MNEM`).
+  El generador declara `g_orden_borrado` (tablas gestionadas + todas las del modelo con esa columna,
+  sin vistas, hijas antes que padres) y `g_barrido_columna`/`g_barrido_principal`. El job, antes del
+  borrado por clave de cada tabla, ejecuta UNA sentencia
+  `DELETE tabla WHERE INST_MNEM IN (claves de FT_T_FINS en BORRANDO)`: una lectura por tabla y
+  borrado (no por fila). Las tablas del modelo que no existen en el esquema se ignoran. Si alguna
+  fila tiene hijos (ORA-02292) se repite fila a fila y se saltan las que no se pueden borrar.
+- Coste: una lectura completa de cada tabla con INST_MNEM sin índice, una vez por borrado (job en
+  segundo plano). `plsql/motor/diagnostico_finsid.sql` (apartado 6) mide esos tiempos en KYTL_GC.
+- `limpiar_restos` sigue limitado a las tablas gestionadas (por `LAST_CHG_USR_ID`).
+- Probado en local: un FIID creado por "las pruebas" para la contrapartida sintética se borra.
 
 ---
 
@@ -505,3 +526,4 @@ Plantilla:
 | P-019 | Extraer W1–W6 (`fileloading/extracciones/extracciones_workstation.sql`). | RESUELTA: subidas a `fileloading/extracciones/` y decodificadas en `fileloading/extracciones/decodificado/` |
 | P-020 | ¿`FT_T_FLG1` es sinónimo de `FINANCIAL_LEGAL_NAMES`? | RESUELTA: sí (`SINONIMOS_ADICIONALES.csv`); la validación de D-035 es correcta |
 | P-021 | Tablas custom `FT_T_*1` accedidas por sinónimo. | RESUELTA → D-010 punto 4 (35 TBL_ID confirmados por sinónimo, todos en KYTL_GC) |
+| P-022 | FINSID: la contrapartida sintética no tiene FIID `FINSID` (lo crea `CFTIInternalIdentifierCreator`; según el usuario con el procedimiento `GET_IDENTIFIER_ID`). Falta su firma, su código y las columnas que rellena GoldenSource en esa fila: `plsql/motor/diagnostico_finsid.sql`. | ABIERTA (2026-10-01) |

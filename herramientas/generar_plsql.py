@@ -554,6 +554,27 @@ def orden_purga(tablas: list, modelo: dict) -> list:
     return orden
 
 
+def barrido_entidad(entidades: list, tablas: list, modelo: dict) -> list:
+    """Barrido por entidad (D-039): para la tabla principal de cada unidad (FT_T_<unidad>, p. ej.
+    FT_T_FINS) con PK de una columna (INST_MNEM), todas las tablas del modelo que tienen una
+    columna con ese nombre. Al eliminar, se borran en ellas las filas de las entidades sintéticas
+    aunque no las haya insertado el generador. Devuelve [(tabla, columna, tabla_principal)]."""
+    pasos = []
+    for unidad in sorted({e.unidad for e in entidades}):
+        principal = f"FT_T_{unidad}"
+        if principal not in tablas:
+            continue
+        pk = modelo["tablas"][principal]["pk"]
+        if len(pk) != 1:
+            continue
+        for t, d in sorted(modelo["tablas"].items()):
+            if t == principal or t.startswith("FT_V_"):
+                continue
+            if any(c[0] == pk[0] for c in d["columnas"]):
+                pasos.append((t, pk[0], principal))
+    return pasos
+
+
 def seccion(titulo: str) -> str:
     return ("   -- #########################################################################\n"
             f"   -- {titulo}\n"
@@ -572,6 +593,11 @@ def emitir_paquete(entidades: list, variaciones: list, modelo: dict) -> tuple[st
             if t not in tablas:
                 tablas.append(t)
     purga = orden_purga(tablas, modelo)
+    barrido = barrido_entidad(entidades, tablas, modelo)
+    # Orden del borrado (job): tablas gestionadas + tablas del barrido, hijas antes que padres.
+    todas = tablas + [t for t, _, _ in barrido if t not in tablas]
+    orden_borrado = orden_purga(todas, modelo)
+    columna_de = {t: (c, p) for t, c, p in barrido}
 
     esperadas: OrderedDict = OrderedDict((t, 0) for t in tablas)
     llamadas = []
@@ -609,6 +635,7 @@ def emitir_paquete(entidades: list, variaciones: list, modelo: dict) -> tuple[st
 
     indice = "\n".join(f" *   {e.unidad:<6} {e.procedimiento:<30} {len(e.filas):>4} filas  {e.mensaje}" for e in orden)
     lista = lambda ts: ",\n".join(f"      '{t}'" for t in ts)  # noqa: E731
+    lista_nulos = lambda ts: ",\n".join(f"      '{t}'" if t else "      NULL" for t in ts)  # noqa: E731
     cuentas = ",\n".join(f"      {n}" for n in esperadas.values())
     nucleo_spec = (FUENTE / "nucleo_especificacion.sql").read_text(encoding="utf-8").rstrip()
     nucleo_body = (FUENTE / "nucleo_cuerpo.sql").read_text(encoding="utf-8").rstrip()
@@ -624,9 +651,20 @@ def emitir_paquete(entidades: list, variaciones: list, modelo: dict) -> tuple[st
    g_filas_esperadas CONSTANT t_lista_numeros := t_lista_numeros(
 {cuentas});
 
-   -- Orden de borrado: hijas antes que padres (calculado a partir de las FKs).
+   -- Orden de borrado de las tablas gestionadas: hijas antes que padres (FKs). limpiar_restos.
    g_tablas_purga CONSTANT t_lista_tablas := t_lista_tablas(
 {lista(purga)});
+
+   -- Borrado por entidad (D-039), en el orden de borrado (hijas antes que padres) de las tablas
+   -- gestionadas y de todas las tablas del modelo con la columna clave de una tabla principal.
+   -- g_barrido_columna(i) no nulo: en g_orden_borrado(i) se borran las filas cuya columna
+   -- g_barrido_columna(i) sea una clave sintética de g_barrido_principal(i) (sean o no nuestras).
+   g_orden_borrado CONSTANT t_lista_tablas := t_lista_tablas(
+{lista(orden_borrado)});
+   g_barrido_columna CONSTANT t_lista_tablas := t_lista_tablas(
+{lista_nulos([columna_de.get(t, (None, None))[0] for t in orden_borrado])});
+   g_barrido_principal CONSTANT t_lista_tablas := t_lista_tablas(
+{lista_nulos([columna_de.get(t, (None, None))[1] for t in orden_borrado])});
    -- ---------------------------------------------------------------------------"""
     nucleo_body = nucleo_body.replace(marca, datos)
 
@@ -677,7 +715,9 @@ AS
         2. Un job de Oracle (DBMS_SCHEDULER) borra por clave, hijas antes que padres.
       p_segundo_plano => FALSE hace el paso 2 en esta sesión (espera a que termine).
       El paso 2 crea índices temporales para las FKs sin índice (D-026, D-028).
-      Borra todo lo que se puede: las filas de las que cuelgan registros no sintéticos
+      Borra por entidad (D-039): en todas las tablas con INST_MNEM (o la clave de la tabla
+      principal de la unidad) se borran las filas de las entidades sintéticas, sean o no del
+      generador. Borra todo lo que se puede: las filas de las que cuelgan registros no sintéticos
       quedan BLOQUEADAS en SINT_REGISTRO y se reintentan en la siguiente llamada (D-038). */
    PROCEDURE eliminar_bbdd (p_segundo_plano IN BOOLEAN DEFAULT TRUE);
 
@@ -738,7 +778,7 @@ AS
          traza('Borrado físico lanzado en segundo plano (job ' || lanzar_job_borrado ||
                '). Progreso: EXEC pkg_sint.estado_borrado;');
       ELSE
-         borrar_pendientes(g_tablas_purga);
+         borrar_pendientes(g_orden_borrado);
       END IF;
    END eliminar_bbdd;
 
@@ -752,7 +792,7 @@ AS
    IS
    BEGIN
       DBMS_OUTPUT.enable(NULL);   -- la salida del job queda en USER_SCHEDULER_JOB_RUN_DETAILS.OUTPUT
-      borrar_pendientes(g_tablas_purga);
+      borrar_pendientes(g_orden_borrado);
    END ejecutar_borrado_pendiente;
 
    PROCEDURE limpiar_restos (p_commit IN BOOLEAN DEFAULT TRUE)
@@ -803,6 +843,8 @@ END pkg_sint;
 """
     manifiesto = {"paquete": PAQUETE, "lineas_cuerpo": body.count("\n"),
                   "tablas_gestionadas": tablas, "orden_purga": purga,
+                  "barrido_entidad": [{"tabla": t, "columna": c, "principal": p} for t, c, p in barrido],
+                  "orden_borrado": orden_borrado,
                   "filas_esperadas": dict(esperadas),
                   "tablas_referenciadas": sorted({r[0] for e in entidades for r in e.referencias}),
                   "entidades": [{"nombre": e.nombre, "procedimiento": e.procedimiento, "unidad": e.unidad,

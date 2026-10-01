@@ -16,6 +16,7 @@ Cada técnica que se incorpore al código se marca como **APLICADA** e indica d�
 | `%TYPE` en parámetros y comparaciones con CHAR | APLICADA | parámetros de variación, D-012 |
 | Transacción única + `SAVEPOINT` | APLICADA | `crear_bbdd`, `crear_<entidad>`, `borrar_registrados` |
 | `DBMS_ASSERT` en SQL dinámico | APLICADA (seguridad) | `tabla_segura` |
+| Borrado por entidad con una sentencia por tabla (`IN` sobre el registro) | APLICADA | `barrer_entidad` (D-039): una lectura por tabla, no por fila |
 | `FORALL ... SAVE EXCEPTIONS` en el borrado | APLICADA | `borrar_pendientes` (D-038): una fila bloqueada no detiene el bloque |
 | Hint `APPEND` / `APPEND_VALUES` (direct-path) | DESCARTADA | ver abajo |
 

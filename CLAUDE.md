@@ -163,6 +163,7 @@ herramientas/motor/                <- réplica del motor: sincronización, regla
 esquema/motor/                     <- configuración del motor sincronizada desde fileloading (NO editar)
 docs/motor/                        <- funcionamiento del motor, reglas observadas e informes
 plsql/motor/capturar_huella.sql    <- captura lo que hizo GoldenSource con un mensaje (D-030)
+plsql/motor/diagnostico_finsid.sql <- sólo lectura: FINSID / GET_IDENTIFIER_ID y filas por INST_MNEM (P-022)
 huellas/                           <- capturas exportadas a CSV (entrada de comparar_huella.py)
 plsql/instalar.sql                 <- F5: desinstala versiones anteriores + SINT_REGISTRO + compila PKG_SINT
 plsql/crear_bbdd_sintetica.sql     <- F5: EXEC pkg_sint.crear_bbdd (sólo inserts)
@@ -207,6 +208,9 @@ Variaciones solicitadas por chat: ninguna.
   `SINT_REGISTRO.estado`: ACTIVO / BORRANDO / BLOQUEADO. Se borra todo lo que se puede (D-038):
   una fila de la que cuelgan registros no sintéticos queda BLOQUEADA (no se tocan datos ajenos),
   `estado_borrado` dice qué FK lo impide y el siguiente `eliminar_bbdd` la reintenta.
+  El borrado es **por entidad** (D-039): en todas las tablas del modelo con `INST_MNEM` (la PK de
+  la tabla principal de la unidad) se borran las filas de las contrapartidas sintéticas, las haya
+  insertado o no el generador (una sentencia por tabla).
 - `limpiar_restos`: borrado LENTO por `LAST_CHG_USR_ID`, sólo para restos no registrados.
 - Prefijos: `gc_` constantes, `g_` variables de paquete, `ge_` códigos de error, `p_` parámetros,
   `l_` variables locales, `c_` constantes locales, `t_` tipos, `k_` claves generadas.

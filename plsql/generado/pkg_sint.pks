@@ -99,7 +99,9 @@ AS
         2. Un job de Oracle (DBMS_SCHEDULER) borra por clave, hijas antes que padres.
       p_segundo_plano => FALSE hace el paso 2 en esta sesión (espera a que termine).
       El paso 2 crea índices temporales para las FKs sin índice (D-026, D-028).
-      Borra todo lo que se puede: las filas de las que cuelgan registros no sintéticos
+      Borra por entidad (D-039): en todas las tablas con INST_MNEM (o la clave de la tabla
+      principal de la unidad) se borran las filas de las entidades sintéticas, sean o no del
+      generador. Borra todo lo que se puede: las filas de las que cuelgan registros no sintéticos
       quedan BLOQUEADAS en SINT_REGISTRO y se reintentan en la siguiente llamada (D-038). */
    PROCEDURE eliminar_bbdd (p_segundo_plano IN BOOLEAN DEFAULT TRUE);
 
