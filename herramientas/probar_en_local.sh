@@ -222,18 +222,19 @@ EXEC pkg_sint.set_trazas(TRUE);
 EXEC pkg_sint.limpiar_restos;
 SELECT COUNT(*) AS sinteticas_restantes FROM ft_t_fins WHERE last_chg_usr_id = 'TESTING:RDR';
 EOF
-echo "=============== plsql/motor/capturar_huella.sql (ventana de la última hora) ==============="
-DESDE="$(date -u -d '-1 hour' '+%Y-%m-%d %H:%M:%S')"; HASTA="$(date -u -d '+1 hour' '+%Y-%m-%d %H:%M:%S')"
+echo "=============== plsql/motor/capturar_huella.sql (último minuto) ==============="
 # En local se usa el modo TODAS: el usuario de pruebas no puede volcar USER_TAB_MODIFICATIONS.
-sed -e "s/^DEFINE desde .*/DEFINE desde   = '$DESDE'/" -e "s/^DEFINE hasta .*/DEFINE hasta   = '$HASTA'/" \
-    -e "s/^DEFINE modo .*/DEFINE modo    = 'TODAS'/" \
+# 1 minuto (tras esperar 65 s): sólo debe capturar la BBDD sintética recién creada (no los datos maestros de la prueba).
+sed -e "s/^DEFINE modo .*/DEFINE modo    = 'TODAS'/" -e "s/^DEFINE minutos .*/DEFINE minutos = 1/" \
     "$RAIZ/plsql/motor/capturar_huella.sql" > /tmp/capturar_huella_local.sql
 docker cp /tmp/capturar_huella_local.sql "$CONTENEDOR:/tmp/plsql/capturar_huella_local.sql"
-sqlplus <<'EOF' | grep -E "ORA-|SP2-|^Modo |CON_FILAS=" || true
+sqlplus <<'EOF' | grep -E "ORA-|SP2-|^Modo |^Desfase|^Transacciones|CON_FILAS=" || true
 SET FEEDBACK OFF
+EXEC DBMS_SESSION.sleep(65);
 @crear_bbdd_sintetica.sql
 @capturar_huella_local.sql
-SELECT 'CON_FILAS=' || COUNT(*) || ' tablas con filas capturadas (entidad + datos maestros de la prueba)' AS r
+SELECT 'CON_FILAS=' || COUNT(*) || ' tablas con filas capturadas (esperadas las de la entidad: ' ||
+       LISTAGG(tabla, ',') WITHIN GROUP (ORDER BY tabla) || ')' AS r
   FROM sint_huella WHERE tabla NOT LIKE '#%' AND num_filas > 0;
 DROP TABLE sint_huella PURGE;
 EXEC pkg_sint.eliminar_bbdd(p_segundo_plano => FALSE);

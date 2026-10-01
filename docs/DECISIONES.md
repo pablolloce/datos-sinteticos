@@ -499,6 +499,22 @@ Plantilla:
 - `limpiar_restos` sigue limitado a las tablas gestionadas (por `LAST_CHG_USR_ID`).
 - Probado en local: un FIID creado por "las pruebas" para la contrapartida sintética se borra.
 
+### D-040 — Huella: todo lo confirmado en los últimos N minutos, por ORA_ROWSCN
+- Fecha: 2026-10-01 · Estado: VIGENTE (indicación del usuario: "doy el alta, espero unos minutos y
+  capturas todos los registros dados de alta los últimos 10 minutos. Voy a usar un entorno que no
+  se toca mucho. Si hay alguna tabla que no tiene nada que ver tendremos que verlo funcionalmente")
+- Contexto: la primera huella (2026-09-30) sólo encontró `FT_T_WSUS` y `UI_TEMPORAL_DATA` y ninguna
+  transacción en `FT_T_TRID`, aunque Oracle registró cambios en 65 tablas en la ventana: indicio de
+  que GoldenSource escribe `LAST_CHG_TMS`/`CREATED_TMS` con el reloj del servidor de aplicaciones,
+  desfasado respecto a la ventana indicada (hora de la BBDD).
+- Decisión: `capturar_huella.sql` ya no pide ventana: `&minutos` (10) hacia atrás desde la hora de la
+  BBDD. Filas = `ORA_ROWSCN >= TIMESTAMP_TO_SCN(ahora - minutos)` (momento del COMMIT, reloj de la
+  BBDD) en TODAS las tablas modificadas (también las que no tienen `LAST_CHG_TMS`). Como
+  `ORA_ROWSCN` es por bloque, en tablas con `LAST_CHG_TMS` se exige además que sea de las últimas
+  `&margen_horas` (26) horas. Informa del desfase entre `LAST_CHG_TMS` y la hora de la BBDD.
+  Las tablas que no tengan relación con la entidad se revisan funcionalmente con el usuario.
+- Probado en local: con 1 minuto captura exactamente las 9 tablas de la Contrapartida Global.
+
 ---
 
 ## Preguntas abiertas

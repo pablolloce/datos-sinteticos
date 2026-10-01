@@ -75,8 +75,10 @@ modelos (`MODLID`), secuencias, datos de dominio y el catálogo de notificacione
 **Cómo conocer su comportamiento, de más a menos fiable:**
 
 1. **Observarlo (captura de huella).** Es la fuente de verdad.
-   1. En un entorno de pruebas, guardar la entidad desde la ventana de la Workstation.
-   2. Ejecutar `plsql/motor/capturar_huella.sql` con la ventana de tiempo del guardado.
+   1. En un entorno de pruebas tranquilo, dar de alta la entidad desde la Workstation y esperar
+      2-3 minutos (workflows asíncronos).
+   2. Antes de que pasen 10 minutos, ejecutar `plsql/motor/capturar_huella.sql` (F5, sin tocar
+      nada): captura todas las filas confirmadas en los últimos `&minutos` minutos (D-040).
    3. Comparar con `comparar_huella.py`: sale cada fila y columna que el motor añadió o cambió
       respecto al mensaje, la regla candidata y las notificaciones.
    4. Si el tipo de mensaje guarda el mensaje procesado (`FT_T_MSGP.PROC_MSG_BIN`), éste muestra
@@ -96,7 +98,7 @@ modelos (`MODLID`), secuencias, datos de dominio y el catálogo de notificacione
    con un nivel de confianza por regla. Sirve para priorizar, no para implementar.
 
 > **Rendimiento de `capturar_huella.sql`:** por defecto (`modo = 'MODIFICADAS'`) sólo lee las tablas
-> que Oracle registra como modificadas desde el inicio de la ventana (`USER_TAB_MODIFICATIONS`); para
+> que Oracle registra como modificadas en los últimos minutos (`USER_TAB_MODIFICATIONS`); para
 > que la vista esté al día necesita `DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO` (permiso `ANALYZE ANY`).
 > Sin él avisa, y hay que repetir la captura más tarde. `modo = 'TODAS'` lee todas las tablas (horas).
 > Con `transacciones = 'N'` se omiten `FT_T_TRID`/`NTEL`/`MSGP` si son muy grandes.

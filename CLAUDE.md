@@ -139,8 +139,10 @@ antes de traducir el mensaje a INSERT. Documentación en [`docs/motor/`](docs/mo
 - Por cada mensaje nuevo, además del informe de mapeo:
   `python3 herramientas/motor/reglas_aplicables.py mensajes_entrada/<Mensaje>.xml -o docs/motor/reglas/<Mensaje>.md`;
   revisar las reglas pendientes que le afectan y comentarlas con el usuario.
-- Huellas: el usuario ejecuta `plsql/motor/capturar_huella.sql` en su entorno y deja el CSV en
-  `huellas/`; se analiza con `herramientas/motor/comparar_huella.py` (D-032).
+- Huellas: el usuario da el alta en la Workstation, espera 2-3 minutos y ejecuta
+  `plsql/motor/capturar_huella.sql` (captura todo lo confirmado en los últimos 10 minutos por
+  `ORA_ROWSCN`, D-040); deja el CSV en `huellas/` y se analiza con
+  `herramientas/motor/comparar_huella.py` (D-032). Tablas sin relación aparente: se revisan con él.
 
 ## 5. Estructura del repositorio
 
