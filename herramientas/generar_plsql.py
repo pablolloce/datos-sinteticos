@@ -477,6 +477,14 @@ def emitir_procedimiento(e: Entidad) -> str:
       -------------------------------------------------------------------------
 """ + "\n\n".join(validaciones) + "\n\n") if validaciones else ""
 
+    # Fila de la entidad en SINT_ENTIDAD (D-042): la de la tabla principal de la unidad
+    # (FT_T_<unidad>: FT_T_FINS -> INST_MNEM, FT_T_ISSU -> INSTR_ID...), una por entidad.
+    principal = f"FT_T_{e.unidad}"
+    fila_principal = next((f for f in e.filas if f.tabla == principal), None)
+    if fila_principal is None:
+        raise ErrorGeneracion(f"{e.mensaje}: el mensaje no inserta en la tabla principal de su unidad "
+                              f"({principal}); SINT_ENTIDAD necesita su clave (D-042): consultar")
+
     inserts = []
     for f in e.filas:
         cols = ",\n".join(f"             {c.nombre.lower()}" for c in f.columnas)
@@ -496,7 +504,10 @@ def emitir_procedimiento(e: Entidad) -> str:
          );
       FORALL i IN 1 .. l_k.COUNT   -- clave en SINT_REGISTRO para el borrado rápido (D-024)
          INSERT INTO sint_registro (tabla, columna_pk, clave, entidad)
-         VALUES ('{f.tabla}', '{f.pk}', {f.registro}, c_entidad);""")
+         VALUES ('{f.tabla}', '{f.pk}', {f.registro}, c_entidad);""" + (f"""
+      FORALL i IN 1 .. l_k.COUNT   -- una fila por entidad en SINT_ENTIDAD, con su clave principal (D-042)
+         INSERT INTO sint_entidad (tabla_principal, columna_clave, clave, entidad, unidad)
+         VALUES ('{f.tabla}', '{f.pk}', {f.registro}, c_entidad, '{e.unidad}');""" if f is fila_principal else ""))
 
     sp = f"sp_{e.nombre.lower()[:25]}"
     return f"""   -- ==========================================================================

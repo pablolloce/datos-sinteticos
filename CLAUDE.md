@@ -33,6 +33,8 @@ Oracle 19c** sobre la BBDD relacional de GoldenSource (esquema **`KYTL_GC`**, ta
   - Eliminar (SÓLO borra lo insertado): `EXEC pkg_sint.eliminar_bbdd;` responde al instante;
     un job de Oracle hace el borrado físico en segundo plano (D-027). Progreso:
     `EXEC pkg_sint.estado_borrado;`
+- Cada entidad creada tiene **una fila en `SINT_ENTIDAD`** con su clave principal (`INST_MNEM`,
+  `INSTR_ID`...), su nombre de catálogo y su estado (D-042), adicional a `SINT_REGISTRO`.
 - Las filas creadas se anotan en la tabla **`SINT_REGISTRO`** y se borran por clave primaria,
   hijas antes que padres (D-024). Para que el borrado de filas padre no recorra por cada fila
   las tablas hijas con FK sin índice (D-026), el job crea índices temporales `SINT_TMP_*`
@@ -171,10 +173,10 @@ docs/motor/                        <- funcionamiento del motor, reglas observada
 plsql/motor/capturar_huella.sql    <- captura lo que hizo GoldenSource con un mensaje (D-030)
 plsql/motor/diagnostico_finsid.sql <- sólo lectura: FINSID / GET_IDENTIFIER_ID y filas por INST_MNEM (P-022)
 huellas/                           <- capturas exportadas a CSV (entrada de comparar_huella.py)
-plsql/instalar.sql                 <- F5: desinstala versiones anteriores + SINT_REGISTRO + compila PKG_SINT
+plsql/instalar.sql                 <- F5: desinstala versiones anteriores + SINT_REGISTRO + SINT_ENTIDAD + compila PKG_SINT
 plsql/crear_bbdd_sintetica.sql     <- F5: EXEC pkg_sint.crear_bbdd (sólo inserts)
 plsql/eliminar_bbdd_sintetica.sql  <- F5: EXEC pkg_sint.eliminar_bbdd (sólo borrado por clave)
-plsql/desinstalar.sql              <- borra datos, PKG_SINT y SINT_REGISTRO
+plsql/desinstalar.sql              <- borra datos, PKG_SINT, SINT_REGISTRO y SINT_ENTIDAD
 plsql/diagnostico_borrado.sql      <- (generado) FKs activas hacia tablas gestionadas sin índice (D-026)
 plsql/fuente/nucleo_*.sql          <- núcleo escrito a mano (fragmentos que se insertan en PKG_SINT)
 plsql/generado/pkg_sint.pks/.pkb   <- (generado) EL paquete: núcleo + entidades por unidad + API
@@ -204,7 +206,8 @@ Variaciones solicitadas por chat: ninguna.
 - Instalación en `KYTL_GC` con derechos del propietario. Scripts compatibles con SQL Developer
   (F5) y SQL*Plus (D-016); los `@@` con subcarpetas sólo en scripts de `plsql/` (D-020).
 - Patrón de `crear_<entidad>`: validar cantidad → validar referencias → claves nuevas en colección →
-  `SAVEPOINT` → por segmento, un `FORALL` INSERT + un `FORALL` a `SINT_REGISTRO` → sin COMMIT.
+  `SAVEPOINT` → por segmento, un `FORALL` INSERT + un `FORALL` a `SINT_REGISTRO` (y en el de la
+  tabla principal `FT_T_<unidad>`, otro a `SINT_ENTIDAD`, D-042) → sin COMMIT.
   Ante error: `ROLLBACK TO SAVEPOINT`. Toda tabla gestionada debe tener PK de una columna (D-024).
 - `crear_bbdd`: sólo inserta (falla con ORA-20005 si hay claves ACTIVAS registradas), verifica
   por clave y COMMIT. `eliminar_bbdd`: marca las claves como BORRANDO (inmediato) y lanza un job

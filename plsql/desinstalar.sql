@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 -- desinstalar.sql
 -- Deja el esquema como antes del generador: borra los datos sintéticos
--- registrados, el paquete PKG_SINT y la tabla SINT_REGISTRO.
+-- registrados, el paquete PKG_SINT y las tablas SINT_REGISTRO y SINT_ENTIDAD.
 --
 -- SQL Developer (conectado como KYTL_GC): abrir desde plsql/ y pulsar F5.
 --------------------------------------------------------------------------------
@@ -41,6 +41,7 @@ BEGIN
 END;
 /
 
-PROMPT == Borrando PKG_SINT y SINT_REGISTRO
+PROMPT == Borrando PKG_SINT, SINT_REGISTRO y SINT_ENTIDAD
 DROP PACKAGE pkg_sint;
 DROP TABLE sint_registro PURGE;
+DROP TABLE sint_entidad PURGE;

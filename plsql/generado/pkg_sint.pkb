@@ -851,6 +851,7 @@ AS
    BEGIN
       UPDATE sint_registro SET estado = gc_borrando WHERE estado IN (gc_activo, gc_bloqueado);
       l_n := SQL%ROWCOUNT;
+      UPDATE sint_entidad SET estado = gc_borrando WHERE estado IN (gc_activo, gc_bloqueado);   -- D-042
       COMMIT;
       RETURN l_n;
    END marcar_para_borrar;
@@ -1139,6 +1140,11 @@ AS
                   DELETE FROM sint_registro WHERE tabla = l_tabla AND clave = l_borrar(j);
                FORALL j IN 1 .. l_bloq.COUNT
                   UPDATE sint_registro SET estado = gc_bloqueado WHERE tabla = l_tabla AND clave = l_bloq(j);
+               -- SINT_ENTIDAD (D-042): la entidad desaparece con la fila de su tabla principal
+               FORALL j IN 1 .. l_borrar.COUNT
+                  DELETE FROM sint_entidad WHERE tabla_principal = l_tabla AND clave = l_borrar(j);
+               FORALL j IN 1 .. l_bloq.COUNT
+                  UPDATE sint_entidad SET estado = gc_bloqueado WHERE tabla_principal = l_tabla AND clave = l_bloq(j);
                COMMIT;                                     -- bloque terminado
 
                l_tabla_n := l_tabla_n + l_borrar.COUNT;
@@ -1310,6 +1316,12 @@ AS
          l_total := l_total + r.filas;
       END LOOP;
       traza('   ' || RPAD('TOTAL', 40) || LPAD(l_total, 10));
+      traza('Entidades sintéticas (SINT_ENTIDAD, una fila por entidad con su clave principal):');
+      FOR r IN (SELECT entidad, tabla_principal, columna_clave, estado, COUNT(*) AS n FROM sint_entidad
+                 GROUP BY entidad, tabla_principal, columna_clave, estado ORDER BY estado, entidad) LOOP
+         traza('   ' || RPAD(r.entidad, 30) || RPAD(r.tabla_principal || '.' || r.columna_clave, 24) ||
+               RPAD(r.estado, 10) || LPAD(r.n, 6));
+      END LOOP;
    END resumen_registro;
 
    /* Comprueba, para cada tabla de p_tablas, que las claves ACTIVAS registradas son las
@@ -1340,6 +1352,20 @@ AS
                                 ', existentes=' || l_existentes || ', esperadas=' || p_esperadas(i) || ';', 1, 4000);
          END IF;
       END LOOP;
+      -- SINT_ENTIDAD (D-042): una fila ACTIVA por cada clave ACTIVA de una tabla principal, y viceversa.
+      SELECT COUNT(*) INTO l_registradas FROM sint_entidad e
+       WHERE e.estado = gc_activo
+         AND NOT EXISTS (SELECT 1 FROM sint_registro r WHERE r.tabla = e.tabla_principal
+                            AND r.clave = e.clave AND r.estado = gc_activo);
+      SELECT COUNT(*) INTO l_existentes FROM sint_registro r
+       WHERE r.estado = gc_activo
+         AND r.tabla IN (SELECT tabla_principal FROM sint_entidad)
+         AND NOT EXISTS (SELECT 1 FROM sint_entidad e WHERE e.tabla_principal = r.tabla
+                            AND e.clave = r.clave AND e.estado = gc_activo);
+      IF l_registradas + l_existentes > 0 THEN
+         l_errores := SUBSTR(l_errores || ' SINT_ENTIDAD: ' || l_registradas || ' entidades sin su fila principal, ' ||
+                             l_existentes || ' filas principales sin entidad;', 1, 4000);
+      END IF;
       IF l_errores IS NOT NULL THEN
          RAISE_APPLICATION_ERROR(ge_verificacion_fallida, 'Verificación fallida:' || l_errores);
       END IF;
@@ -1404,6 +1430,7 @@ AS
       -- Registro: fuera lo borrado; lo registrado que sigue existiendo queda BLOQUEADO.
       IF l_total_s = 0 THEN
          DELETE FROM sint_registro;
+         DELETE FROM sint_entidad;
       ELSE
          FOR r IN (SELECT DISTINCT tabla, columna_pk FROM sint_registro) LOOP
             EXECUTE IMMEDIATE
@@ -1412,6 +1439,9 @@ AS
                nombre_seguro(r.columna_pk) || ' = s.clave)' USING r.tabla;
          END LOOP;
          UPDATE sint_registro SET estado = gc_bloqueado;
+         DELETE FROM sint_entidad e WHERE NOT EXISTS (SELECT 1 FROM sint_registro r
+                                                       WHERE r.tabla = e.tabla_principal AND r.clave = e.clave);
+         UPDATE sint_entidad SET estado = gc_bloqueado;
          traza('ATENCIÓN: ' || l_total_s || ' filas sintéticas no se han podido borrar ' ||
                '(de ellas cuelgan registros no sintéticos).');
       END IF;
@@ -1583,6 +1613,9 @@ AS
       FORALL i IN 1 .. l_k.COUNT   -- clave en SINT_REGISTRO para el borrado rápido (D-024)
          INSERT INTO sint_registro (tabla, columna_pk, clave, entidad)
          VALUES ('FT_T_FINS', 'INST_MNEM', l_k(i).k_inst_mnem, c_entidad);
+      FORALL i IN 1 .. l_k.COUNT   -- una fila por entidad en SINT_ENTIDAD, con su clave principal (D-042)
+         INSERT INTO sint_entidad (tabla_principal, columna_clave, clave, entidad, unidad)
+         VALUES ('FT_T_FINS', 'INST_MNEM', l_k(i).k_inst_mnem, c_entidad, 'FINS');
 
       -- Segmento #2 FinancialInstitutionStatistic (INSERT) -> FT_T_FIST
       FORALL i IN 1 .. l_k.COUNT

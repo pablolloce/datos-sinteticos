@@ -14,7 +14,7 @@ los registros se marcan con
 
 **Instalar / actualizar** (cada vez que cambie el código): abrir `plsql/instalar.sql` desde
 la carpeta `plsql/` y pulsar **F5**. Desinstala la versión anterior e instala la nueva
-(paquete `PKG_SINT` y tabla de registro `SINT_REGISTRO`). No toca datos.
+(paquete `PKG_SINT`, tabla de registro `SINT_REGISTRO` y tabla de entidades `SINT_ENTIDAD`). No toca datos.
 
 **Ejecutar** (requiere el permiso `CREATE JOB` para el borrado en segundo plano):
 

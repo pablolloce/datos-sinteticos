@@ -98,6 +98,12 @@ sqlplus <<'EOF'
 SET TIMING ON
 @crear_bbdd_sintetica.sql
 EOF
+echo "=============== SINT_ENTIDAD: una fila por entidad (D-042) ==============="
+sqlplus <<'EOF' | grep -E "ORA-|ENTIDADES="
+SELECT 'ENTIDADES=' || COUNT(*) || ' ' || MAX(entidad) || ' ' || MAX(tabla_principal) || '.' ||
+       MAX(columna_clave) || ' ' || MAX(estado) || ' (esperado 1 CONTRAPARTIDA_GLOBAL FT_T_FINS.INST_MNEM ACTIVO)' AS r
+  FROM sint_entidad;
+EOF
 echo "=============== crear otra vez: debe negarse (ORA-20005) sin tocar nada ==============="
 sqlplus <<'EOF' | grep -E "ORA-2000|TOTAL"
 @crear_bbdd_sintetica.sql
@@ -189,6 +195,7 @@ COMMIT;
 PROMPT == eliminar: debe borrar todo menos FT_T_FINS (BLOQUEADA)
 EXEC pkg_sint.eliminar_bbdd(p_segundo_plano => FALSE);
 SELECT 'BLOQUEADAS=' || COUNT(*) || ' en ' || LISTAGG(DISTINCT tabla, ',') AS r FROM sint_registro WHERE estado = 'BLOQUEADO';
+SELECT 'ENTIDADES_BLOQUEADAS=' || COUNT(*) || ' (esperado 1)' AS r FROM sint_entidad WHERE estado = 'BLOQUEADO';
 SELECT 'FIID_DE_PRUEBAS_RESTANTES=' || COUNT(*) || ' (esperado 0: borrado por entidad, D-039)' AS r FROM ft_t_fiid WHERE fiid_oid = 'PRUEBA0001';
 EXEC pkg_sint.estado_borrado;
 PROMPT == crear de nuevo con la anterior bloqueada (debe poder)
@@ -211,7 +218,8 @@ DELETE hija_de_prueba;
 COMMIT;
 EXEC pkg_sint.eliminar_bbdd(p_segundo_plano => FALSE);
 DROP TABLE hija_de_prueba PURGE;
-SELECT 'FINAL_REGISTRO=' || COUNT(*) AS r FROM sint_registro;
+SELECT 'FINAL_REGISTRO=' || (SELECT COUNT(*) FROM sint_registro) ||
+       ' FINAL_ENTIDADES=' || (SELECT COUNT(*) FROM sint_entidad) AS r FROM dual;
 EOF
 echo "=============== crear + limpiar_restos (borra también lo no registrado) ==============="
 sqlplus <<'EOF'

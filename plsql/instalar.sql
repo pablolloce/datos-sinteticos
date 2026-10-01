@@ -9,6 +9,8 @@
 --      y los índices temporales SINT_TMP_* de un borrado interrumpido (D-028).
 --   2. Crea la tabla SINT_REGISTRO si no existe (registro de claves creadas; se
 --      conserva entre instalaciones para poder borrar lo que ya se hubiera creado).
+--   2b. Crea la tabla SINT_ENTIDAD si no existe (una fila por entidad sintética con su
+--      clave principal: INST_MNEM, INSTR_ID...; D-042) y la rellena con las ya creadas.
 --   3. Compila el paquete PKG_SINT (sustituye a la versión anterior).
 --   4. Se detiene con error si PKG_SINT queda inválido.
 --
@@ -77,6 +79,42 @@ BEGIN
          EXECUTE IMMEDIATE q'[ALTER TABLE sint_registro ADD (estado VARCHAR2(10) DEFAULT 'ACTIVO' NOT NULL)]';
          DBMS_OUTPUT.put_line('Añadida columna SINT_REGISTRO.ESTADO');
       END IF;
+   END IF;
+END;
+/
+
+PROMPT == 2b. Tabla de entidades sintéticas SINT_ENTIDAD (una fila por entidad, D-042)
+DECLARE
+   l_existe PLS_INTEGER;
+BEGIN
+   SELECT COUNT(*) INTO l_existe FROM user_tables WHERE table_name = 'SINT_ENTIDAD';
+   IF l_existe = 0 THEN
+      EXECUTE IMMEDIATE q'[
+         CREATE TABLE sint_entidad (
+            tabla_principal VARCHAR2(128) NOT NULL,
+            clave           VARCHAR2(100) NOT NULL,
+            columna_clave   VARCHAR2(128) NOT NULL,
+            entidad         VARCHAR2(30)  NOT NULL,
+            unidad          VARCHAR2(20),
+            estado          VARCHAR2(10) DEFAULT 'ACTIVO' NOT NULL,
+            creado_tms      DATE DEFAULT SYSDATE NOT NULL,
+            CONSTRAINT sint_entidad_pk PRIMARY KEY (tabla_principal, clave)
+         ) ORGANIZATION INDEX]';
+      EXECUTE IMMEDIATE q'[COMMENT ON TABLE sint_entidad IS
+         'Generador de datos sintéticos (PKG_SINT): una fila por entidad sintética con su clave principal (INST_MNEM, INSTR_ID...)']';
+      DBMS_OUTPUT.put_line('Creada tabla SINT_ENTIDAD');
+      -- Entidades creadas con una versión anterior: su fila principal ya está en SINT_REGISTRO
+      -- (tabla principal de la unidad FINS = FT_T_FINS, clave INST_MNEM).
+      EXECUTE IMMEDIATE q'[
+         INSERT INTO sint_entidad (tabla_principal, clave, columna_clave, entidad, unidad, estado, creado_tms)
+         SELECT tabla, clave, columna_pk, NVL(entidad, '?'), SUBSTR(tabla, 6), estado, creado_tms
+           FROM sint_registro WHERE tabla = 'FT_T_FINS']';
+      IF SQL%ROWCOUNT > 0 THEN
+         DBMS_OUTPUT.put_line('Registradas ' || SQL%ROWCOUNT || ' entidades ya existentes en SINT_ENTIDAD');
+      END IF;
+      COMMIT;
+   ELSE
+      DBMS_OUTPUT.put_line('SINT_ENTIDAD ya existe: se conserva');
    END IF;
 END;
 /

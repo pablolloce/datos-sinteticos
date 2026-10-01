@@ -531,6 +531,22 @@ Plantilla:
 - `comparar_huella.py` lee el CSV tal como lo exporta SQL Developer (XML sin comillas en varias
   líneas) y admite `--inst-mnem` para comparar una sola alta de la huella.
 
+### D-042 — Tabla SINT_ENTIDAD: una fila por entidad sintética con su clave principal
+- Fecha: 2026-10-01 · Estado: VIGENTE (indicación del usuario: "crees una tabla adicional con las
+  entidades generadas sintéticamente [...] que tenga la clave principal de la entidad. INST_MNEM,
+  INSTR_ID... Y un solo registro por entidad. Que sea adicional a sint_registro")
+- Decisión: tabla `SINT_ENTIDAD` (IOT, PK `tabla_principal, clave`) con `tabla_principal`
+  (`FT_T_<unidad>`: FT_T_FINS, FT_T_ISSU...), `columna_clave` (su PK: INST_MNEM, INSTR_ID...),
+  `clave` (valor), `entidad` (nombre del catálogo), `unidad`, `estado` (ACTIVO / BORRANDO /
+  BLOQUEADO, igual que SINT_REGISTRO) y `creado_tms`.
+  - `crear_<entidad>` inserta su fila junto con la de la tabla principal (FORALL). Si un mensaje no
+    inserta en `FT_T_<unidad>`, el generador falla y se consulta.
+  - `eliminar_bbdd`/job, `limpiar_restos` y `verificar` la mantienen a la par de SINT_REGISTRO: la
+    entidad desaparece cuando se borra la fila de su tabla principal y queda BLOQUEADA si ésta lo está.
+  - `instalar.sql` la crea si no existe y registra las entidades ya creadas (sus filas FT_T_FINS de
+    SINT_REGISTRO); `desinstalar.sql` la borra. `resumen` la muestra.
+- Uso: `SELECT clave FROM sint_entidad WHERE entidad = 'CONTRAPARTIDA_GLOBAL' AND estado = 'ACTIVO';`
+
 ---
 
 ## Preguntas abiertas
