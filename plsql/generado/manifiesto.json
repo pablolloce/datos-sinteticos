@@ -1,6 +1,6 @@
 {
   "paquete": "PKG_SINT",
-  "lineas_cuerpo": 1983,
+  "lineas_cuerpo": 2034,
   "tablas_gestionadas": [
     "FT_T_FINS",
     "FT_T_FIST",
@@ -10,10 +10,12 @@
     "FT_T_FIRL",
     "FT_T_ENFR",
     "FT_T_FRCL",
+    "FT_T_FIID",
     "REGISTER_LOG_TABLE"
   ],
   "orden_purga": [
     "REGISTER_LOG_TABLE",
+    "FT_T_FIID",
     "FT_T_FRCL",
     "FT_T_ENFR",
     "FT_T_FIRL",
@@ -1052,7 +1054,6 @@
     "FT_T_FIGP",
     "FT_T_FIEV",
     "FT_T_FIDE",
-    "FT_T_FIID",
     "FT_T_FIDC",
     "FT_T_FICM",
     "FT_T_FICL",
@@ -1129,6 +1130,7 @@
     "FINANCIAL_ATTRIBUTES_BRANCH",
     "APPLICATIONS_TO_BROADCAST",
     "REGISTER_LOG_TABLE",
+    "FT_T_FIID",
     "FT_T_FRCL",
     "FT_T_ENFR",
     "FT_T_MRKT",
@@ -1148,6 +1150,7 @@
     "FT_T_FIRL": 1,
     "FT_T_ENFR": 2,
     "FT_T_FRCL": 1,
+    "FT_T_FIID": 1,
     "REGISTER_LOG_TABLE": 1
   },
   "tablas_referenciadas": [
@@ -1162,7 +1165,7 @@
       "procedimiento": "crear_contrapartida_global",
       "unidad": "FINS",
       "mensaje": "mensajes_entrada/Ejemplo_Alta_Contrapartida_Global.xml",
-      "filas_por_entidad": 11,
+      "filas_por_entidad": 12,
       "avisos": [],
       "motor": [
         {
@@ -1314,8 +1317,8 @@
           "tipo": "NATIVA",
           "segmento": "FinancialInstitution",
           "fase": "F",
-          "estado": "PENDIENTE_HUELLA",
-          "detalle": "FINSID"
+          "estado": "REPLICADA",
+          "detalle": "FT_T_FIID FINSID nuevo (GET_IDENTIFIER_ID) para la entidad del segmento #1"
         },
         {
           "regla": "CFTIValIssueIdentifiers",
@@ -1330,8 +1333,16 @@
           "tipo": "NATIVA",
           "segmento": "Final",
           "fase": "B",
-          "estado": "PENDIENTE_HUELLA",
-          "detalle": "Issue / PREF_ID_CTXT_TYP / PREF_ISS_ID / ISIN,CUSIP,CINS,SEDOL,MEX_ISIN / Y"
+          "estado": "REPLICADA",
+          "detalle": "sin cambios en este mensaje (Issue / PREF_ID_CTXT_TYP / PREF_ISS_ID / ISIN,CUSIP,CINS,SEDOL,MEX_ISIN / Y) (no replicado: prioridad cuando el mensaje trae identificadores propios: pendiente de huella)"
+        },
+        {
+          "regla": "CFTIConstrPrefId",
+          "tipo": "NATIVA",
+          "segmento": "Final",
+          "fase": "B",
+          "estado": "REPLICADA",
+          "detalle": "PREF_FINS_ID_CTXT_TYP/PREF_FINS_ID = FINSID interno (no replicado: prioridad cuando el mensaje trae identificadores propios: pendiente de huella)"
         },
         {
           "regla": "CGSCEndDateMIXR",
@@ -1396,6 +1407,14 @@
           "fase": "B",
           "estado": "PENDIENTE_HUELLA",
           "detalle": ""
+        },
+        {
+          "regla": "Motor (núcleo)",
+          "tipo": "NUCLEO",
+          "segmento": "-",
+          "fase": "-",
+          "estado": "REPLICADA",
+          "detalle": "#10 ENFR.INST_MNEM = FINR_INST_MNEM; #11 ENFR.INST_MNEM = FINR_INST_MNEM; #8 FINR.CROSS_REF_ID = OID nuevo (huellas 2026-10-01, D-041)"
         },
         {
           "regla": "CheckDatosRegulatorios",

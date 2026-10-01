@@ -33,6 +33,8 @@ def mensaje(modelo_id: str, *segmentos: tuple[str, str, dict]) -> str:
 
 
 FIGU = "FinancialInstitutionGeoUnitPrt"
+FINS = "FinancialInstitution"
+FIID = "FinancialInstitutionIdentifier"
 CASOS = [
     ("ValidateCountryRegion: región de país distinto de CA -> IGNORE",
      mensaje("RDRFINSG", (FIGU, "INSERT", {"FINSGUPURPTYP": "STSMNTCT", "GUID": "US"}),
@@ -61,6 +63,32 @@ CASOS = [
     ("generateLagrLaan: FLAR-LPS1 con texto se conserva",
      mensaje("LAGR", ("FLAR-LPS1", "INSERT", {"STATDEFID": "SPECTRAN", "STATCHARVALTXT": "X"})),
      lambda m: m.segmentos[0].accion == "INSERT"),
+    # Reglas nativas confirmadas por huella (D-041)
+    ("CFTIInternalIdentifierCreator: alta de FINS -> FIID FINSID con GET_IDENTIFIER_ID",
+     mensaje("RDRFINSG", (FINS, "INSERT", {"INSTMNEM": "M1"})),
+     lambda m: [(s.campo(".INST_MNEM"), s.campo(".FINS_ID_CTXT_TYP"), s.campo(".FINS_ID"), s.campo(".GLOBAL_UNIQ_IND"))
+                for s in m.de_tipo(FIID)] == [("M1", "FINSID", "{{SECUENCIA:FINS:M1}}", "N")]),
+    ("CFTIInternalIdentifierCreator: si el mensaje ya trae FINSID no se duplica",
+     mensaje("RDRFINSG", (FINS, "INSERT", {"INSTMNEM": "M1"}),
+             (FIID, "INSERT", {"INSTMNEM": "M1", "FINSIDCTXTTYP": "FINSID", "FINSID": "7"})),
+     lambda m: len(m.de_tipo(FIID)) == 1),
+    ("CFTIInternalIdentifierCreator: entidad existente (NotNewEntity) no se toca",
+     mensaje("RDRFINSG", (FINS, "INSERT", {"INSTMNEM": "M1"})).replace('ACTION="INSERT"', 'ACTION="INSERT" NotNewEntity="Y"'),
+     lambda m: not m.de_tipo(FIID)),
+    ("CFTIConstrPrefId: sólo FINSID interno -> preferente FINSID",
+     mensaje("RDRFINSG", (FINS, "INSERT", {"INSTMNEM": "M1"})),
+     lambda m: (m.segmentos[0].campo(".PREF_FINS_ID_CTXT_TYP"), m.segmentos[0].campo(".PREF_FINS_ID"))
+     == ("FINSID", "{{SECUENCIA:FINS:M1}}")),
+    ("Motor (núcleo): ENFR sin INST_MNEM -> INST_MNEM = FINR_INST_MNEM",
+     mensaje("RDRFINSG", ("FINREnterpriseFinancialInstitutionRole", "INSERT", {"FINRINSTMNEM": "M1", "ORGID": "0182"})),
+     lambda m: m.segmentos[0].campo(".INST_MNEM") == "M1"),
+    ("Motor (núcleo): FINR sin CROSS_REF_ID -> OID nuevo",
+     mensaje("RDRFINSG", ("FINSFinancialInstitutionRole", "INSERT", {"INSTMNEM": "M1"})),
+     lambda m: (m.segmentos[0].campo(".CROSS_REF_ID") or "").startswith("{{OID:")),
+    ("CFTIConstrPrefId: con identificadores del mensaje no se fija (pendiente)",
+     mensaje("RDRFINSG", (FINS, "INSERT", {"INSTMNEM": "M1"}),
+             (FIID, "INSERT", {"INSTMNEM": "M1", "FINSIDCTXTTYP": "CSBCODE", "FINSID": "3333"})),
+     lambda m: m.segmentos[0].campo(".PREF_FINS_ID") is None),
 ]
 
 

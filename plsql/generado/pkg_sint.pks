@@ -22,9 +22,9 @@ AS
  *    2. ENTIDADES   un procedimiento crear_<entidad> por mensaje, agrupados por unidad
  *    3. API         crear_bbdd, eliminar_bbdd, estado_borrado, resumen, verificar, limpiar_restos
  *
- * Entidades: 1 · Variaciones: 0 · Tablas gestionadas: 9
+ * Entidades: 1 · Variaciones: 0 · Tablas gestionadas: 10
  *   Unidad Procedimiento                  Filas  Mensaje
- *   FINS   crear_contrapartida_global       11 filas  mensajes_entrada/Ejemplo_Alta_Contrapartida_Global.xml
+ *   FINS   crear_contrapartida_global       12 filas  mensajes_entrada/Ejemplo_Alta_Contrapartida_Global.xml
  ******************************************************************************/
 
    -- #########################################################################
@@ -66,7 +66,7 @@ AS
       * CONTRAPARTIDA_GLOBAL
       * Alta de contrapartida global: institución financiera con estadísticos, país, nombre legal, rol, relación global, roles de entidad/sucursal y clasificación.
       * Mensaje: mensajes_entrada/Ejemplo_Alta_Contrapartida_Global.xml
-      * Filas por entidad (11):
+      * Filas por entidad (12):
       *   FT_T_FINS                    1
       *   FT_T_FIST                    2
       *   FT_T_FIGU                    1
@@ -75,6 +75,7 @@ AS
       *   FT_T_FIRL                    1
       *   FT_T_ENFR                    2
       *   FT_T_FRCL                    1
+      *   FT_T_FIID                    1
       *   REGISTER_LOG_TABLE           1
       * Parámetros de variación (defecto = valor del mensaje, D-014):
       *   (ninguno: la entidad es idéntica al mensaje)

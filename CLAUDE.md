@@ -142,7 +142,11 @@ antes de traducir el mensaje a INSERT. Documentación en [`docs/motor/`](docs/mo
 - Huellas: el usuario da el alta en la Workstation, espera 2-3 minutos y ejecuta
   `plsql/motor/capturar_huella.sql` (captura todo lo confirmado en los últimos 10 minutos por
   `ORA_ROWSCN`, D-040); deja el CSV en `huellas/` y se analiza con
-  `herramientas/motor/comparar_huella.py` (D-032). Tablas sin relación aparente: se revisan con él.
+  `herramientas/motor/comparar_huella.py` (D-032; `--inst-mnem` para una sola alta). Tablas sin
+  relación aparente: se revisan con él.
+- Valores que el motor calcula en ejecución (D-041): las réplicas ponen en el mensaje
+  `{{SECUENCIA:<tabla>:...}}` (→ `get_identifier_id`, p. ej. FINSID) o `{{OID:...}}` (→ `nuevo_oid`);
+  el generador crea una clave por entidad compartida por todas las columnas que usan el marcador.
 
 ## 5. Estructura del repositorio
 
@@ -182,7 +186,7 @@ plsql/pruebas/local/               <- datos maestros mínimos para el Oracle loc
 
 | Entidad | Mensaje | Procedimiento | Unidad | Filas/entidad | Tablas | Estado |
 |---|---|---|---|---|---|---|
-| CONTRAPARTIDA_GLOBAL | `Ejemplo_Alta_Contrapartida_Global.xml` | `pkg_sint.crear_contrapartida_global` | FINS | 11 | FT_T_FINS, FT_T_FIST (x2), FT_T_FIGU, FINANCIAL_LEGAL_NAMES, FT_T_FINR, FT_T_FIRL, FT_T_ENFR (x2), FT_T_FRCL, REGISTER_LOG_TABLE (fase 2, CONTROLDR) | Probada en local (2026-09-30), incluida la réplica del motor D-031..D-037 y `capturar_huella.sql`; pendiente de ejecutar en KYTL_GC y de huella (reglas nativas) |
+| CONTRAPARTIDA_GLOBAL | `Ejemplo_Alta_Contrapartida_Global.xml` | `pkg_sint.crear_contrapartida_global` | FINS | 12 | FT_T_FINS (preferente FINSID), FT_T_FIST (x2), FT_T_FIGU, FINANCIAL_LEGAL_NAMES, FT_T_FINR, FT_T_FIRL, FT_T_ENFR (x2), FT_T_FRCL, FT_T_FIID (FINSID, D-041), REGISTER_LOG_TABLE (fase 2, CONTROLDR) | Contrastada con huella real (2026-10-01): coincide salvo shortname (P-023). Probada en local; pendiente de reinstalar y ejecutar en KYTL_GC |
 
 Variaciones solicitadas por chat: ninguna.
 

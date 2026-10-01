@@ -103,6 +103,13 @@ class Clave:
     tabla: str
     columna: str
     valor_mensaje: str | None
+    secuencia: str | None = None   # GET_IDENTIFIER_ID(<secuencia>) en vez de NEW_OID (D-041)
+
+
+# Marcadores que ponen las réplicas del motor (D-041): un valor de GET_IDENTIFIER_ID(<tabla>)
+# o una clave nueva (NEW_OID) por entidad, compartidos por todas las columnas que los usan.
+RE_SECUENCIA = re.compile(r"^\{\{SECUENCIA:(\w+):[^}]*\}\}$")
+RE_OID_NUEVO = re.compile(r"^\{\{OID:[^}]*\}\}$")
 
 
 @dataclass
@@ -245,6 +252,19 @@ def construir_entidad(ruta: Path, config: dict, modelo: dict) -> Entidad:
                 continue
             valores[col] = (el.tag, el.get("VALUE"))
 
+        # Valores calculados en ejecución con GET_IDENTIFIER_ID (FINSID, D-041): una clave por
+        # marcador, compartida por todas las columnas que lo usan.
+        for col, (tag, v) in valores.items():
+            m_sec = RE_SECUENCIA.match(v or "")
+            if m_sec and v not in clave_de_valor:
+                var = nueva_variable(f"{m_sec.group(1)}_ID")          # k_fins_id
+                clave_de_valor[v] = var
+                claves.append(Clave(var, tabla, col, None, m_sec.group(1)))
+            elif RE_OID_NUEVO.match(v or "") and v not in clave_de_valor:
+                var = nueva_variable(col)
+                clave_de_valor[v] = var
+                claves.append(Clave(var, tabla, col, None))
+
         claves_fila = {}
         pk = t["pk"]
         if len(pk) == 1:
@@ -294,6 +314,11 @@ def construir_entidad(ruta: Path, config: dict, modelo: dict) -> Entidad:
                 exprs[col] = ("c_usuario", f"{tag} (marca sintética)")
             elif col in ("START_TMS", "LAST_CHG_TMS"):
                 exprs[col] = ("l_ahora", f"{tag} (momento de la llamada)")
+            elif valor in clave_de_valor and RE_SECUENCIA.match(valor):
+                exprs[col] = (f"l_k(i).{clave_de_valor[valor]}",
+                              f"{tag} = GET_IDENTIFIER_ID('{RE_SECUENCIA.match(valor).group(1)}') (motor, D-041)")
+            elif valor in clave_de_valor and RE_OID_NUEVO.match(valor):
+                exprs[col] = (f"l_k(i).{clave_de_valor[valor]}", f"{tag} = OID nuevo (motor, D-041)")
             elif valor in clave_de_valor:
                 exprs[col] = (f"l_k(i).{clave_de_valor[valor]}", f"{tag} = {valor} (clave nueva)")
             elif param:
@@ -421,9 +446,13 @@ def emitir_procedimiento(e: Entidad) -> str:
     ancho = max([len(c.nombre) for f in e.filas for c in f.columnas] + [10])
     campos = "\n".join(
         f"         {k.variable:<{ancho + 2}} {(k.tabla.lower() + '.' + k.columna.lower() + '%TYPE' + (',' if j < len(e.claves) - 1 else '')):<48}"
-        f" -- {k.tabla}.{k.columna}" + (f" (mensaje: {k.valor_mensaje})" if k.valor_mensaje else " (no viene en el mensaje)")
+        f" -- {k.tabla}.{k.columna}" + (f" (GET_IDENTIFIER_ID('{k.secuencia}'), D-041)" if k.secuencia
+                                        else f" (mensaje: {k.valor_mensaje})" if k.valor_mensaje
+                                        else " (no viene en el mensaje)")
         for j, k in enumerate(e.claves))
-    genera = "\n".join(f"         l_k(i).{k.variable:<{ancho + 2}} := nuevo_oid;" for k in e.claves)
+    genera = "\n".join(
+        f"         get_identifier_id('{k.secuencia}', l_k(i).{k.variable});   -- {k.tabla}.{k.columna} (D-041)"
+        if k.secuencia else f"         l_k(i).{k.variable:<{ancho + 2}} := nuevo_oid;" for k in e.claves)
 
     refs = []
     for tabla_ref, cols, usado in e.referencias:

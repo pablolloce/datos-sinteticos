@@ -515,6 +515,22 @@ Plantilla:
   Las tablas que no tengan relación con la entidad se revisan funcionalmente con el usuario.
 - Probado en local: con 1 minuto captura exactamente las 9 tablas de la Contrapartida Global.
 
+### D-041 — FINSID, preferente y efectos del núcleo, replicados desde la huella
+- Fecha: 2026-10-01 · Estado: VIGENTE (P-022; huella `huellas/huella_global.csv`, diagnóstico
+  `diagnostico_finsid.sql`; el usuario: "El finsid se calcula con el procedimiento: GET_IDENTIFIER_ID")
+- Contexto: la contrapartida sintética creada en KYTL_GC no tenía FINSID (P-022). La huella de 4 altas
+  desde la Workstation coincide con la sintética en todas las tablas salvo lo que añade el motor.
+- Decisión (detalle en `docs/motor/REGLAS_OBSERVADAS.md`):
+  1. `CFTIInternalIdentifierCreator` replicada: FIID `FINSID` con `GET_IDENTIFIER_ID('FINS')`.
+  2. `CFTIConstrPrefId` replicada sólo sin identificadores en el mensaje: preferente = FINSID.
+  3. Núcleo del motor: `ENFR.INST_MNEM = FINR_INST_MNEM` y `FINR.CROSS_REF_ID` = OID nuevo.
+  4. Generador: marcadores `{{SECUENCIA:<tabla>:...}}` (→ `get_identifier_id`) y `{{OID:...}}`
+     (→ `nuevo_oid`), una clave por entidad compartida por todas las columnas que los usan.
+- La Contrapartida Global pasa a 12 filas por entidad. El borrado del FIID va por clave y por entidad
+  (D-039). Los valores de la secuencia que se consumen no se reutilizan (como en GoldenSource).
+- `comparar_huella.py` lee el CSV tal como lo exporta SQL Developer (XML sin comillas en varias
+  líneas) y admite `--inst-mnem` para comparar una sola alta de la huella.
+
 ---
 
 ## Preguntas abiertas
@@ -542,4 +558,5 @@ Plantilla:
 | P-019 | Extraer W1–W6 (`fileloading/extracciones/extracciones_workstation.sql`). | RESUELTA: subidas a `fileloading/extracciones/` y decodificadas en `fileloading/extracciones/decodificado/` |
 | P-020 | ¿`FT_T_FLG1` es sinónimo de `FINANCIAL_LEGAL_NAMES`? | RESUELTA: sí (`SINONIMOS_ADICIONALES.csv`); la validación de D-035 es correcta |
 | P-021 | Tablas custom `FT_T_*1` accedidas por sinónimo. | RESUELTA → D-010 punto 4 (35 TBL_ID confirmados por sinónimo, todos en KYTL_GC) |
-| P-022 | FINSID: la contrapartida sintética no tiene FIID `FINSID` (lo crea `CFTIInternalIdentifierCreator`; según el usuario con el procedimiento `GET_IDENTIFIER_ID`). Falta su firma, su código y las columnas que rellena GoldenSource en esa fila: `plsql/motor/diagnostico_finsid.sql`. | ABIERTA (2026-10-01) |
+| P-022 | FINSID: la contrapartida sintética no tiene FIID `FINSID` (lo crea `CFTIInternalIdentifierCreator`; según el usuario con el procedimiento `GET_IDENTIFIER_ID`). Falta su firma, su código y las columnas que rellena GoldenSource en esa fila: `plsql/motor/diagnostico_finsid.sql`. | RESUELTA → D-041 (GET_IDENTIFIER_ID → INTERNAL_FINS_ID_SEQ) |
+| P-023 | Shortname: en el entorno habitual las Globales tienen un FIID `SHORTNAME_MEX` (`<FINSID><3 letras>`), pero en el entorno de la huella el workflow responde "No Existe Legal Name" y no crea nada. ¿Debe crearlo la contrapartida sintética? ¿De qué depende? | ABIERTA (2026-10-01) |

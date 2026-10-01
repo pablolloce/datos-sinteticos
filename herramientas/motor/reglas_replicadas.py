@@ -29,6 +29,7 @@ Estados de una regla que afecta al mensaje (``estado_regla``):
 from __future__ import annotations
 
 import sys
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
@@ -37,6 +38,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from fuentes_motor import FASES, cargar_message_set, cargar_reglas_java  # noqa: E402
 from mensaje_motor import MensajeMotor, Segmento  # noqa: E402
+
+# Valor que el generador sustituye por GET_IDENTIFIER_ID(<tabla>, ...) en ejecución, uno por
+# entidad (D-041). El mismo marcador en varias columnas da el mismo valor.
+MARCADOR_SECUENCIA = "{{{{SECUENCIA:{tabla}:{clave}}}}}"
+# Valor que el generador sustituye por una clave nueva (NEW_OID) por entidad (D-041).
+MARCADOR_OID = "{{{{OID:{clave}}}}}"
 
 
 @dataclass
@@ -147,6 +154,100 @@ def flg_uniqueness(m: MensajeMotor, _seg) -> None:
         m.anotar("FLG_Uniqueness", s, "PENDIENTE_BBDD: GUNT_OID no viene en el mensaje y el original lo busca en FT_T_GUNT")
 
 
+# ----------------------------------------------------------------------------------------------
+# Reglas nativas (CFTI*/CGSC*) confirmadas por una huella (D-030; docs/motor/REGLAS_OBSERVADAS.md)
+# ----------------------------------------------------------------------------------------------
+def _anadir_segmento(m: MensajeMotor, tipo: str, origen: str, valores: dict[str, str]) -> Segmento:
+    """Añade al final del mensaje un segmento INSERT (valores por etiqueta XELM) y lo devuelve."""
+    nodo = ET.SubElement(m.raiz, "SEGMENT", {"TYPE": tipo, "ACTION": "INSERT", "ORIGEN": origen})
+    cuerpo = ET.SubElement(nodo, tipo)
+    for tag, valor in valores.items():
+        ET.SubElement(cuerpo, tag, {"VALUE": valor})
+    seg = Segmento(len(m.segmentos) + 1, nodo, m.modelo)
+    m.segmentos.append(seg)
+    return seg
+
+
+def _identificadores(m: MensajeMotor, inst_mnem: str | None) -> list[Segmento]:
+    return [s for s in m.de_tipo("FinancialInstitutionIdentifier")
+            if s.accion not in ("IGNORE", "REFERENCE", "DELETE") and s.campo(".INST_MNEM") == inst_mnem]
+
+
+def internal_identifier_creator(m: MensajeMotor, seg: Segmento | None, params: list[str]) -> None:
+    """CFTIInternalIdentifierCreator (FinancialInstitution, fase F, param FINSID). Huella
+    2026-10-01 (alta de Contrapartida Global desde la Workstation): en el alta crea una fila
+    FT_T_FIID con FINS_ID_CTXT_TYP = FINSID y FINS_ID = siguiente valor de GET_IDENTIFIER_ID
+    (secuencia INTERNAL_FINS_ID_SEQ), DATA_STAT_TYP ACTIVE, GLOBAL_UNIQ_IND N, sin DATA_SRC_ID;
+    START_TMS = LAST_CHG_TMS = momento del guardado."""
+    contexto = (params[0] if params else "FINSID").strip()
+    if seg is None or seg.accion != "INSERT" or seg.nodo.get("NotNewEntity") == "Y":
+        return
+    inst_mnem = seg.campo(".INST_MNEM")
+    if inst_mnem is None:
+        return
+    if any(s.campo(".FINS_ID_CTXT_TYP") == contexto for s in _identificadores(m, inst_mnem)):
+        return                                                    # ya lo trae: idempotente
+    nuevo = _anadir_segmento(m, "FinancialInstitutionIdentifier", "CFTIInternalIdentifierCreator", {
+        "INSTMNEM": inst_mnem,
+        "FINSIDCTXTTYP": contexto,
+        "FINSID": MARCADOR_SECUENCIA.format(tabla="FINS", clave=inst_mnem),
+        "DATASTATTYP": "ACTIVE",
+        "GLOBALUNIQIND": "N",
+    })
+    m.anotar("CFTIInternalIdentifierCreator", nuevo,
+             f"FT_T_FIID {contexto} nuevo (GET_IDENTIFIER_ID) para la entidad del segmento #{seg.numero}")
+
+
+def constr_pref_id(m: MensajeMotor, _seg, params: list[str]) -> None:
+    """CFTIConstrPrefId (Final, params FinancialInstitution, PREF_FINS_ID_CTXT_TYP, PREF_FINS_ID,
+    lista de prioridad...). Huellas 2026-10-01: si la entidad no tiene más identificador que el
+    FINSID interno, el preferente de FT_T_FINS es FINSID / su valor. Con otros identificadores la
+    prioridad observada no sigue la lista del parámetro (CSBCODE, BDIID...): no se replica."""
+    if not params or params[0].strip() != "FinancialInstitution":
+        return
+    for s in m.de_tipo("FinancialInstitution"):
+        if s.accion != "INSERT" or s.nodo.get("NotNewEntity") == "Y":
+            continue
+        if s.campo(".PREF_FINS_ID") is not None:
+            continue                                              # lo trae el mensaje
+        ids = _identificadores(m, s.campo(".INST_MNEM"))
+        internos = [i for i in ids if i.nodo.get("ORIGEN") == "CFTIInternalIdentifierCreator"]
+        if internos and len(ids) == len(internos):
+            s.fijar(".PREF_FINS_ID_CTXT_TYP", internos[0].campo(".FINS_ID_CTXT_TYP"))
+            s.fijar(".PREF_FINS_ID", internos[0].campo(".FINS_ID"))
+            m.anotar("CFTIConstrPrefId", s, "PREF_FINS_ID_CTXT_TYP/PREF_FINS_ID = FINSID interno")
+        elif ids:
+            m.anotar("CFTIConstrPrefId", s, "PENDIENTE_HUELLA: el mensaje trae identificadores; la prioridad "
+                     "observada (CSBCODE, BDIID...) no sigue la lista del parámetro")
+
+
+REPLICAS_NATIVAS: dict[str, Replica] = {
+    "CFTIInternalIdentifierCreator": Replica(internal_identifier_creator, "REPLICADA",
+                                             "huella huellas/huella_global.csv (2026-10-01), D-041"),
+    "CFTIConstrPrefId": Replica(constr_pref_id, "REPLICADA", "huellas 2026-10-01, D-041",
+                                "prioridad cuando el mensaje trae identificadores propios: pendiente de huella"),
+}
+
+
+def efectos_nucleo(m: MensajeMotor) -> list[str]:
+    """Comportamiento del propio motor (no de una regla del message set) observado en las huellas
+    de 2026-10-01 (4 altas de contrapartida, D-041):
+      - FT_T_ENFR.INST_MNEM = FINR_INST_MNEM cuando el mensaje no lo trae.
+      - FT_T_FINR.CROSS_REF_ID = OID nuevo cuando el mensaje no lo trae (ninguna fila lo referencia)."""
+    hechos = []
+    for s in m.de_tipo("FINREnterpriseFinancialInstitutionRole"):
+        if s.accion == "INSERT" and s.campo(".INST_MNEM") is None and s.campo(".FINR_INST_MNEM") is not None:
+            s.fijar(".INST_MNEM", s.campo(".FINR_INST_MNEM"))
+            m.anotar("Motor (núcleo)", s, "ENFR.INST_MNEM = FINR_INST_MNEM")
+            hechos.append(f"#{s.numero} ENFR.INST_MNEM = FINR_INST_MNEM")
+    for s in m.de_tipo("FINSFinancialInstitutionRole"):
+        if s.accion == "INSERT" and s.campo(".CROSS_REF_ID") is None:
+            s.fijar(".CROSS_REF_ID", MARCADOR_OID.format(clave=f"FINR{s.numero}"))
+            m.anotar("Motor (núcleo)", s, "FINR.CROSS_REF_ID = OID nuevo")
+            hechos.append(f"#{s.numero} FINR.CROSS_REF_ID = OID nuevo")
+    return hechos
+
+
 REPLICAS: dict[str, Replica] = {
     "ValidateCountryRegion": Replica(validate_country_region, "REPLICADA", "ValidateCountryRegion.process",
                                      "no inactiva las regiones ya existentes en BBDD (sólo FINSX con entidad existente)"),
@@ -217,12 +318,24 @@ def aplicar_motor(mensaje: MensajeMotor) -> list[Evento]:
             aviso = " [el message set la nombra con espacios]" if clase != clase.strip() else ""
             eventos.append(Evento(nombre, "JAVA", regla.segmento, regla.fase, estado, detalle + aviso))
         else:
-            clave = (regla.nombre, regla.segmento, regla.fase)
+            replica = REPLICAS_NATIVAS.get(regla.nombre)
+            antes = len(mensaje.cambios)
+            if replica:
+                replica.funcion(mensaje, segmento, [p.strip() for p in regla.parametros])
+            clave = (regla.nombre, regla.segmento, regla.fase, tuple(regla.parametros))
             if clave in vistas:
                 return
             vistas.add(clave)
-            eventos.append(Evento(regla.nombre, "NATIVA", regla.segmento, regla.fase, "PENDIENTE_HUELLA",
-                                  " / ".join(p.strip() for p in regla.parametros)))
+            parametros = " / ".join(p.strip() for p in regla.parametros)
+            if replica:
+                nuevos = [c.descripcion for c in mensaje.cambios[antes:]]
+                detalle = "; ".join(nuevos) or f"sin cambios en este mensaje ({parametros})"
+                if replica.parcial:
+                    detalle += f" (no replicado: {replica.parcial})"
+                eventos.append(Evento(regla.nombre, "NATIVA", regla.segmento, regla.fase, replica.estado, detalle))
+            else:
+                eventos.append(Evento(regla.nombre, "NATIVA", regla.segmento, regla.fase, "PENDIENTE_HUELLA",
+                                      parametros))
 
     for r in ms.reglas.get("Initial", []):
         ejecutar(r, None)
@@ -237,7 +350,12 @@ def aplicar_motor(mensaje: MensajeMotor) -> list[Evento]:
                 ejecutar(r, s)
     for r in ms.reglas.get("Final", []):
         ejecutar(r, None)
+    hechos = efectos_nucleo(mensaje)
+    if hechos:
+        eventos.append(Evento("Motor (núcleo)", "NUCLEO", "-", "-", "REPLICADA",
+                              "; ".join(hechos) + " (huellas 2026-10-01, D-041)"))
     return eventos
 
 
-__all__ = ["aplicar_motor", "Evento", "REPLICAS", "FASES"]
+__all__ = ["aplicar_motor", "Evento", "REPLICAS", "REPLICAS_NATIVAS", "MARCADOR_SECUENCIA", "MARCADOR_OID",
+           "efectos_nucleo", "FASES"]

@@ -20,7 +20,7 @@ cuyo código no está disponible. Cada diferencia confirmada se registra en
 
 Uso:
     python3 herramientas/motor/comparar_huella.py mensajes_entrada/<Mensaje>.xml huellas/<Mensaje>.csv \
-            [-o docs/motor/huellas/<Mensaje>.md]
+            [--inst-mnem <INST_MNEM de la entidad dada de alta>] [-o docs/motor/huellas/<Mensaje>.md]
 
 El CSV debe tener las columnas TABLA y FILAS_XML (exportación de la última consulta
 de capturar_huella.sql).
@@ -85,24 +85,42 @@ def filas_mensaje(raiz, modelo) -> list[dict]:
     return filas
 
 
+def _bloques_csv(ruta: Path) -> list[tuple[str, str]]:
+    """[(tabla, xml)] del CSV. Admite el CSV estándar (XML entre comillas) y el que exporta
+    SQL Developer sin comillas, con el XML partido en varias líneas: una línea que empieza por
+    '<TABLA>,' (o '#<TABLA>,') abre un bloque y las siguientes son su XML."""
+    texto = ruta.read_text(encoding="utf-8-sig", errors="replace")
+    try:
+        filas = list(csv.DictReader(texto.splitlines(keepends=True)))
+        campos = {c.upper(): c for c in (filas[0].keys() if filas else [])}
+        bloques = [(r[campos["TABLA"]].strip(), (r[campos["FILAS_XML"]] or "").strip()) for r in filas]
+        for _, xml in bloques:
+            if xml:
+                ET.fromstring(xml[xml.find("<ROWSET"):])
+        return bloques
+    except (KeyError, ET.ParseError, csv.Error):
+        pass
+    bloques: list[list] = []
+    for linea in texto.splitlines():
+        m = re.match(r'^"?(#?[A-Z][A-Z0-9_$#]*)"?,"?(.*)$', linea)
+        if m and m.group(1) != "TABLA" and (not m.group(2) or m.group(2).startswith("<?xml")):
+            bloques.append([m.group(1), [m.group(2)]])
+        elif bloques:
+            bloques[-1][1].append(linea)
+    return [(t, "\n".join(ls).strip().strip('"').replace('""', '"')) for t, ls in bloques]
+
+
 def leer_huella(ruta: Path) -> tuple[dict[str, list[dict]], dict[str, list[dict]]]:
     """Devuelve (tablas de negocio, bloques técnicos '#...'): tabla -> [fila{col: valor}]."""
     csv.field_size_limit(10**9)
     negocio: dict[str, list[dict]] = {}
     tecnico: dict[str, list[dict]] = {}
-    with ruta.open(encoding="utf-8-sig", errors="replace", newline="") as f:
-        lector = csv.DictReader(f)
-        campos = {c.upper(): c for c in lector.fieldnames or []}
-        if "TABLA" not in campos or "FILAS_XML" not in campos:
-            sys.exit(f"{ruta}: el CSV debe tener las columnas TABLA y FILAS_XML")
-        for r in lector:
-            tabla = r[campos["TABLA"]].strip()
-            xml = (r[campos["FILAS_XML"]] or "").strip()
-            filas = []
-            if xml:
-                for row in ET.fromstring(xml[xml.find("<ROWSET"):]).findall("ROW"):
-                    filas.append({c.tag: normalizar(c.text) for c in row})
-            (tecnico if tabla.startswith("#") else negocio).setdefault(tabla.lstrip("#"), []).extend(filas)
+    for tabla, xml in _bloques_csv(ruta):
+        filas = []
+        if xml and "<ROWSET" in xml:
+            for row in ET.fromstring(xml[xml.find("<ROWSET"):]).findall("ROW"):
+                filas.append({c.tag: normalizar(c.text) for c in row})
+        (tecnico if tabla.startswith("#") else negocio).setdefault(tabla.lstrip("#"), []).extend(filas)
     return negocio, tecnico
 
 
@@ -149,11 +167,25 @@ def reglas_candidatas(tabla: str, segmentos_msg: set[str], ms, nativas, java, mo
     return list(dict.fromkeys(salida))
 
 
-def informe(ruta_msg: Path, ruta_huella: Path) -> str:
+def filtrar_entidad(negocio: dict, tecnico: dict, inst_mnem: str) -> tuple[dict, dict]:
+    """Sólo las filas de una entidad (D-040: la huella recoge todo lo escrito en la ventana):
+    las que tienen algún valor igual a su INST_MNEM (INST_MNEM, MAIN_ENTITY_ID de
+    REGISTER_LOG_TABLE...) y las transacciones del motor que la nombran."""
+    negocio = {t: [f for f in fs if inst_mnem in f.values()] for t, fs in negocio.items()}
+    trn = {f.get("TRN_ID") for f in tecnico.get("FT_T_MSGP", []) if f.get("XREF_TBL_ROW_OID") == inst_mnem}
+    trn |= {f.get("TRN_ID") for f in tecnico.get("FT_T_TRID", [])
+            if inst_mnem in (f.get("MAIN_ENTITY_ID_CTXT_TYP") or "") or f.get("MAIN_ENTITY_ID") == inst_mnem}
+    tecnico = {t: [f for f in fs if f.get("TRN_ID") in trn] for t, fs in tecnico.items()}
+    return ({t: fs for t, fs in negocio.items() if fs}, tecnico)
+
+
+def informe(ruta_msg: Path, ruta_huella: Path, inst_mnem: str | None = None) -> str:
     modelo = cargar_modelo()
     raiz = leer_xml(ruta_msg)
     esperadas = filas_mensaje(raiz, modelo)
     negocio, tecnico = leer_huella(ruta_huella)
+    if inst_mnem:
+        negocio, tecnico = filtrar_entidad(negocio, tecnico, inst_mnem)
     ms, nativas, java, notif = cargar_message_set(), cargar_reglas_nativas(), cargar_reglas_java(), cargar_notificaciones()
     segmentos_msg = {e["segmento"] for e in esperadas}
     modelo_msg = valor_cabecera(raiz, "MODEL/MODLID")
@@ -247,8 +279,9 @@ def main() -> int:
     ap.add_argument("mensaje", type=Path)
     ap.add_argument("huella", type=Path)
     ap.add_argument("-o", "--salida", type=Path)
+    ap.add_argument("--inst-mnem", help="sólo las filas de esta entidad (la huella puede traer varias altas)")
     a = ap.parse_args()
-    texto = informe(a.mensaje, a.huella)
+    texto = informe(a.mensaje, a.huella, a.inst_mnem)
     if a.salida:
         a.salida.parent.mkdir(parents=True, exist_ok=True)
         a.salida.write_text(texto, encoding="utf-8")

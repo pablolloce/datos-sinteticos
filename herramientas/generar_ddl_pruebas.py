@@ -11,7 +11,8 @@ ejecutar el generador sin tocar la BBDD real.
 NO se ejecuta nunca contra KYTL_GC real: sólo contra un entorno desechable.
 
 Incluye además:
-  - un stub de la función NEW_OID (en la BBDD real existe la de GoldenSource),
+  - stubs de la función NEW_OID y del procedimiento GET_IDENTIFIER_ID (en la BBDD real
+    existen los de GoldenSource),
   - opcionalmente, datos de referencia mínimos (``--referencias``) para los lookups.
 
 Uso:
@@ -35,6 +36,20 @@ CREATE OR REPLACE FUNCTION new_oid RETURN VARCHAR2 IS
 BEGIN
    RETURN 'SY' || LPAD(TO_CHAR(sq_stub_new_oid.NEXTVAL), 8, '0');
 END;
+/
+
+-- Stub local de GET_IDENTIFIER_ID (D-041): en KYTL_GC es el procedimiento real, con las
+-- secuencias INTERNAL_ISS_ID_SEQ (tableId = 'ISID') e INTERNAL_FINS_ID_SEQ (el resto).
+CREATE SEQUENCE internal_fins_id_seq START WITH 900000;
+CREATE SEQUENCE internal_iss_id_seq;
+CREATE OR REPLACE PROCEDURE get_identifier_id (tableId IN VARCHAR2, seqId OUT VARCHAR2) AS
+BEGIN
+   IF tableId = 'ISID' THEN
+      SELECT internal_iss_id_seq.NEXTVAL INTO seqId FROM dual;
+   ELSE
+      SELECT internal_fins_id_seq.NEXTVAL INTO seqId FROM dual;
+   END IF;
+END get_identifier_id;
 /
 """
 

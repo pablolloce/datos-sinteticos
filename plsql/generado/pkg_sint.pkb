@@ -22,9 +22,9 @@ AS
  *    2. ENTIDADES   un procedimiento crear_<entidad> por mensaje, agrupados por unidad
  *    3. API         crear_bbdd, eliminar_bbdd, estado_borrado, resumen, verificar, limpiar_restos
  *
- * Entidades: 1 · Variaciones: 0 · Tablas gestionadas: 9
+ * Entidades: 1 · Variaciones: 0 · Tablas gestionadas: 10
  *   Unidad Procedimiento                  Filas  Mensaje
- *   FINS   crear_contrapartida_global       11 filas  mensajes_entrada/Ejemplo_Alta_Contrapartida_Global.xml
+ *   FINS   crear_contrapartida_global       12 filas  mensajes_entrada/Ejemplo_Alta_Contrapartida_Global.xml
  ******************************************************************************/
 
    -- #########################################################################
@@ -86,6 +86,7 @@ AS
       'FT_T_FIRL',
       'FT_T_ENFR',
       'FT_T_FRCL',
+      'FT_T_FIID',
       'REGISTER_LOG_TABLE');
 
    -- Filas sintéticas esperadas tras crear_bbdd, en el mismo orden que g_tablas.
@@ -98,11 +99,13 @@ AS
       1,
       2,
       1,
+      1,
       1);
 
    -- Orden de borrado de las tablas gestionadas: hijas antes que padres (FKs). limpiar_restos.
    g_tablas_purga CONSTANT t_lista_tablas := t_lista_tablas(
       'REGISTER_LOG_TABLE',
+      'FT_T_FIID',
       'FT_T_FRCL',
       'FT_T_ENFR',
       'FT_T_FIRL',
@@ -218,7 +221,6 @@ AS
       'FT_T_FIGP',
       'FT_T_FIEV',
       'FT_T_FIDE',
-      'FT_T_FIID',
       'FT_T_FIDC',
       'FT_T_FICM',
       'FT_T_FICL',
@@ -295,6 +297,7 @@ AS
       'FINANCIAL_ATTRIBUTES_BRANCH',
       'APPLICATIONS_TO_BROADCAST',
       'REGISTER_LOG_TABLE',
+      'FT_T_FIID',
       'FT_T_FRCL',
       'FT_T_ENFR',
       'FT_T_MRKT',
@@ -481,8 +484,8 @@ AS
       'INST_MNEM',
       'INST_MNEM',
       'INST_MNEM',
-      'INST_MNEM',
       NULL,
+      'INST_MNEM',
       'INST_MNEM',
       'INST_MNEM',
       'INST_MNEM',
@@ -669,8 +672,8 @@ AS
       'FT_T_FINS',
       'FT_T_FINS',
       'FT_T_FINS',
-      'FT_T_FINS',
       NULL,
+      'FT_T_FINS',
       'FT_T_FINS',
       'FT_T_FINS',
       'FT_T_FINS',
@@ -1434,33 +1437,36 @@ AS
    --   Replicadas, sin efecto en este mensaje: setDifusion, ValidateCountryRegion, FLG_Uniqueness
    --   Pendientes (consultan la BBDD): Uniqueness
    --   Pendientes (Java sin replicar): CheckUpdateStatusASTYPUEMIR
-   --   Pendientes de huella (nativas del segmento): CGSCEndDateIdentifiers [FinancialInstitution B], CFTIConstrSTDFOID [FinancialInstitutionStatistic B], CGSCHandleCompositeKey [FinancialInstitutionGeoUnitPrt B], CGSCHandleCompositeKey [FinsRoleClassification B], CFTIInternalIdentifierCreator [FinancialInstitution F]
+   --   Pendientes de huella (nativas del segmento): CGSCEndDateIdentifiers [FinancialInstitution B], CFTIConstrSTDFOID [FinancialInstitutionStatistic B], CGSCHandleCompositeKey [FinancialInstitutionGeoUnitPrt B], CGSCHandleCompositeKey [FinsRoleClassification B]
    --   Fase 2 · CheckDatosRegulatorios: REPLICADA — FT_T_RLT1 CONTROLDR (CALCULO=true, REL_TYP=GLOBAL)
    --   Fase 2 · AutoCodTesBDI, AuditMex, Sub_CallDifusion, Sub_PublishChanges, RDR_PUBLISH_CG: SIN_ESCRITURA — GLOBAL nueva sin LOCAL/OPERATIVE: no escriben datos de negocio ni de control (CreateShortname sólo deja FT_T_JBLG/FT_T_TRID, no replicadas)
-   --   Nativas de Initial/Final pendientes de huella: 19 (ver docs/motor/reglas/)
+   --   Nativas de Initial/Final pendientes de huella: 18 (ver docs/motor/reglas/)
    -- ==========================================================================
    PROCEDURE crear_contrapartida_global (
       p_cantidad IN PLS_INTEGER DEFAULT 1)
    IS
       c_usuario           CONSTANT VARCHAR2(30) := gc_usuario_sintetico;
       c_entidad           CONSTANT VARCHAR2(30) := 'CONTRAPARTIDA_GLOBAL';
-      c_filas_por_entidad CONSTANT PLS_INTEGER  := 11;
+      c_filas_por_entidad CONSTANT PLS_INTEGER  := 12;
       l_ahora             CONSTANT DATE         := SYSDATE;   -- START_TMS y LAST_CHG_TMS (D-007)
 
       -- Claves internas de UNA entidad: una por cada OID del mensaje que se inserta
       -- y por cada PK que el mensaje no informa. Se generan todas antes de insertar.
       TYPE t_claves IS RECORD (
-         k_inst_mnem         ft_t_fins.inst_mnem%TYPE,                        -- FT_T_FINS.INST_MNEM (mensaje: f-uBI7(qW1)
-         k_stat_id           ft_t_fist.stat_id%TYPE,                          -- FT_T_FIST.STAT_ID (no viene en el mensaje)
-         k_figu_oid          ft_t_figu.figu_oid%TYPE,                         -- FT_T_FIGU.FIGU_OID (no viene en el mensaje)
-         k_stat_id_2         ft_t_fist.stat_id%TYPE,                          -- FT_T_FIST.STAT_ID (no viene en el mensaje)
-         k_flg_oid           financial_legal_names.flg_oid%TYPE,              -- FINANCIAL_LEGAL_NAMES.FLG_OID (mensaje: f-uFI7(qW1)
-         k_finr_oid          ft_t_finr.finr_oid%TYPE,                         -- FT_T_FINR.FINR_OID (mensaje: f-uCI7(qW1)
-         k_firl_oid          ft_t_firl.firl_oid%TYPE,                         -- FT_T_FIRL.FIRL_OID (no viene en el mensaje)
-         k_enfr_oid          ft_t_enfr.enfr_oid%TYPE,                         -- FT_T_ENFR.ENFR_OID (mensaje: f-uDI7(qW1)
-         k_enfr_oid_2        ft_t_enfr.enfr_oid%TYPE,                         -- FT_T_ENFR.ENFR_OID (mensaje: f-uEI7(qW1)
-         k_finr_clsf_oid     ft_t_frcl.finr_clsf_oid%TYPE,                    -- FT_T_FRCL.FINR_CLSF_OID (no viene en el mensaje)
-         k_rlt_oid           register_log_table.rlt_oid%TYPE                  -- REGISTER_LOG_TABLE.RLT_OID (no viene en el mensaje)
+         k_fins_id               ft_t_fins.pref_fins_id%TYPE,                     -- FT_T_FINS.PREF_FINS_ID (GET_IDENTIFIER_ID('FINS'), D-041)
+         k_inst_mnem             ft_t_fins.inst_mnem%TYPE,                        -- FT_T_FINS.INST_MNEM (mensaje: f-uBI7(qW1)
+         k_stat_id               ft_t_fist.stat_id%TYPE,                          -- FT_T_FIST.STAT_ID (no viene en el mensaje)
+         k_figu_oid              ft_t_figu.figu_oid%TYPE,                         -- FT_T_FIGU.FIGU_OID (no viene en el mensaje)
+         k_stat_id_2             ft_t_fist.stat_id%TYPE,                          -- FT_T_FIST.STAT_ID (no viene en el mensaje)
+         k_flg_oid               financial_legal_names.flg_oid%TYPE,              -- FINANCIAL_LEGAL_NAMES.FLG_OID (mensaje: f-uFI7(qW1)
+         k_cross_ref_id          ft_t_finr.cross_ref_id%TYPE,                     -- FT_T_FINR.CROSS_REF_ID (no viene en el mensaje)
+         k_finr_oid              ft_t_finr.finr_oid%TYPE,                         -- FT_T_FINR.FINR_OID (mensaje: f-uCI7(qW1)
+         k_firl_oid              ft_t_firl.firl_oid%TYPE,                         -- FT_T_FIRL.FIRL_OID (no viene en el mensaje)
+         k_enfr_oid              ft_t_enfr.enfr_oid%TYPE,                         -- FT_T_ENFR.ENFR_OID (mensaje: f-uDI7(qW1)
+         k_enfr_oid_2            ft_t_enfr.enfr_oid%TYPE,                         -- FT_T_ENFR.ENFR_OID (mensaje: f-uEI7(qW1)
+         k_finr_clsf_oid         ft_t_frcl.finr_clsf_oid%TYPE,                    -- FT_T_FRCL.FINR_CLSF_OID (no viene en el mensaje)
+         k_fiid_oid              ft_t_fiid.fiid_oid%TYPE,                         -- FT_T_FIID.FIID_OID (no viene en el mensaje)
+         k_rlt_oid               register_log_table.rlt_oid%TYPE                  -- REGISTER_LOG_TABLE.RLT_OID (no viene en el mensaje)
       );
       TYPE t_lista_claves IS TABLE OF t_claves INDEX BY PLS_INTEGER;
 
@@ -1523,17 +1529,20 @@ AS
       -- 2. Claves internas nuevas para cada entidad
       -------------------------------------------------------------------------
       FOR i IN 1 .. p_cantidad LOOP
-         l_k(i).k_inst_mnem         := nuevo_oid;
-         l_k(i).k_stat_id           := nuevo_oid;
-         l_k(i).k_figu_oid          := nuevo_oid;
-         l_k(i).k_stat_id_2         := nuevo_oid;
-         l_k(i).k_flg_oid           := nuevo_oid;
-         l_k(i).k_finr_oid          := nuevo_oid;
-         l_k(i).k_firl_oid          := nuevo_oid;
-         l_k(i).k_enfr_oid          := nuevo_oid;
-         l_k(i).k_enfr_oid_2        := nuevo_oid;
-         l_k(i).k_finr_clsf_oid     := nuevo_oid;
-         l_k(i).k_rlt_oid           := nuevo_oid;
+         get_identifier_id('FINS', l_k(i).k_fins_id);   -- FT_T_FINS.PREF_FINS_ID (D-041)
+         l_k(i).k_inst_mnem             := nuevo_oid;
+         l_k(i).k_stat_id               := nuevo_oid;
+         l_k(i).k_figu_oid              := nuevo_oid;
+         l_k(i).k_stat_id_2             := nuevo_oid;
+         l_k(i).k_flg_oid               := nuevo_oid;
+         l_k(i).k_cross_ref_id          := nuevo_oid;
+         l_k(i).k_finr_oid              := nuevo_oid;
+         l_k(i).k_firl_oid              := nuevo_oid;
+         l_k(i).k_enfr_oid              := nuevo_oid;
+         l_k(i).k_enfr_oid_2            := nuevo_oid;
+         l_k(i).k_finr_clsf_oid         := nuevo_oid;
+         l_k(i).k_fiid_oid              := nuevo_oid;
+         l_k(i).k_rlt_oid               := nuevo_oid;
       END LOOP;
 
       SAVEPOINT sp_contrapartida_global;
@@ -1542,6 +1551,7 @@ AS
       -- 3. Inserciones: un FORALL por segmento del mensaje, en su orden
       -------------------------------------------------------------------------
       -- Segmento #1 FinancialInstitution (INSERT) -> FT_T_FINS
+      --   Motor: CFTIConstrPrefId: PREF_FINS_ID_CTXT_TYP/PREF_FINS_ID = FINSID interno
       FORALL i IN 1 .. l_k.COUNT
          INSERT INTO ft_t_fins (
              inst_mnem,
@@ -1550,21 +1560,25 @@ AS
              last_chg_usr_id,
              inst_nme,
              inst_desc,
+             pref_fins_id_ctxt_typ,
+             pref_fins_id,
              inst_founding_dte,
              data_stat_typ,
              data_src_id,
              inst_legal_nme)
          VALUES (
-             l_k(i).k_inst_mnem,                        -- INST_MNEM         <- INSTMNEM = f-uBI7(qW1 (clave nueva)
-             l_ahora,                                   -- START_TMS         <- STARTTMS (momento de la llamada)
-             l_ahora,                                   -- LAST_CHG_TMS      <- LASTCHGTMS (momento de la llamada)
-             c_usuario,                                 -- LAST_CHG_USR_ID   <- LASTCHGUSRID (marca sintética)
-             'PROBANDO',                                -- INST_NME          <- INSTNME
-             'PROBANDO',                                -- INST_DESC         <- INSTDESC
-             TO_DATE('2026-09-29 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), -- INST_FOUNDING_DTE <- INSTFOUNDINGDTE
-             'ACTIVE',                                  -- DATA_STAT_TYP     <- DATASTATTYP
-             'RDR',                                     -- DATA_SRC_ID       <- DATASRCID
-             'PROBANDO'                                 -- INST_LEGAL_NME    <- INSTLEGALNME
+             l_k(i).k_inst_mnem,                        -- INST_MNEM             <- INSTMNEM = f-uBI7(qW1 (clave nueva)
+             l_ahora,                                   -- START_TMS             <- STARTTMS (momento de la llamada)
+             l_ahora,                                   -- LAST_CHG_TMS          <- LASTCHGTMS (momento de la llamada)
+             c_usuario,                                 -- LAST_CHG_USR_ID       <- LASTCHGUSRID (marca sintética)
+             'PROBANDO',                                -- INST_NME              <- INSTNME
+             'PROBANDO',                                -- INST_DESC             <- INSTDESC
+             'FINSID',                                  -- PREF_FINS_ID_CTXT_TYP <- PREFFINSIDCTXTTYP
+             l_k(i).k_fins_id,                          -- PREF_FINS_ID          <- PREFFINSID = GET_IDENTIFIER_ID('FINS') (motor, D-041)
+             TO_DATE('2026-09-29 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), -- INST_FOUNDING_DTE     <- INSTFOUNDINGDTE
+             'ACTIVE',                                  -- DATA_STAT_TYP         <- DATASTATTYP
+             'RDR',                                     -- DATA_SRC_ID           <- DATASRCID
+             'PROBANDO'                                 -- INST_LEGAL_NME        <- INSTLEGALNME
          );
       FORALL i IN 1 .. l_k.COUNT   -- clave en SINT_REGISTRO para el borrado rápido (D-024)
          INSERT INTO sint_registro (tabla, columna_pk, clave, entidad)
@@ -1583,15 +1597,15 @@ AS
              data_stat_typ,
              data_src_id)
          VALUES (
-             l_k(i).k_stat_id,                          -- STAT_ID           <- clave nueva (NEW_OID)
-             'UKFIRM',                                  -- STAT_DEF_ID       <- STATDEFID
-             l_k(i).k_inst_mnem,                        -- INST_MNEM         <- INSTMNEM = f-uBI7(qW1 (clave nueva)
-             l_ahora,                                   -- START_TMS         <- STARTTMS (momento de la llamada)
-             l_ahora,                                   -- LAST_CHG_TMS      <- LASTCHGTMS (momento de la llamada)
-             c_usuario,                                 -- LAST_CHG_USR_ID   <- LASTCHGUSRID (marca sintética)
-             'Y',                                       -- STAT_CHAR_VAL_TXT <- STATCHARVALTXT
-             'ACTIVE',                                  -- DATA_STAT_TYP     <- DATASTATTYP
-             'RDR'                                      -- DATA_SRC_ID       <- DATASRCID
+             l_k(i).k_stat_id,                          -- STAT_ID               <- clave nueva (NEW_OID)
+             'UKFIRM',                                  -- STAT_DEF_ID           <- STATDEFID
+             l_k(i).k_inst_mnem,                        -- INST_MNEM             <- INSTMNEM = f-uBI7(qW1 (clave nueva)
+             l_ahora,                                   -- START_TMS             <- STARTTMS (momento de la llamada)
+             l_ahora,                                   -- LAST_CHG_TMS          <- LASTCHGTMS (momento de la llamada)
+             c_usuario,                                 -- LAST_CHG_USR_ID       <- LASTCHGUSRID (marca sintética)
+             'Y',                                       -- STAT_CHAR_VAL_TXT     <- STATCHARVALTXT
+             'ACTIVE',                                  -- DATA_STAT_TYP         <- DATASTATTYP
+             'RDR'                                      -- DATA_SRC_ID           <- DATASRCID
          );
       FORALL i IN 1 .. l_k.COUNT   -- clave en SINT_REGISTRO para el borrado rápido (D-024)
          INSERT INTO sint_registro (tabla, columna_pk, clave, entidad)
@@ -1613,18 +1627,18 @@ AS
              data_src_id,
              gunt_oid)
          VALUES (
-             l_k(i).k_figu_oid,                         -- FIGU_OID          <- clave nueva (NEW_OID)
-             l_k(i).k_inst_mnem,                        -- INST_MNEM         <- INSTMNEM = f-uBI7(qW1 (clave nueva)
-             'AF',                                      -- GU_ID             <- GUID
-             'COUNTRY',                                 -- GU_TYP            <- GUTYP
-             1,                                         -- GU_CNT            <- GUCNT
-             'STSMNTCT',                                -- FINS_GU_PURP_TYP  <- FINSGUPURPTYP
-             l_ahora,                                   -- START_TMS         <- STARTTMS (momento de la llamada)
-             l_ahora,                                   -- LAST_CHG_TMS      <- LASTCHGTMS (momento de la llamada)
-             c_usuario,                                 -- LAST_CHG_USR_ID   <- LASTCHGUSRID (marca sintética)
-             'ACTIVE',                                  -- DATA_STAT_TYP     <- DATASTATTYP
-             'RDR',                                     -- DATA_SRC_ID       <- DATASRCID
-             'GUNT3B2==='                               -- GUNT_OID          <- GUNTOID
+             l_k(i).k_figu_oid,                         -- FIGU_OID              <- clave nueva (NEW_OID)
+             l_k(i).k_inst_mnem,                        -- INST_MNEM             <- INSTMNEM = f-uBI7(qW1 (clave nueva)
+             'AF',                                      -- GU_ID                 <- GUID
+             'COUNTRY',                                 -- GU_TYP                <- GUTYP
+             1,                                         -- GU_CNT                <- GUCNT
+             'STSMNTCT',                                -- FINS_GU_PURP_TYP      <- FINSGUPURPTYP
+             l_ahora,                                   -- START_TMS             <- STARTTMS (momento de la llamada)
+             l_ahora,                                   -- LAST_CHG_TMS          <- LASTCHGTMS (momento de la llamada)
+             c_usuario,                                 -- LAST_CHG_USR_ID       <- LASTCHGUSRID (marca sintética)
+             'ACTIVE',                                  -- DATA_STAT_TYP         <- DATASTATTYP
+             'RDR',                                     -- DATA_SRC_ID           <- DATASRCID
+             'GUNT3B2==='                               -- GUNT_OID              <- GUNTOID
          );
       FORALL i IN 1 .. l_k.COUNT   -- clave en SINT_REGISTRO para el borrado rápido (D-024)
          INSERT INTO sint_registro (tabla, columna_pk, clave, entidad)
@@ -1643,15 +1657,15 @@ AS
              data_stat_typ,
              data_src_id)
          VALUES (
-             l_k(i).k_stat_id_2,                        -- STAT_ID           <- clave nueva (NEW_OID)
-             'MIFIFIRM',                                -- STAT_DEF_ID       <- STATDEFID
-             l_k(i).k_inst_mnem,                        -- INST_MNEM         <- INSTMNEM = f-uBI7(qW1 (clave nueva)
-             l_ahora,                                   -- START_TMS         <- STARTTMS (momento de la llamada)
-             l_ahora,                                   -- LAST_CHG_TMS      <- LASTCHGTMS (momento de la llamada)
-             c_usuario,                                 -- LAST_CHG_USR_ID   <- LASTCHGUSRID (marca sintética)
-             'Y',                                       -- STAT_CHAR_VAL_TXT <- STATCHARVALTXT
-             'ACTIVE',                                  -- DATA_STAT_TYP     <- DATASTATTYP
-             'RDR'                                      -- DATA_SRC_ID       <- DATASRCID
+             l_k(i).k_stat_id_2,                        -- STAT_ID               <- clave nueva (NEW_OID)
+             'MIFIFIRM',                                -- STAT_DEF_ID           <- STATDEFID
+             l_k(i).k_inst_mnem,                        -- INST_MNEM             <- INSTMNEM = f-uBI7(qW1 (clave nueva)
+             l_ahora,                                   -- START_TMS             <- STARTTMS (momento de la llamada)
+             l_ahora,                                   -- LAST_CHG_TMS          <- LASTCHGTMS (momento de la llamada)
+             c_usuario,                                 -- LAST_CHG_USR_ID       <- LASTCHGUSRID (marca sintética)
+             'Y',                                       -- STAT_CHAR_VAL_TXT     <- STATCHARVALTXT
+             'ACTIVE',                                  -- DATA_STAT_TYP         <- DATASTATTYP
+             'RDR'                                      -- DATA_SRC_ID           <- DATASRCID
          );
       FORALL i IN 1 .. l_k.COUNT   -- clave en SINT_REGISTRO para el borrado rápido (D-024)
          INSERT INTO sint_registro (tabla, columna_pk, clave, entidad)
@@ -1669,26 +1683,28 @@ AS
              data_src_id,
              data_stat_typ)
          VALUES (
-             l_k(i).k_flg_oid,                          -- FLG_OID           <- FLGOID = f-uFI7(qW1 (clave nueva)
-             'PROBANDO',                                -- FLG_LEGAL_NME     <- FLGLEGALNME
-             l_k(i).k_inst_mnem,                        -- INST_MNEM         <- INSTMNEM = f-uBI7(qW1 (clave nueva)
-             l_ahora,                                   -- START_TMS         <- STARTTMS (momento de la llamada)
-             l_ahora,                                   -- LAST_CHG_TMS      <- LASTCHGTMS (momento de la llamada)
-             c_usuario,                                 -- LAST_CHG_USR_ID   <- LASTCHGUSRID (marca sintética)
-             'ABACO',                                   -- DATA_SRC_ID       <- DATASRCID
-             'ACTIVE'                                   -- DATA_STAT_TYP     <- DATASTATTYP
+             l_k(i).k_flg_oid,                          -- FLG_OID               <- FLGOID = f-uFI7(qW1 (clave nueva)
+             'PROBANDO',                                -- FLG_LEGAL_NME         <- FLGLEGALNME
+             l_k(i).k_inst_mnem,                        -- INST_MNEM             <- INSTMNEM = f-uBI7(qW1 (clave nueva)
+             l_ahora,                                   -- START_TMS             <- STARTTMS (momento de la llamada)
+             l_ahora,                                   -- LAST_CHG_TMS          <- LASTCHGTMS (momento de la llamada)
+             c_usuario,                                 -- LAST_CHG_USR_ID       <- LASTCHGUSRID (marca sintética)
+             'ABACO',                                   -- DATA_SRC_ID           <- DATASRCID
+             'ACTIVE'                                   -- DATA_STAT_TYP         <- DATASTATTYP
          );
       FORALL i IN 1 .. l_k.COUNT   -- clave en SINT_REGISTRO para el borrado rápido (D-024)
          INSERT INTO sint_registro (tabla, columna_pk, clave, entidad)
          VALUES ('FINANCIAL_LEGAL_NAMES', 'FLG_OID', l_k(i).k_flg_oid, c_entidad);
 
       -- Segmento #8 FINSFinancialInstitutionRole (INSERT) -> FT_T_FINR
+      --   Motor: Motor (núcleo): FINR.CROSS_REF_ID = OID nuevo
       FORALL i IN 1 .. l_k.COUNT
          INSERT INTO ft_t_finr (
              inst_mnem,
              finsrl_typ,
              last_chg_tms,
              last_chg_usr_id,
+             cross_ref_id,
              start_tms,
              pref_id_ctxt_typ,
              data_stat_typ,
@@ -1696,16 +1712,17 @@ AS
              finsrl_sub_typ,
              finr_oid)
          VALUES (
-             l_k(i).k_inst_mnem,                        -- INST_MNEM         <- INSTMNEM = f-uBI7(qW1 (clave nueva)
-             'INDVDUAL',                                -- FINSRL_TYP        <- FINSRLTYP
-             l_ahora,                                   -- LAST_CHG_TMS      <- LASTCHGTMS (momento de la llamada)
-             c_usuario,                                 -- LAST_CHG_USR_ID   <- LASTCHGUSRID (marca sintética)
-             l_ahora,                                   -- START_TMS         <- STARTTMS (momento de la llamada)
-             'Y',                                       -- PREF_ID_CTXT_TYP  <- PREFIDCTXTTYP
-             'ACTIVE',                                  -- DATA_STAT_TYP     <- DATASTATTYP
-             'RDR',                                     -- DATA_SRC_ID       <- DATASRCID
-             'BUSINESS',                                -- FINSRL_SUB_TYP    <- FINSRLSUBTYP
-             l_k(i).k_finr_oid                          -- FINR_OID          <- FINROID = f-uCI7(qW1 (clave nueva)
+             l_k(i).k_inst_mnem,                        -- INST_MNEM             <- INSTMNEM = f-uBI7(qW1 (clave nueva)
+             'INDVDUAL',                                -- FINSRL_TYP            <- FINSRLTYP
+             l_ahora,                                   -- LAST_CHG_TMS          <- LASTCHGTMS (momento de la llamada)
+             c_usuario,                                 -- LAST_CHG_USR_ID       <- LASTCHGUSRID (marca sintética)
+             l_k(i).k_cross_ref_id,                     -- CROSS_REF_ID          <- CROSSREFID = OID nuevo (motor, D-041)
+             l_ahora,                                   -- START_TMS             <- STARTTMS (momento de la llamada)
+             'Y',                                       -- PREF_ID_CTXT_TYP      <- PREFIDCTXTTYP
+             'ACTIVE',                                  -- DATA_STAT_TYP         <- DATASTATTYP
+             'RDR',                                     -- DATA_SRC_ID           <- DATASRCID
+             'BUSINESS',                                -- FINSRL_SUB_TYP        <- FINSRLSUBTYP
+             l_k(i).k_finr_oid                          -- FINR_OID              <- FINROID = f-uCI7(qW1 (clave nueva)
          );
       FORALL i IN 1 .. l_k.COUNT   -- clave en SINT_REGISTRO para el borrado rápido (D-024)
          INSERT INTO sint_registro (tabla, columna_pk, clave, entidad)
@@ -1726,27 +1743,29 @@ AS
              data_src_id,
              finr_oid)
          VALUES (
-             l_k(i).k_firl_oid,                         -- FIRL_OID          <- clave nueva (NEW_OID)
-             l_k(i).k_inst_mnem,                        -- PRNT_INST_MNEM    <- PRNTINSTMNEM = f-uBI7(qW1 (clave nueva)
-             l_k(i).k_inst_mnem,                        -- INST_MNEM         <- INSTMNEM = f-uBI7(qW1 (clave nueva)
-             'INDVDUAL',                                -- FINSRL_TYP        <- FINSRLTYP
-             'GLOBAL',                                  -- REL_TYP           <- RELTYP
-             l_ahora,                                   -- START_TMS         <- STARTTMS (momento de la llamada)
-             l_ahora,                                   -- LAST_CHG_TMS      <- LASTCHGTMS (momento de la llamada)
-             c_usuario,                                 -- LAST_CHG_USR_ID   <- LASTCHGUSRID (marca sintética)
-             'ACTIVE',                                  -- DATA_STAT_TYP     <- DATASTATTYP
-             'RDR',                                     -- DATA_SRC_ID       <- DATASRCID
-             l_k(i).k_finr_oid                          -- FINR_OID          <- FINROID = f-uCI7(qW1 (clave nueva)
+             l_k(i).k_firl_oid,                         -- FIRL_OID              <- clave nueva (NEW_OID)
+             l_k(i).k_inst_mnem,                        -- PRNT_INST_MNEM        <- PRNTINSTMNEM = f-uBI7(qW1 (clave nueva)
+             l_k(i).k_inst_mnem,                        -- INST_MNEM             <- INSTMNEM = f-uBI7(qW1 (clave nueva)
+             'INDVDUAL',                                -- FINSRL_TYP            <- FINSRLTYP
+             'GLOBAL',                                  -- REL_TYP               <- RELTYP
+             l_ahora,                                   -- START_TMS             <- STARTTMS (momento de la llamada)
+             l_ahora,                                   -- LAST_CHG_TMS          <- LASTCHGTMS (momento de la llamada)
+             c_usuario,                                 -- LAST_CHG_USR_ID       <- LASTCHGUSRID (marca sintética)
+             'ACTIVE',                                  -- DATA_STAT_TYP         <- DATASTATTYP
+             'RDR',                                     -- DATA_SRC_ID           <- DATASRCID
+             l_k(i).k_finr_oid                          -- FINR_OID              <- FINROID = f-uCI7(qW1 (clave nueva)
          );
       FORALL i IN 1 .. l_k.COUNT   -- clave en SINT_REGISTRO para el borrado rápido (D-024)
          INSERT INTO sint_registro (tabla, columna_pk, clave, entidad)
          VALUES ('FT_T_FIRL', 'FIRL_OID', l_k(i).k_firl_oid, c_entidad);
 
       -- Segmento #10 FINREnterpriseFinancialInstitutionRole (INSERT) -> FT_T_ENFR
+      --   Motor: Motor (núcleo): ENFR.INST_MNEM = FINR_INST_MNEM
       FORALL i IN 1 .. l_k.COUNT
          INSERT INTO ft_t_enfr (
              enfr_oid,
              org_id,
+             inst_mnem,
              finr_inst_mnem,
              finsrl_typ,
              enfr_rl_typ,
@@ -1757,27 +1776,30 @@ AS
              data_src_id,
              finr_oid)
          VALUES (
-             l_k(i).k_enfr_oid,                         -- ENFR_OID          <- ENFROID = f-uDI7(qW1 (clave nueva)
-             '0182',                                    -- ORG_ID            <- ORGID
-             l_k(i).k_inst_mnem,                        -- FINR_INST_MNEM    <- FINRINSTMNEM = f-uBI7(qW1 (clave nueva)
-             'INDVDUAL',                                -- FINSRL_TYP        <- FINSRLTYP
-             'ENT_OWN',                                 -- ENFR_RL_TYP       <- ENFRRLTYP
-             l_ahora,                                   -- START_TMS         <- STARTTMS (momento de la llamada)
-             l_ahora,                                   -- LAST_CHG_TMS      <- LASTCHGTMS (momento de la llamada)
-             c_usuario,                                 -- LAST_CHG_USR_ID   <- LASTCHGUSRID (marca sintética)
-             'ACTIVE',                                  -- DATA_STAT_TYP     <- DATASTATTYP
-             'RDR',                                     -- DATA_SRC_ID       <- DATASRCID
-             l_k(i).k_finr_oid                          -- FINR_OID          <- FINROID = f-uCI7(qW1 (clave nueva)
+             l_k(i).k_enfr_oid,                         -- ENFR_OID              <- ENFROID = f-uDI7(qW1 (clave nueva)
+             '0182',                                    -- ORG_ID                <- ORGID
+             l_k(i).k_inst_mnem,                        -- INST_MNEM             <- INSTMNEM = f-uBI7(qW1 (clave nueva)
+             l_k(i).k_inst_mnem,                        -- FINR_INST_MNEM        <- FINRINSTMNEM = f-uBI7(qW1 (clave nueva)
+             'INDVDUAL',                                -- FINSRL_TYP            <- FINSRLTYP
+             'ENT_OWN',                                 -- ENFR_RL_TYP           <- ENFRRLTYP
+             l_ahora,                                   -- START_TMS             <- STARTTMS (momento de la llamada)
+             l_ahora,                                   -- LAST_CHG_TMS          <- LASTCHGTMS (momento de la llamada)
+             c_usuario,                                 -- LAST_CHG_USR_ID       <- LASTCHGUSRID (marca sintética)
+             'ACTIVE',                                  -- DATA_STAT_TYP         <- DATASTATTYP
+             'RDR',                                     -- DATA_SRC_ID           <- DATASRCID
+             l_k(i).k_finr_oid                          -- FINR_OID              <- FINROID = f-uCI7(qW1 (clave nueva)
          );
       FORALL i IN 1 .. l_k.COUNT   -- clave en SINT_REGISTRO para el borrado rápido (D-024)
          INSERT INTO sint_registro (tabla, columna_pk, clave, entidad)
          VALUES ('FT_T_ENFR', 'ENFR_OID', l_k(i).k_enfr_oid, c_entidad);
 
       -- Segmento #11 FINREnterpriseFinancialInstitutionRole (INSERT) -> FT_T_ENFR
+      --   Motor: Motor (núcleo): ENFR.INST_MNEM = FINR_INST_MNEM
       FORALL i IN 1 .. l_k.COUNT
          INSERT INTO ft_t_enfr (
              enfr_oid,
              org_id,
+             inst_mnem,
              finr_inst_mnem,
              finsrl_typ,
              enfr_rl_typ,
@@ -1788,17 +1810,18 @@ AS
              data_src_id,
              finr_oid)
          VALUES (
-             l_k(i).k_enfr_oid_2,                       -- ENFR_OID          <- ENFROID = f-uEI7(qW1 (clave nueva)
-             'A18',                                     -- ORG_ID            <- ORGID
-             l_k(i).k_inst_mnem,                        -- FINR_INST_MNEM    <- FINRINSTMNEM = f-uBI7(qW1 (clave nueva)
-             'INDVDUAL',                                -- FINSRL_TYP        <- FINSRLTYP
-             'BRANCH_OWN',                              -- ENFR_RL_TYP       <- ENFRRLTYP
-             l_ahora,                                   -- START_TMS         <- STARTTMS (momento de la llamada)
-             l_ahora,                                   -- LAST_CHG_TMS      <- LASTCHGTMS (momento de la llamada)
-             c_usuario,                                 -- LAST_CHG_USR_ID   <- LASTCHGUSRID (marca sintética)
-             'ACTIVE',                                  -- DATA_STAT_TYP     <- DATASTATTYP
-             'RDR',                                     -- DATA_SRC_ID       <- DATASRCID
-             l_k(i).k_finr_oid                          -- FINR_OID          <- FINROID = f-uCI7(qW1 (clave nueva)
+             l_k(i).k_enfr_oid_2,                       -- ENFR_OID              <- ENFROID = f-uEI7(qW1 (clave nueva)
+             'A18',                                     -- ORG_ID                <- ORGID
+             l_k(i).k_inst_mnem,                        -- INST_MNEM             <- INSTMNEM = f-uBI7(qW1 (clave nueva)
+             l_k(i).k_inst_mnem,                        -- FINR_INST_MNEM        <- FINRINSTMNEM = f-uBI7(qW1 (clave nueva)
+             'INDVDUAL',                                -- FINSRL_TYP            <- FINSRLTYP
+             'BRANCH_OWN',                              -- ENFR_RL_TYP           <- ENFRRLTYP
+             l_ahora,                                   -- START_TMS             <- STARTTMS (momento de la llamada)
+             l_ahora,                                   -- LAST_CHG_TMS          <- LASTCHGTMS (momento de la llamada)
+             c_usuario,                                 -- LAST_CHG_USR_ID       <- LASTCHGUSRID (marca sintética)
+             'ACTIVE',                                  -- DATA_STAT_TYP         <- DATASTATTYP
+             'RDR',                                     -- DATA_SRC_ID           <- DATASRCID
+             l_k(i).k_finr_oid                          -- FINR_OID              <- FINROID = f-uCI7(qW1 (clave nueva)
          );
       FORALL i IN 1 .. l_k.COUNT   -- clave en SINT_REGISTRO para el borrado rápido (D-024)
          INSERT INTO sint_registro (tabla, columna_pk, clave, entidad)
@@ -1820,24 +1843,52 @@ AS
              data_src_id,
              finr_oid)
          VALUES (
-             l_k(i).k_finr_clsf_oid,                    -- FINR_CLSF_OID     <- clave nueva (NEW_OID)
-             l_k(i).k_inst_mnem,                        -- INST_MNEM         <- INSTMNEM = f-uBI7(qW1 (clave nueva)
-             'INDVDUAL',                                -- FINSRL_TYP        <- FINSRLTYP
-             'TPFINF',                                  -- INDUS_CL_SET_ID   <- INDUSCLSETID
-             '=002DCDB88',                              -- CLSF_OID          <- CLSFOID
-             'FINANCIAL',                               -- CL_VALUE          <- CLVALUE
-             l_ahora,                                   -- START_TMS         <- STARTTMS (momento de la llamada)
-             l_ahora,                                   -- LAST_CHG_TMS      <- LASTCHGTMS (momento de la llamada)
-             c_usuario,                                 -- LAST_CHG_USR_ID   <- LASTCHGUSRID (marca sintética)
-             'ACTIVE',                                  -- DATA_STAT_TYP     <- DATASTATTYP
-             'RDR',                                     -- DATA_SRC_ID       <- DATASRCID
-             l_k(i).k_finr_oid                          -- FINR_OID          <- FINROID = f-uCI7(qW1 (clave nueva)
+             l_k(i).k_finr_clsf_oid,                    -- FINR_CLSF_OID         <- clave nueva (NEW_OID)
+             l_k(i).k_inst_mnem,                        -- INST_MNEM             <- INSTMNEM = f-uBI7(qW1 (clave nueva)
+             'INDVDUAL',                                -- FINSRL_TYP            <- FINSRLTYP
+             'TPFINF',                                  -- INDUS_CL_SET_ID       <- INDUSCLSETID
+             '=002DCDB88',                              -- CLSF_OID              <- CLSFOID
+             'FINANCIAL',                               -- CL_VALUE              <- CLVALUE
+             l_ahora,                                   -- START_TMS             <- STARTTMS (momento de la llamada)
+             l_ahora,                                   -- LAST_CHG_TMS          <- LASTCHGTMS (momento de la llamada)
+             c_usuario,                                 -- LAST_CHG_USR_ID       <- LASTCHGUSRID (marca sintética)
+             'ACTIVE',                                  -- DATA_STAT_TYP         <- DATASTATTYP
+             'RDR',                                     -- DATA_SRC_ID           <- DATASRCID
+             l_k(i).k_finr_oid                          -- FINR_OID              <- FINROID = f-uCI7(qW1 (clave nueva)
          );
       FORALL i IN 1 .. l_k.COUNT   -- clave en SINT_REGISTRO para el borrado rápido (D-024)
          INSERT INTO sint_registro (tabla, columna_pk, clave, entidad)
          VALUES ('FT_T_FRCL', 'FINR_CLSF_OID', l_k(i).k_finr_clsf_oid, c_entidad);
 
-      -- Segmento #14 RegisterLogTable (INSERT) -> REGISTER_LOG_TABLE
+      -- Segmento #14 FinancialInstitutionIdentifier (INSERT) -> FT_T_FIID
+      --   Motor: CFTIInternalIdentifierCreator: FT_T_FIID FINSID nuevo (GET_IDENTIFIER_ID) para la entidad del segmento #1
+      FORALL i IN 1 .. l_k.COUNT
+         INSERT INTO ft_t_fiid (
+             fiid_oid,
+             inst_mnem,
+             fins_id_ctxt_typ,
+             fins_id,
+             start_tms,
+             last_chg_tms,
+             last_chg_usr_id,
+             data_stat_typ,
+             global_uniq_ind)
+         VALUES (
+             l_k(i).k_fiid_oid,                         -- FIID_OID              <- clave nueva (NEW_OID)
+             l_k(i).k_inst_mnem,                        -- INST_MNEM             <- INSTMNEM = f-uBI7(qW1 (clave nueva)
+             'FINSID',                                  -- FINS_ID_CTXT_TYP      <- FINSIDCTXTTYP
+             l_k(i).k_fins_id,                          -- FINS_ID               <- FINSID = GET_IDENTIFIER_ID('FINS') (motor, D-041)
+             l_ahora,                                   -- START_TMS             <- técnico (no viene en el mensaje)
+             l_ahora,                                   -- LAST_CHG_TMS          <- técnico (no viene en el mensaje)
+             c_usuario,                                 -- LAST_CHG_USR_ID       <- técnico (no viene en el mensaje)
+             'ACTIVE',                                  -- DATA_STAT_TYP         <- DATASTATTYP
+             'N'                                        -- GLOBAL_UNIQ_IND       <- GLOBALUNIQIND
+         );
+      FORALL i IN 1 .. l_k.COUNT   -- clave en SINT_REGISTRO para el borrado rápido (D-024)
+         INSERT INTO sint_registro (tabla, columna_pk, clave, entidad)
+         VALUES ('FT_T_FIID', 'FIID_OID', l_k(i).k_fiid_oid, c_entidad);
+
+      -- Segmento #15 RegisterLogTable (INSERT) -> REGISTER_LOG_TABLE
       --   Motor: CheckDatosRegulatorios: fila añadida por el workflow CheckDatosRegulatorios (fase 2, D-034)
       FORALL i IN 1 .. l_k.COUNT
          INSERT INTO register_log_table (
@@ -1856,20 +1907,20 @@ AS
              last_chg_tms,
              last_chg_usr_id)
          VALUES (
-             l_k(i).k_rlt_oid,                          -- RLT_OID           <- clave nueva (NEW_OID)
-             1,                                         -- RECORD_SEQ_NUM    <- RECORDSEQNUM
-             'Control del calculo de datos regulatorios', -- MESSAGE_RLT       <- MESSAGERLT
-             'CONTROLDR',                               -- RLT_PURP_TYP      <- RLTPURPTYP
-             'CALCULODR',                               -- DATA_SRC_APP      <- DATASRCAPP
-             'CALCULO',                                 -- SRC_FIELD         <- SRCFIELD
-             'true',                                    -- SRC_VALUE         <- SRCVALUE
-             'REL_TYP',                                 -- GS_FIELD          <- GSFIELD
-             'GLOBAL',                                  -- GS_VALUE          <- GSVALUE
-             'FT_T_FIID.INST_MNEM',                     -- MAIN_ENTITY_NME   <- MAINENTITYNME
-             l_k(i).k_inst_mnem,                        -- MAIN_ENTITY_ID    <- MAINENTITYID = f-uBI7(qW1 (clave nueva)
-             l_ahora,                                   -- START_TMS         <- técnico (no viene en el mensaje)
-             l_ahora,                                   -- LAST_CHG_TMS      <- técnico (no viene en el mensaje)
-             c_usuario                                  -- LAST_CHG_USR_ID   <- LASTCHGUSRID (marca sintética)
+             l_k(i).k_rlt_oid,                          -- RLT_OID               <- clave nueva (NEW_OID)
+             1,                                         -- RECORD_SEQ_NUM        <- RECORDSEQNUM
+             'Control del calculo de datos regulatorios', -- MESSAGE_RLT           <- MESSAGERLT
+             'CONTROLDR',                               -- RLT_PURP_TYP          <- RLTPURPTYP
+             'CALCULODR',                               -- DATA_SRC_APP          <- DATASRCAPP
+             'CALCULO',                                 -- SRC_FIELD             <- SRCFIELD
+             'true',                                    -- SRC_VALUE             <- SRCVALUE
+             'REL_TYP',                                 -- GS_FIELD              <- GSFIELD
+             'GLOBAL',                                  -- GS_VALUE              <- GSVALUE
+             'FT_T_FIID.INST_MNEM',                     -- MAIN_ENTITY_NME       <- MAINENTITYNME
+             l_k(i).k_inst_mnem,                        -- MAIN_ENTITY_ID        <- MAINENTITYID = f-uBI7(qW1 (clave nueva)
+             l_ahora,                                   -- START_TMS             <- técnico (no viene en el mensaje)
+             l_ahora,                                   -- LAST_CHG_TMS          <- técnico (no viene en el mensaje)
+             c_usuario                                  -- LAST_CHG_USR_ID       <- LASTCHGUSRID (marca sintética)
          );
       FORALL i IN 1 .. l_k.COUNT   -- clave en SINT_REGISTRO para el borrado rápido (D-024)
          INSERT INTO sint_registro (tabla, columna_pk, clave, entidad)
